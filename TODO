@@ -1,0 +1,11 @@
+1. Install Apache Oozie and Hadoop.
+2. Create Hadoop tasks that can be controlled to take a certain computation time
+and to produce output of a certain size.
+3. Test a simple workflow that uses the tasks defined above.
+4. Define how to name workflow intermediate datasets based on provenance.
+5. Explore what is the best way to recreate the Oozie REST API.
+6. Create the Accounting Module. Design the data modeling of what is needed
+for accounting. Probably use No-sql database.
+7. Create the Execution Module that submits the workflows to Oozie.
+8. Create the Decision Module that reads from the Accounting Module.
+9. Create the Actuator Module (if needed).

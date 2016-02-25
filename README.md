@@ -25,6 +25,7 @@ The system is made of three main components:
 1. A replica of the Oozie REST API.
 2. An Accounting Module that keeps statistics on the submission and execution of workflows by the system.
 3. An Decision Module that at any given workflow submission in time determines which new *intermediate datasets* should be stored and which stored *intermediate datasets* should be deleted in order to optimize the computation time of future workflow submissions.
+4. The Execution Module. It takes care of submitting to Oozie the workflows submitted by the users for execution. It introduces into the workflow definitions some transformations that are irrelevant to the end user.
 4. An Actuator Module that takes care of storing and removing datasets.
 
 ## Replica of the Oozie REST API.
