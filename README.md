@@ -19,7 +19,9 @@ framework that will make easy to *develop* and *evaluate* optimization/decision 
 We have decided to design the system as a wrapper around [Apache Oozie](https://oozie.apache.org) since Oozie is a very mature and scalable system being used in production in many different settings.
 
 # Description of the System
+
 The system is made of three main components: 
+
 1. A replica of the Oozie REST API.
 2. An Accounting Module that keeps statistics on the submission and execution of workflows by the system.
 3. An Decision Module that at any given workflow submission in time determines which new *intermediate datasets* should be stored and which stored *intermediate datasets* should be deleted in order to optimize the computation time of future workflow submissions.
