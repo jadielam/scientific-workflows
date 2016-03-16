@@ -56,11 +56,18 @@ public class ActionStub implements Action {
 		stub.writeDataset(outputFilePath, outputSizeMB);
 	}
 	
+	/**
+	 * Writes a file to HDFS with the properties specified by the parameters.
+	 * @param filePath: The complete path to the file to write in the hadoop filesystem
+	 * @param size: The size of the file to produce in megabytes
+	 */ 
 	private void writeDataset(String filePath, int size) {
 		
-		//1. Verify that the file path is correct.
-		
-		//2. Write bogus data into that file until size in MBs is satisfied.
+		//1. Write bogus data into that file until size in MBs is satisfied.
+		Configuration conf = new Configuration();
+		FileSystem fs = FileSystem.get(URI.create(filePath), conf);
+		OutputStream out = fs.create(new Path(dst));
+		IOUtils.copyBytes("testing", out, 4096, true);
 		
 	}
 	
