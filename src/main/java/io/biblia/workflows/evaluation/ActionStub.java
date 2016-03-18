@@ -24,7 +24,7 @@ import com.google.common.base.Preconditions;
  * args[0]: path to input file
  * args[1]: path to output file is given in the form of an url.
  * args[2]: size of output file to produce in MBs
- * args[3]: computational time to take. 
+ * args[3]: computational time to take in milliseconds. 
  * @author dearj019
  *
  */
@@ -63,8 +63,9 @@ public class ActionStub implements Action {
 		Preconditions.checkArgument(outputSizeMB >= 0, "The output size must be greater than or equal to 0");
 		Preconditions.checkArgument(computationTimeMilli > 0, "The computation time in milliseconds needs to be greater than 0");
 		ActionStub stub = new ActionStub();
-		stub.compute(computationTimeMilli);
-		stub.writeDataset(outputFilePath, outputSizeMB);
+		
+		long time = stub.writeDataset(outputFilePath, outputSizeMB);
+		stub.compute(computationTimeMilli - Math.min(0, computationTimeMilli - time));
 	}
 	
 	/**
@@ -73,8 +74,9 @@ public class ActionStub implements Action {
 	 * @param size: The size of the file to produce in megabytes
 	 * @throws IOException 
 	 */ 
-	private void writeDataset(String filePath, int size) throws IOException {
+	private long writeDataset(String filePath, int size) throws IOException {
 		Preconditions.checkNotNull(filePath);
+		long a = System.currentTimeMillis();
 		if (size < 0) size = 0;
 		long totalBytes = size * 1000000L;
 		
@@ -101,6 +103,8 @@ public class ActionStub implements Action {
 		}
 		
 		out.close();
+		long b = System.currentTimeMillis();
+		return b - a;
 	}
 	
 	/**
