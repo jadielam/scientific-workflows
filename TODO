@@ -1,7 +1,7 @@
-(Check) 1. Install Apache Oozie and Hadoop.
+(DONE) 1. Install Apache Oozie and Hadoop.
 - I have installed the HDP virtual machine.
 
-(Check) 3. Write down some of the design of the system.
+(DONE) 3. Write down some of the design of the system.
 3.1 General design
 3.1.1 - Submit to the system a workflow with:
 	- each action having input and output defined as parameters.
@@ -16,7 +16,7 @@
 	assumptions here? Yes, the user programs on the system will need to take as parameter a well
 	defined input data file that specifies all this.
 		- Defining the input file of the actions:
-			- It will just be a collection of key-value pairs, where the key is the identification
+			- It will just be a list of key-value pairs, where the key is the identification
 			name of the input, and the value is a list of paths of folders that have that input. 
 			- In order to specify the input of the actions on which this current action depends
 			on, the system will use two different ways of presenting that information to the
@@ -113,7 +113,7 @@
 	delete, as well as available storage space variables.
 		  
 #This points below might change depending on the need to do them.
-(TODO) 4. Create Hadoop tasks that can be controlled to take a certain computation time
+(DONE) 4. Create Hadoop tasks that can be controlled to take a certain computation time
 and to produce output of a certain size.
 
 (TODO) 5. Create an endpoint to which users can submit workflows.

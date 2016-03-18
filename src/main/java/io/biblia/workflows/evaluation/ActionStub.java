@@ -22,7 +22,7 @@ import com.google.common.base.Preconditions;
  * 
  * This action stub will receive three parameters:
  * args[0]: path to input file
- * args[1]: path to output file.
+ * args[1]: path to output file is given in the form of an url.
  * args[2]: size of output file to produce in MBs
  * args[3]: computational time to take. 
  * @author dearj019
