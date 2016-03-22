@@ -127,7 +127,7 @@ public class Workflow {
 		
 		//1. Validate that there are no cycles in the graph.
 		Map<String, Color> visited = new HashMap<String, Color>();
-		Queue<String> actionsQueue = new ArrayDeque<>();
+		Queue<String> actionsQueue = new ArrayDeque<String>();
 		
 		
 		for (Entry<String, Action> e : entrySet) {
