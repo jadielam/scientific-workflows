@@ -2,8 +2,10 @@ package io.biblia.workflows.definition.parser.v1;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -51,7 +53,7 @@ class CommandLineActionParser implements io.biblia.workflows.definition.parser.A
 		String mainClassName = (String) actionObject.get("mainClasName");
 		if (null == mainClassName) throw new WorkflowParseException("The action does not have a mainClassName");
 		
-		List<String> parentActionNames = this.getParentActionNames(actionObject);
+		Set<String> parentActionNames = this.getParentActionNames(actionObject);
 		List<String> inputParameters = this.getInputParameters(actionObject);
 		List<String> outputParameters = this.getOutputParameters(actionObject);
 		List<String> configurationParameters = this.getConfigurationParameters(actionObject);
@@ -65,11 +67,11 @@ class CommandLineActionParser implements io.biblia.workflows.definition.parser.A
 	}
 	
 
-	private List<String> getParentActionNames(JSONObject actionObject) {
-		List<String> toReturn = new ArrayList<String>();
+	private Set<String> getParentActionNames(JSONObject actionObject) {
+		Set<String> toReturn = new HashSet<String>();
 		JSONArray parentActions = (JSONArray) actionObject.get("parentActions");
 		if (null == parentActions) {
-			return toReturn;
+			return Collections.unmodifiableSet(toReturn);
 		}
 		Iterator<JSONObject> parentActionsIt = parentActions.iterator();
 		while(parentActionsIt.hasNext()) {
@@ -80,14 +82,14 @@ class CommandLineActionParser implements io.biblia.workflows.definition.parser.A
 			}
 			toReturn.add(parentActionName);
 		}
-		return Collections.unmodifiableList(toReturn);
+		return Collections.unmodifiableSet(toReturn);
 	}
 	
 	private List<String> getInputParameters(JSONObject actionObject) {
 		List<String> toReturn = new ArrayList<String>();
 		JSONArray inputParameters = (JSONArray) actionObject.get("inputParameters");
 		if (null == inputParameters) {
-			return toReturn;
+			return Collections.unmodifiableList(toReturn);
 		}
 		Iterator<JSONObject> inputParametersIt = inputParameters.iterator();
 		while(inputParametersIt.hasNext()) {
@@ -105,7 +107,7 @@ class CommandLineActionParser implements io.biblia.workflows.definition.parser.A
 		List<String> toReturn = new ArrayList<String>();
 		JSONArray outputParameters = (JSONArray) actionObject.get("outputParameters");
 		if (null == outputParameters) {
-			return toReturn;
+			return Collections.unmodifiableList(toReturn);
 		}
 		Iterator<JSONObject> outputParametersIt = outputParameters.iterator();
 		while(outputParametersIt.hasNext()) {
@@ -123,7 +125,7 @@ class CommandLineActionParser implements io.biblia.workflows.definition.parser.A
 		List<String> toReturn = new ArrayList<String>();
 		JSONArray configurationParameters = (JSONArray) actionObject.get("configurationParameters");
 		if (null == configurationParameters) {
-			return toReturn;
+			return Collections.unmodifiableList(toReturn);
 		}
 		Iterator<JSONObject> configurationParametersIt = configurationParameters.iterator();
 		while(configurationParametersIt.hasNext()) {

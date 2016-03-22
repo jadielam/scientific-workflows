@@ -10,6 +10,7 @@ import org.json.simple.parser.ParseException;
 
 import com.google.common.base.Preconditions;
 
+import io.biblia.workflows.definition.InvalidWorkflowException;
 import io.biblia.workflows.definition.Workflow;
 
 public class BaseWorkflowParser implements WorkflowParser {
@@ -23,6 +24,7 @@ public class BaseWorkflowParser implements WorkflowParser {
 	}
 	
 	/**
+	 * @throws InvalidWorkflowException 
 	 * 1. WORKFLOW: 
 	 * 1.1 Components of the workflow:
 	 * 1.1.1 Name
@@ -62,7 +64,7 @@ public class BaseWorkflowParser implements WorkflowParser {
 	 * JSON object
 	 * @throws 
 	 */
-	public Workflow parseWorkflow(String workflowString) throws WorkflowParseException{
+	public Workflow parseWorkflow(String workflowString) throws WorkflowParseException, InvalidWorkflowException{
 		
 		//1. Check version and call the right version depending on parser		
 		//2. Parse the object and return a workflow object.
