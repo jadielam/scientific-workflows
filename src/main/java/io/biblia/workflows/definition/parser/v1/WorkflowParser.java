@@ -94,6 +94,8 @@ public class WorkflowParser implements io.biblia.workflows.definition.parser.Wor
 				Action action = actionParser.parseAction(actionObject);
 				actions.add(action);
 			}
+			
+			
 			//4. Create workflow object with a DAG
 		}
 		catch(ParseException ex) {

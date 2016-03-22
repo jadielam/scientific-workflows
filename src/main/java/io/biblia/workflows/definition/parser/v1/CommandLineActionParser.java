@@ -1,6 +1,7 @@
 package io.biblia.workflows.definition.parser.v1;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -8,8 +9,11 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import io.biblia.workflows.definition.Action;
+import io.biblia.workflows.definition.actions.CommandLineAction;
+import io.biblia.workflows.definition.parser.ActionNameConstants;
+import io.biblia.workflows.definition.parser.WorkflowParseException;
 
-class CommandLineActionParser implements io.biblia.workflows.definition.parser.ActionParser{
+class CommandLineActionParser implements io.biblia.workflows.definition.parser.ActionParser, ActionNameConstants{
 
 	private static CommandLineActionParser instance;
 	
@@ -32,19 +36,32 @@ class CommandLineActionParser implements io.biblia.workflows.definition.parser.A
 	 * 2.1.3 Input parameters
 	 * 2.1.4 Output parameters
 	 * 2.1.5 Configuration parameters.
+	 * @throws WorkflowParseException 
 	 */
 	@Override
-	public Action parseAction(JSONObject actionObject) {
+	public Action parseAction(JSONObject actionObject) throws WorkflowParseException {
 
+		String type = (String) actionObject.get("type");
+		if (null == type) throw new WorkflowParseException("The action does not have a type attribute");
+		if (!type.equals(COMMAND_LINE_ACTION)) {
+			throw new WorkflowParseException("The action type: "+ type + " cannot be parsed by CommandLineActionParser");
+		}
 		String name = (String) actionObject.get("name");
+		if (null == name) throw new WorkflowParseException("The action does not have a name");
+		String mainClassName = (String) actionObject.get("mainClasName");
+		if (null == mainClassName) throw new WorkflowParseException("The action does not have a mainClassName");
+		
 		List<String> parentActionNames = this.getParentActionNames(actionObject);
 		List<String> inputParameters = this.getInputParameters(actionObject);
 		List<String> outputParameters = this.getOutputParameters(actionObject);
 		List<String> configurationParameters = this.getConfigurationParameters(actionObject);
 		
-		
-		return null;
-			
+		return new CommandLineAction(name, 
+				mainClassName, 
+				parentActionNames, 
+				inputParameters, 
+				outputParameters, 
+				configurationParameters);
 	}
 	
 
@@ -63,7 +80,7 @@ class CommandLineActionParser implements io.biblia.workflows.definition.parser.A
 			}
 			toReturn.add(parentActionName);
 		}
-		return toReturn;
+		return Collections.unmodifiableList(toReturn);
 	}
 	
 	private List<String> getInputParameters(JSONObject actionObject) {
@@ -81,7 +98,7 @@ class CommandLineActionParser implements io.biblia.workflows.definition.parser.A
 			}
 			toReturn.add(value);
 		}
-		return toReturn;
+		return Collections.unmodifiableList(toReturn);
 	}
 	
 	private List<String> getOutputParameters(JSONObject actionObject) {
@@ -99,7 +116,7 @@ class CommandLineActionParser implements io.biblia.workflows.definition.parser.A
 			}
 			toReturn.add(value);
 		}
-		return toReturn;
+		return Collections.unmodifiableList(toReturn);
 	}
 	
 	private List<String> getConfigurationParameters(JSONObject actionObject) {
@@ -117,7 +134,7 @@ class CommandLineActionParser implements io.biblia.workflows.definition.parser.A
 			}
 			toReturn.add(value);
 		}
-		return toReturn;
+		return Collections.unmodifiableList(toReturn);
 	}
 	
 

@@ -11,7 +11,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
 
-import io.biblia.workflows.action.Action;
 import com.google.common.base.Preconditions;
 
 /**
@@ -28,7 +27,7 @@ import com.google.common.base.Preconditions;
  * @author dearj019
  *
  */
-public class ActionStub implements Action {
+public class ActionStub {
 
 	public static void main(String[] args) throws IOException {
 		
