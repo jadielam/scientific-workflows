@@ -13,12 +13,12 @@ import io.biblia.workflows.definition.Action;
 import io.biblia.workflows.definition.parser.ActionNameConstants;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
 
-class ActionParser implements io.biblia.workflows.definition.parser.ActionParser, ActionNameConstants {
+public class ActionParser extends io.biblia.workflows.definition.parser.ActionParser{
 	
 	private static Map<String, io.biblia.workflows.definition.parser.ActionParser> registeredParsers;
 	
 	static {
-		ActionParser.registeredParsers = new HashMap<>();
+		ActionParser.registeredParsers = new HashMap<String, io.biblia.workflows.definition.parser.ActionParser>();
 		ActionParser.registeredParsers.put(COMMAND_LINE_ACTION, CommandLineActionParser.getInstance());
 	}
 	

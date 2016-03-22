@@ -15,7 +15,7 @@ import io.biblia.workflows.definition.actions.CommandLineAction;
 import io.biblia.workflows.definition.parser.ActionNameConstants;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
 
-class CommandLineActionParser implements io.biblia.workflows.definition.parser.ActionParser, ActionNameConstants{
+public class CommandLineActionParser extends io.biblia.workflows.definition.parser.ActionParser {
 
 	private static CommandLineActionParser instance;
 	

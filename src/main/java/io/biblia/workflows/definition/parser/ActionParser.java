@@ -4,7 +4,7 @@ import org.json.simple.JSONObject;
 
 import io.biblia.workflows.definition.Action;
 
-public interface ActionParser {
+public abstract class ActionParser implements ActionNameConstants {
 
-	public Action parseAction(JSONObject object) throws WorkflowParseException;
+	public abstract Action parseAction(JSONObject object) throws WorkflowParseException;
 }

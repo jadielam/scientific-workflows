@@ -10,4 +10,6 @@ public interface Action {
 	public Set<String> getParentActionNames();
 	
 	public List<String> getInputParameters();
+	
+	public List<String> getOutputParameters();
 }
