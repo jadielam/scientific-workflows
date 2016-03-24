@@ -24,45 +24,15 @@ public class BaseWorkflowParser implements WorkflowParser {
 	}
 	
 	/**
-	 * @throws InvalidWorkflowException 
-	 * 1. WORKFLOW: 
-	 * 1.1 Components of the workflow:
-	 * 1.1.1 Name
-	 * 1.1.2 (TODO) Global configuration parameters.
-	 * 1.1.3 Start action
-	 * 1.1.4 End action
-	 * 1.1.5 Version, so that I know which parser to pick up.
+	 * Given a json object serialized into a string with the definition of a workflow,
+	 * it parses the JSON object into a Workflow.  The first thing that it checks is
+	 * the version of the workflow, in order to hand the parsing to the appropriate parser
 	 * 
-	 * 2. ACTIONS
-	 * 2.1 Components of the actions:
-	 * 2.1.1 Name and type
-	 * 2.1.2 Parent actions.
-	 * 2.1.3 Input parameters
-	 * 2.1.4 Output parameters
-	 * 2.1.5 Configuration parameters.
 	 * 
-	 * 2.2 Notes on the actions
-	 * 2.2.1 An action will not be executed until all its parent actions 
-	 * have been executed first.
-	 * 2.2.2 A validator will need to check that there are no cycles in the DAG
-	 * that is formed by the dependency net of the actions.
-	 * 2.2.3 The input file parameters implicitly define a dependency on actions too.
-	 * For example, if the an action A1 has file/folder F1 as input, and action A2 has
-	 * file/folder F1 as output, then action A1 implicitly depends on action A2
-	 * even if action A2 is not among the parent actions of action A1.
-	 * 
-	 * 2.2.4 The JSON structure. I don't need to have forks and joins.  I don't need
-	 * to have if-else statements. In the future I might throw them in. Right now, all 
-	 * I care is about the dependencies.
-	 * 
-	 *  3. How will I handle versioning and action types:
-	 *  
-	 * 
-	 * @param workflow
-	 * @return
-	 * @throws ParseException If the workflowString is not a properly formatted
-	 * JSON object
-	 * @throws 
+	 * @throws WorkflowParseException If the workflowString is not a properly formatted 
+	 * or if the JSON definition is missing required attributes.
+	 * @throws InvalidWorkflowException if the workflow definition is invalid (Aka: the work
+	 * flow has cycles, or actions that are referenced are not defined, etc.)
 	 */
 	public Workflow parseWorkflow(String workflowString) throws WorkflowParseException, InvalidWorkflowException{
 		

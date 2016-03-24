@@ -7,11 +7,26 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import com.google.common.base.Preconditions;
+
 import java.util.Queue;
 import java.util.Set;
 
+/**
+ * Class that defines a workflow.
+ * A workflow is defined by its start action,
+ * its end action, and a directed acyclic graph
+ * of action dependencies.
+ * @author jadiel
+ */
 public class Workflow {
 
+	/**
+	 * Name of the workflow.
+	 */
+	private final String workflowName;
+	
 	/**
 	 * Name of the starting action of the workflow.
 	 */
@@ -27,6 +42,9 @@ public class Workflow {
 	 */
 	private final Map<String, Action> actions = new HashMap<String, Action>();
 	
+	/**
+	 * Map from input parameter to action names that depend on it.
+	 */
 	private final Map<String, Set<String>> inputParametersIndex = new HashMap<String, Set<String>>();
 	
 	/**
@@ -34,9 +52,31 @@ public class Workflow {
 	 */
 	private final Map<String, String> outputParametersIndex = new HashMap<String, String>();
 	
+	/**
+	 * Map from action name to a set of augmented parents. 
+	 * Augmented parents are implicit parents that are not defined
+	 * as parents in the action definition, yet the action
+	 * depends on them because they produce output that the 
+	 * action uses as input.
+	 */
 	private final Map<String, Set<String>> augmentedParents = new HashMap<String, Set<String>>();
 	
-	public Workflow(String startAction, String endAction, List<Action> actions) throws InvalidWorkflowException {
+	/**
+	 * Constructs a workflow object.  It first validates the workflow
+	 * @param startAction
+	 * @param endAction
+	 * @param actions
+	 * @throws InvalidWorkflowException if the workflow is not valid: if the workflow has a cycle or 
+	 * an action is referenced but not defined, or if an output parameter appears in more than one
+	 * action.
+	 * @throws NullPointerException if any of the parameters passed is null.
+	 */
+	public Workflow(String workflowName, String startAction, String endAction, List<Action> actions) throws InvalidWorkflowException {
+		Preconditions.checkNotNull(workflowName);
+		Preconditions.checkNotNull(startAction);
+		Preconditions.checkNotNull(endAction);
+		Preconditions.checkNotNull(actions);
+		this.workflowName = workflowName;
 		for (Action action : actions) {
 			if (null != action) {
 				String name = action.getName();
@@ -87,6 +127,15 @@ public class Workflow {
 		validateWorkflow();
 	}
 	
+	/**
+	 * Enum used by the DFS algorithm
+	 * 
+	 * Color.WHITE means not explored
+	 * Color.GRAY means exploring
+	 * Color.BLACK means explored
+	 * @author jadiel
+	 *
+	 */
 	private enum Color {
 		WHITE, GRAY, BLACK
 	}
@@ -146,8 +195,31 @@ public class Workflow {
 		if (null != parentActions && parentActions.size() > 0) {
 			throw new InvalidWorkflowException("startAction has parent actions");
 		}
+		
+		//3. Validate that all the referenced actions are defined.
+		for (Entry<String, Action> e : entrySet) {
+			Action action = e.getValue();
+			Set<String> parentNames = action.getParentActionNames();
+			for (String parentName : parentNames) {
+				if (!this.actions.containsKey(parentName)) {
+					throw new InvalidWorkflowException("Action: " + parentName + " is referenced but not"
+							+ "defined in the workflow.");
+				}
+			}
+		}
 	}
 	
+	/**
+	 * This is a modification of the dfs algorithm that is used to detect if there
+	 * are cycles in the graph.
+	 * @param currentAction The action being explored
+	 * @param actionsQueue Datastructure to keep the next actions to be explored.
+	 * @param visited a Map that indicates if a node has been explored or not.
+	 * Color.WHITE means not explored
+	 * Color.GRAY means exploring
+	 * Color.BLACK means explored
+	 * @throws InvalidWorkflowException
+	 */
 	private void dfs(String currentAction, Queue<String> actionsQueue, Map<String, Color> visited) throws InvalidWorkflowException {
 		//1. If we have not visited this node yet, start visiting it
 		if (visited.get(currentAction).equals(Color.WHITE)) {
@@ -172,10 +244,18 @@ public class Workflow {
 		//visit it again.
 	}
 
+	/**
+	 * Returns the name of the start action
+	 * @return
+	 */
 	public String getStartAction() {
 		return startActionName;
 	}
 
+	/**
+	 * Returns the name of the end action
+	 * @return
+	 */
 	public String getEndAction() {
 		return endActionName;
 	}
@@ -189,5 +269,13 @@ public class Workflow {
 	 */
 	public Action getAction(String name) {
 		return this.actions.get(name);
+	}
+	
+	/**
+	 * Returns the name of the workflow.
+	 * @return
+	 */
+	public String getWorkflowName() {
+		return this.workflowName;
 	}
 }

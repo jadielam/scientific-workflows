@@ -7,6 +7,19 @@ import com.google.common.base.Preconditions;
 
 import io.biblia.workflows.definition.Action;
 
+/**
+ * Defines a command line action.
+ * A command line action takes input parameters, 
+ * output parameters and configuration parameters.
+ * 
+ * To the command line actions all this parameters are 
+ * passed as command line parameters, in the following order:
+ * 1. First input parameters, in the order defined by the list.
+ * 2. Then output parameters, in the order defined by the list.
+ * 3. Then configuration parameters, in the order defined by the list.
+ * @author jadiel
+ *
+ */
 public class CommandLineAction implements Action {
 
 	private final String name;

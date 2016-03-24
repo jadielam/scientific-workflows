@@ -10,6 +10,8 @@ import java.util.Set;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import com.google.common.base.CharMatcher;
+
 import io.biblia.workflows.definition.Action;
 import io.biblia.workflows.definition.actions.CommandLineAction;
 import io.biblia.workflows.definition.parser.ActionNameConstants;
@@ -32,12 +34,45 @@ public class CommandLineActionParser extends io.biblia.workflows.definition.pars
 
 	/**
 	 * 2. ACTIONS
-	 * 2.1 Components of the actions:
+	 * 2.1 Components of the action:
 	 * 2.1.1 Name and type
 	 * 2.1.2 Parent actions.
 	 * 2.1.3 Input parameters
 	 * 2.1.4 Output parameters
-	 * 2.1.5 Configuration parameters.
+	 * 2.1.5 Configuration parameters:
+	 * The value of configuration parameters cannot have spaces.
+	 * 2.1.6 Name of the class of the action.
+	 * 
+	 * Example provided below:
+	 * {
+	 * 		type: "command-line",
+	 * 		name: "testing3",
+	 * 		mainClassName: "testing.java",
+	 * 		parentActions: [
+	 * 			{
+	 * 				name: "testing1"
+	 * 			},
+	 * 			{
+	 * 				name: "testing2"
+	 * 			}
+	 * 		],
+	 * 		inputParameters: [
+	 * 			{	
+	 * 				value: "path/to/file"
+	 * 			}
+	 * 		],
+	 * 		outputParameters: [
+	 * 			{
+	 * 				value: "path/to/file"
+	 * 			}
+	 * 		
+	 * 		],
+	 * 		configurationParameters: [
+	 * 			{
+	 * 				value: "anything"
+	 * 			}
+	 * 		]
+	 * }
 	 * @throws WorkflowParseException 
 	 */
 	@Override
@@ -121,7 +156,13 @@ public class CommandLineActionParser extends io.biblia.workflows.definition.pars
 		return Collections.unmodifiableList(toReturn);
 	}
 	
-	private List<String> getConfigurationParameters(JSONObject actionObject) {
+	/**
+	 * If the configuration parameter has spaces
+	 * @param actionObject
+	 * @return
+	 * @throws WorkflowParseException
+	 */
+	private List<String> getConfigurationParameters(JSONObject actionObject) throws WorkflowParseException {
 		List<String> toReturn = new ArrayList<String>();
 		JSONArray configurationParameters = (JSONArray) actionObject.get("configurationParameters");
 		if (null == configurationParameters) {
@@ -133,6 +174,9 @@ public class CommandLineActionParser extends io.biblia.workflows.definition.pars
 			String value = (String) configurationParametersObject.get("value");
 			if (null == value) {
 				continue;
+			}
+			if (CharMatcher.WHITESPACE.matchesAnyOf(value)) {
+				throw new WorkflowParseException("The configuration parameter: \"" + value + "\" has spaces");
 			}
 			toReturn.add(value);
 		}

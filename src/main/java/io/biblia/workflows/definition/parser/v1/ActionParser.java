@@ -1,18 +1,19 @@
 package io.biblia.workflows.definition.parser.v1;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import io.biblia.workflows.definition.Action;
-import io.biblia.workflows.definition.parser.ActionNameConstants;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
 
+/**
+ * Class that parses an action.  It requires that action parsers for
+ * specific actions to be registered here in this class.
+ * @author jadiel
+ *
+ */
 public class ActionParser extends io.biblia.workflows.definition.parser.ActionParser{
 	
 	private static Map<String, io.biblia.workflows.definition.parser.ActionParser> registeredParsers;
@@ -22,6 +23,14 @@ public class ActionParser extends io.biblia.workflows.definition.parser.ActionPa
 		ActionParser.registeredParsers.put(COMMAND_LINE_ACTION, CommandLineActionParser.getInstance());
 	}
 	
+	
+	/**
+	 * Obtains an action definition from an action object.
+	 * If checks the type parameter of the action to delegate
+	 * the job to the specific parser for that action type.
+	 * @throws WorkflowParseException if no type parameter is found, or if no action parser
+	 * is registered for the type of that action.
+	 */
 	public Action parseAction(JSONObject actionObject) throws WorkflowParseException {
 		
 		String type = (String) actionObject.get("type");
