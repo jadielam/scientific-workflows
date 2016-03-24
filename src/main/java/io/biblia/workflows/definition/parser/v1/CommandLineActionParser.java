@@ -157,7 +157,7 @@ public class CommandLineActionParser extends io.biblia.workflows.definition.pars
 	}
 	
 	/**
-	 * If the configuration parameter has spaces
+	 * If the configuration parameter has spaces.
 	 * @param actionObject
 	 * @return
 	 * @throws WorkflowParseException

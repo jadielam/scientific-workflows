@@ -1,0 +1,28 @@
+{
+	version: "1.0",
+	name: "Workflow1",
+	startAction: {
+		name: "start action"
+	},
+	endAction: {
+		name: "end action"
+	},
+	actions: [
+		{
+			type: "command-line",
+			name: "start action",
+			inputParameters: [],
+			outputParameters: [],
+			configurationParameters: [],
+			mainClassName: "something.java"
+		},
+		{
+			type: "command-line",
+			name: "end action",
+			inputParameters: [],
+			outputParameters: [],
+			configurationParameters: [],
+			mainClassName: "something.java"
+		}
+	]
+}
