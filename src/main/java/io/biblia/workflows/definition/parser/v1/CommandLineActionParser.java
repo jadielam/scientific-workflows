@@ -85,7 +85,7 @@ public class CommandLineActionParser extends io.biblia.workflows.definition.pars
 		}
 		String name = (String) actionObject.get("name");
 		if (null == name) throw new WorkflowParseException("The action does not have a name");
-		String mainClassName = (String) actionObject.get("mainClasName");
+		String mainClassName = (String) actionObject.get("mainClassName");
 		if (null == mainClassName) throw new WorkflowParseException("The action does not have a mainClassName");
 		
 		Set<String> parentActionNames = this.getParentActionNames(actionObject);
