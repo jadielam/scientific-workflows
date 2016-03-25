@@ -20,36 +20,31 @@ import io.biblia.workflows.definition.Action;
  * @author jadiel
  *
  */
-public class CommandLineAction implements Action {
+public class CommandLineAction extends Action {
 
-	private final String name;
 	private final String mainClassName;
 	private final Set<String> parentActionNames;
 	private final List<String> inputParameters;
 	private final List<String> outputParameters;
 	private final List<String> configurationParameters;
 	
-	public CommandLineAction(String name, String mainClassName,
+	public CommandLineAction(String name, boolean forceComputation, 
+			String mainClassName,
 			Set<String> parentActionNames,
 			List<String> inputParameters, List<String> outputParameters, 
 			List<String> configurationParameters) {
 	
-		Preconditions.checkNotNull(name);
+		super(name, forceComputation);
 		Preconditions.checkNotNull(mainClassName);
 		Preconditions.checkNotNull(parentActionNames);
 		Preconditions.checkNotNull(inputParameters);
 		Preconditions.checkNotNull(outputParameters);
 		Preconditions.checkNotNull(configurationParameters);
-		this.name = name;
 		this.mainClassName = mainClassName;
 		this.parentActionNames = parentActionNames;
 		this.inputParameters = inputParameters;
 		this.outputParameters = outputParameters;
 		this.configurationParameters = configurationParameters;
-	}
-
-	public String getName() {
-		return name;
 	}
 
 	public String getMainClassName() {

@@ -48,6 +48,7 @@ public class CommandLineActionParser extends io.biblia.workflows.definition.pars
 	 * 		type: "command-line",
 	 * 		name: "testing3",
 	 * 		mainClassName: "testing.java",
+	 * 		forceComputation: true,
 	 * 		parentActions: [
 	 * 			{
 	 * 				name: "testing1"
@@ -87,6 +88,8 @@ public class CommandLineActionParser extends io.biblia.workflows.definition.pars
 		if (null == name) throw new WorkflowParseException("The action does not have a name");
 		String mainClassName = (String) actionObject.get("mainClassName");
 		if (null == mainClassName) throw new WorkflowParseException("The action does not have a mainClassName");
+		Boolean forceComputation = (Boolean) actionObject.get("forceComputation");
+		forceComputation = (forceComputation == null || !forceComputation) ? false : true;
 		
 		Set<String> parentActionNames = this.getParentActionNames(actionObject);
 		List<String> inputParameters = this.getInputParameters(actionObject);
@@ -94,6 +97,7 @@ public class CommandLineActionParser extends io.biblia.workflows.definition.pars
 		List<String> configurationParameters = this.getConfigurationParameters(actionObject);
 		
 		return new CommandLineAction(name, 
+				forceComputation, 
 				mainClassName, 
 				parentActionNames, 
 				inputParameters, 
