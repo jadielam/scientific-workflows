@@ -31,27 +31,10 @@ public class WorkflowsDAOBuilder implements EnvironmentVariables {
 	static {
 		buildersMap = new HashMap<String, DAOBuilder>();
 		buildersMap.put(MONGODB_TYPE, new DAOBuilder() {
-
+			
 			@Override
 			protected WorkflowsDAO createDAO() {
-				String host = System.getenv().get(SW_MONGODB_HOST);
-				String portString = System.getenv().get(SW_MONGODB_PORT);
-				
-				if (null == host) {
-					host = "localhost";
-				}
-				if (null == portString) {
-					portString = "27017";
-				}
-				int port;
-				try {
-					port = Integer.parseInt(portString);
-				}
-				catch(NumberFormatException ex) {
-					port = 27017;
-				}
-				
-				MongoClient client = new MongoClient(host, port);
+				MongoClient client = MongoDBClientFactory.getInstance();
 				return WorkflowsMongoDAO.getInstance(client);
 			}
 			

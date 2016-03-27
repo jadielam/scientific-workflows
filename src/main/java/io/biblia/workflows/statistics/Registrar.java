@@ -13,12 +13,12 @@ import io.biblia.workflows.definition.Workflow;
  * @author jadiel
  *
  */
-public class Persistor {
+public class Registrar {
 
-	private static Persistor instance; 
+	private static Registrar instance; 
 	private final WorkflowsDAO dao;
 	
-	private Persistor() {
+	private Registrar() {
 		this.dao = WorkflowsDAOBuilder.getInstance(WorkflowsDAOBuilder.MONGODB_TYPE);
 	}
 	
@@ -46,9 +46,9 @@ public class Persistor {
 		
 	}
 	
-	public static Persistor getInstance() {
+	public static Registrar getInstance() {
 		if (null == instance) {
-			instance = new Persistor();
+			instance = new Registrar();
 		}
 		return instance;
 	}

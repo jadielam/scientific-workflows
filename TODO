@@ -120,8 +120,8 @@ and to produce output of a certain size.
 (TODO) 5. Create endpoints where the users can check the status of workflows.
 (DONE) 5. Create a parser for the workflow definition of 3.1.1
 (TODO) 6. Create the workflow engine:
-(TODO) 6.1 Create a parser for the workflow definition of 3.1.1
-(TODO) 6.2 Create an Accountant that updates statistics based on the new workflow submitted to the system.
+(DONE) 6.1 Create a parser for the workflow definition of 3.1.1
+(DONE) 6.2 Create an Accountant that updates statistics based on the new workflow submitted to the system.
 (TODO) 6.3 Create an Algorithm interface that takes as input the current workflow submission and determines which
 intermediate datasets from current workflow will be kept, as well as which datasets from cache should be
 sent to the removal queue.
