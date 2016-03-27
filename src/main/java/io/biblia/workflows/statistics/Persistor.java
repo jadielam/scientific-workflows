@@ -1,5 +1,8 @@
 package io.biblia.workflows.statistics;
 
+import org.bson.types.ObjectId;
+
+import io.biblia.workflows.EnvironmentVariables;
 import io.biblia.workflows.definition.Action;
 import io.biblia.workflows.definition.Dataset;
 import io.biblia.workflows.definition.Workflow;
@@ -12,8 +15,11 @@ import io.biblia.workflows.definition.Workflow;
  */
 public class Persistor {
 
+	private static Persistor instance; 
+	private final WorkflowsDAO dao;
+	
 	private Persistor() {
-		
+		this.dao = WorkflowsDAOBuilder.getInstance(WorkflowsDAOBuilder.MONGODB_TYPE);
 	}
 	
 	public void addWorkflow(Workflow workflow) {
@@ -38,5 +44,12 @@ public class Persistor {
 	
 	public void removeFromSavedDataset(Dataset dataset) {
 		
+	}
+	
+	public static Persistor getInstance() {
+		if (null == instance) {
+			instance = new Persistor();
+		}
+		return instance;
 	}
 }
