@@ -1,6 +1,7 @@
 package io.biblia.workflows.definition;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
@@ -50,7 +51,7 @@ public abstract class Action {
 	 * all the files inside that folder are used as input.
 	 * @return
 	 */
-	public abstract List<String> getInputParameters();
+	public abstract Map<String, String> getInputParameters();
 	
 	/**
 	 * Returns a list of the names of the output parameters
@@ -59,5 +60,7 @@ public abstract class Action {
 	 * folder will be output.
 	 * @return
 	 */
-	public abstract List<String> getOutputParameters();
+	public abstract Map<String, String> getOutputParameters();
+	
+	public abstract Map<String, String> getConfigurationParameters();
 }

@@ -1,6 +1,9 @@
 package io.biblia.workflows.definition.actions;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
@@ -24,15 +27,16 @@ public class CommandLineAction extends Action {
 
 	private final String mainClassName;
 	private final Set<String> parentActionNames;
-	private final List<String> inputParameters;
-	private final List<String> outputParameters;
-	private final List<String> configurationParameters;
+	private final Map<String, String> inputParameters;
+	private final Map<String, String> outputParameters;
+	private final Map<String, String> configurationParameters;
 	
 	public CommandLineAction(String name, boolean forceComputation, 
 			String mainClassName,
 			Set<String> parentActionNames,
-			List<String> inputParameters, List<String> outputParameters, 
-			List<String> configurationParameters) {
+			LinkedHashMap<String, String> inputParameters, 
+			LinkedHashMap<String, String> outputParameters, 
+			LinkedHashMap<String, String> configurationParameters) {
 	
 		super(name, forceComputation);
 		Preconditions.checkNotNull(mainClassName);
@@ -42,9 +46,9 @@ public class CommandLineAction extends Action {
 		Preconditions.checkNotNull(configurationParameters);
 		this.mainClassName = mainClassName;
 		this.parentActionNames = parentActionNames;
-		this.inputParameters = inputParameters;
-		this.outputParameters = outputParameters;
-		this.configurationParameters = configurationParameters;
+		this.inputParameters = Collections.unmodifiableMap(inputParameters);
+		this.outputParameters = Collections.unmodifiableMap(outputParameters);
+		this.configurationParameters = Collections.unmodifiableMap(configurationParameters);
 	}
 
 	public String getMainClassName() {
@@ -55,15 +59,15 @@ public class CommandLineAction extends Action {
 		return parentActionNames;
 	}
 
-	public List<String> getInputParameters() {
+	public Map<String, String> getInputParameters() {
 		return inputParameters;
 	}
 
-	public List<String> getOutputParameters() {
+	public Map<String, String> getOutputParameters() {
 		return outputParameters;
 	}
 
-	public List<String> getConfigurationParameters() {
+	public Map<String, String> getConfigurationParameters() {
 		return configurationParameters;
 	}
 }

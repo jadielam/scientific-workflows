@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -92,9 +93,9 @@ public class CommandLineActionParser extends io.biblia.workflows.definition.pars
 		forceComputation = (forceComputation == null || !forceComputation) ? false : true;
 		
 		Set<String> parentActionNames = this.getParentActionNames(actionObject);
-		List<String> inputParameters = this.getInputParameters(actionObject);
-		List<String> outputParameters = this.getOutputParameters(actionObject);
-		List<String> configurationParameters = this.getConfigurationParameters(actionObject);
+		LinkedHashMap<String, String> inputParameters = this.getInputParameters(actionObject);
+		LinkedHashMap<String, String> outputParameters = this.getOutputParameters(actionObject);
+		LinkedHashMap<String, String> configurationParameters = this.getConfigurationParameters(actionObject);
 		
 		return new CommandLineAction(name, 
 				forceComputation, 
@@ -124,40 +125,57 @@ public class CommandLineActionParser extends io.biblia.workflows.definition.pars
 		return Collections.unmodifiableSet(toReturn);
 	}
 	
-	private List<String> getInputParameters(JSONObject actionObject) {
-		List<String> toReturn = new ArrayList<String>();
+	private LinkedHashMap<String, String> getInputParameters(JSONObject actionObject) {
+		LinkedHashMap<String, String> toReturn = new LinkedHashMap<>();
 		JSONArray inputParameters = (JSONArray) actionObject.get("inputParameters");
 		if (null == inputParameters) {
-			return Collections.unmodifiableList(toReturn);
+			return toReturn;
 		}
 		Iterator<JSONObject> inputParametersIt = inputParameters.iterator();
+		int counter = 0;
 		while(inputParametersIt.hasNext()) {
+			counter++;
 			JSONObject inputParameterObject = inputParametersIt.next();
+			String key = (String) inputParameterObject.get("key");
 			String value = (String) inputParameterObject.get("value");
 			if (null == value) {
 				continue;
 			}
-			toReturn.add(value);
+			if (null == key) {
+				toReturn.put(Integer.toString(counter), value);
+			}
+			else {
+				toReturn.put(key, value);
+			}
+			
 		}
-		return Collections.unmodifiableList(toReturn);
+		return toReturn;
 	}
 	
-	private List<String> getOutputParameters(JSONObject actionObject) {
-		List<String> toReturn = new ArrayList<String>();
+	private LinkedHashMap<String, String> getOutputParameters(JSONObject actionObject) {
+		LinkedHashMap<String, String> toReturn = new LinkedHashMap<>();
 		JSONArray outputParameters = (JSONArray) actionObject.get("outputParameters");
 		if (null == outputParameters) {
-			return Collections.unmodifiableList(toReturn);
+			return toReturn;
 		}
 		Iterator<JSONObject> outputParametersIt = outputParameters.iterator();
+		int counter = 0;
 		while(outputParametersIt.hasNext()) {
+			counter++;
 			JSONObject outputParametersObject = outputParametersIt.next();
+			String key = (String) outputParametersObject.get("key");
 			String value = (String) outputParametersObject.get("value");
 			if (null == value) {
 				continue;
 			}
-			toReturn.add(value);
+			if (null == key) {
+				toReturn.put(Integer.toString(counter), value);
+			}
+			else {
+				toReturn.put(key, value);
+			}
 		}
-		return Collections.unmodifiableList(toReturn);
+		return toReturn;
 	}
 	
 	/**
@@ -166,15 +184,18 @@ public class CommandLineActionParser extends io.biblia.workflows.definition.pars
 	 * @return
 	 * @throws WorkflowParseException
 	 */
-	private List<String> getConfigurationParameters(JSONObject actionObject) throws WorkflowParseException {
-		List<String> toReturn = new ArrayList<String>();
+	private LinkedHashMap<String, String> getConfigurationParameters(JSONObject actionObject) throws WorkflowParseException {
+		LinkedHashMap<String, String> toReturn = new LinkedHashMap<>();
 		JSONArray configurationParameters = (JSONArray) actionObject.get("configurationParameters");
 		if (null == configurationParameters) {
-			return Collections.unmodifiableList(toReturn);
+			return toReturn;
 		}
 		Iterator<JSONObject> configurationParametersIt = configurationParameters.iterator();
+		int counter = 0;
 		while(configurationParametersIt.hasNext()) {
+			counter++;
 			JSONObject configurationParametersObject = configurationParametersIt.next();
+			String key = (String) configurationParametersObject.get("key");
 			String value = (String) configurationParametersObject.get("value");
 			if (null == value) {
 				continue;
@@ -182,9 +203,14 @@ public class CommandLineActionParser extends io.biblia.workflows.definition.pars
 			if (CharMatcher.WHITESPACE.matchesAnyOf(value)) {
 				throw new WorkflowParseException("The configuration parameter: \"" + value + "\" has spaces");
 			}
-			toReturn.add(value);
+			if (null == key) {
+				toReturn.put(Integer.toString(counter), value);
+			}
+			else {
+				toReturn.put(key, value);
+			}
 		}
-		return Collections.unmodifiableList(toReturn);
+		return toReturn;
 	}
 	
 

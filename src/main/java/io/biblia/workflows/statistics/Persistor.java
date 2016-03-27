@@ -23,19 +23,19 @@ public class Persistor {
 	}
 	
 	public void addWorkflow(Workflow workflow) {
-		
+		this.dao.addWorkflow(workflow);
 	}
 	
 	public void addAction(Action action) {
-		
+		this.dao.addAction(action);
 	}
 	
 	public void addExecutionTimeToAction(String actionId, long milliseconds) {
-		
+		this.dao.addExecutionTimeToAction(actionId, milliseconds);
 	}
 	
 	public void addStorageSpaceToDataset(String dataset, long megabytes) {
-		
+		this.dao.addStorageSpaceToDataset(dataset, megabytes);
 	}
 	
 	public void addSavedDataset(Dataset dataset) {

@@ -83,8 +83,9 @@ public class Workflow {
 				this.actions.put(name, action);
 				
 				//1. Building the input parameters index.
-				List<String> inputParameters = action.getInputParameters();
-				for (String input : inputParameters) {
+				Map<String, String> inputParameters = action.getInputParameters();
+				for (Entry<String, String> e : inputParameters.entrySet()) {
+					String input = e.getValue();
 					if (this.inputParametersIndex.containsKey(input)) {
 						this.inputParametersIndex.get(input).add(name);
 					}
@@ -96,8 +97,9 @@ public class Workflow {
 				}
 				
 				//2. Building the output parameters index.
-				List<String> outputParameters = action.getOutputParameters();
-				for (String output : outputParameters) {
+				Map<String, String> outputParameters = action.getOutputParameters();
+				for (Entry<String, String> e : outputParameters.entrySet()) {
+					String output = e.getValue();
 					if (this.outputParametersIndex.containsKey(output)) {
 						throw new InvalidWorkflowException("The output parameter: " + output + " appears"
 								+ "in more than one action");
@@ -163,8 +165,9 @@ public class Workflow {
 			String actionName = e.getKey();
 			Action action = e.getValue();
 			Set<String> parentNames = action.getParentActionNames();
-			List<String> inputParameters = action.getInputParameters();
-			for (String inputParameter : inputParameters) {
+			Map<String, String> inputParameters = action.getInputParameters();
+			for (Entry<String, String> e1 : inputParameters.entrySet()) {
+				String inputParameter = e1.getValue();
 				String parentActionName = this.outputParametersIndex.get(inputParameter);
 				if (null != parentActionName) {
 					if (!parentNames.contains(parentActionName)) {
