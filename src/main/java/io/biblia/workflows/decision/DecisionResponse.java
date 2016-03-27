@@ -15,6 +15,13 @@ public class DecisionResponse {
 		this.toKeep = Collections.unmodifiableSet(toKeep);
 		this.toRemove = Collections.unmodifiableSet(toRemove);
 	}
-	
+
+	public Set<Dataset> getToKeep() {
+		return toKeep;
+	}
+
+	public Set<Dataset> getToRemove() {
+		return toRemove;
+	}
 	
 }
