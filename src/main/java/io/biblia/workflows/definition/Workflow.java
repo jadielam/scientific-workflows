@@ -2,6 +2,7 @@ package io.biblia.workflows.definition;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -274,6 +275,9 @@ public class Workflow {
 		return this.actions.get(name);
 	}
 	
+	public Collection<Action> getActions() {
+		return Collections.unmodifiableCollection(this.actions.values());
+	}
 	/**
 	 * Returns the name of the workflow.
 	 * @return

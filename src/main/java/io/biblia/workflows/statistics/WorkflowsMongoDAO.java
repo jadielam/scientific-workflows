@@ -1,8 +1,6 @@
 package io.biblia.workflows.statistics;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -25,6 +23,9 @@ public class WorkflowsMongoDAO implements DatabaseConstants, WorkflowsDAO {
 	private static WorkflowsDAO instance;
 	private final MongoClient mongoClient;
 	private final MongoDatabase database;
+	private final ActionConverter actionConverter = new ActionConverter();
+	private final WorkflowConverter workflowConverter = new WorkflowConverter();
+	private final DatasetConverter datasetConverter = new DatasetConverter();
 	
 	private WorkflowsMongoDAO(MongoClient mongoClient) {
 		Preconditions.checkNotNull(mongoClient);
@@ -38,7 +39,7 @@ public class WorkflowsMongoDAO implements DatabaseConstants, WorkflowsDAO {
 	 */
 	@Override
 	public String addWorkflow(Workflow workflow) {
-		Document document = this.convertToDocument(workflow);
+		Document document = this.workflowConverter.convertToDocument(workflow);
 		return insertDocumentToCollection(document, WORKFLOWS_COLLECTION).toHexString();
 	}
 		
@@ -48,7 +49,7 @@ public class WorkflowsMongoDAO implements DatabaseConstants, WorkflowsDAO {
 	 */
 	@Override
 	public String addAction(Action action) {
-		Document document = this.convertToDocument(action);
+		Document document = this.actionConverter.convertToDocument(action);
 		return insertDocumentToCollection(document, ACTIONS_COLLECTION).toHexString();
 	}
 	
@@ -58,7 +59,7 @@ public class WorkflowsMongoDAO implements DatabaseConstants, WorkflowsDAO {
 	 */
 	@Override
 	public String addSavedDataset(Dataset dataset) {
-		Document document = this.convertToDocument(dataset);
+		Document document = this.datasetConverter.convertToDocument(dataset);
 		return insertDocumentToCollection(document, DATASETS_COLLECTION).toHexString();
 	}
 	
@@ -93,45 +94,6 @@ public class WorkflowsMongoDAO implements DatabaseConstants, WorkflowsDAO {
 		return instance;
 	}
 	
-	private Document convertToDocument(Workflow w) {
-		Document toReturn = new Document()
-				.append("workflowName", w.getWorkflowName())
-				.append("startActionName", w.getStartAction())
-				.append("endActionName", w.getEndAction());
-		
-		List<Document> actions = new ArrayList<Document>();
-				toReturn.append("actions", actions);
-		return toReturn;
-	}
-	
-	private Document convertToDocument(Action a) {
-		Document toReturn = new Document()
-				.append("name", a.getName())
-				.append("forceComputation", a.getForceComputation())
-				.append("parentActionNames", a.getParentActionNames())
-				.append("inputParameters", this.convertToDocumentList(a.getInputParameters()))
-				.append("outputParameters", this.convertToDocumentList(a.getOutputParameters()))
-				.append("configurationParameters", this.convertToDocumentList(a.getConfigurationParameters()));
-		
-		return toReturn;
-	}
-	
-	private List<Document> convertToDocumentList(Map<String, String> keyValues) {
-		List<Document> toReturn = new ArrayList<Document>();
-		for (Entry<String, String> e : keyValues.entrySet()) {
-			String key = e.getKey();
-			String value = e.getValue();
-			
-			toReturn.add(new Document(key, value));
-		}
-		return toReturn;
-	}
-	
-	private Document convertToDocument(Dataset dataset) {
-		//TODO
-		return null;
-	}
-	
 	private ObjectId insertDocumentToCollection(Document document, String collectionName) {
 		MongoCollection<Document> collection = this.database.getCollection(collectionName);
 		
@@ -151,5 +113,66 @@ public class WorkflowsMongoDAO implements DatabaseConstants, WorkflowsDAO {
 				.append("lastModified", true));
 		UpdateResult result = collection.updateOne(updateFilter, updateAction);
 		return result;
+	}
+	
+	private interface DocumentConverter<T> {		
+		public Document convertToDocument(T t);
+	}
+
+	private class ActionConverter implements DocumentConverter<Action> {
+
+		@Override
+		public Document convertToDocument(Action a) {
+			Document toReturn = new Document()
+					.append("name", a.getName())
+					.append("forceComputation", a.getForceComputation())
+					.append("parentActionNames", a.getParentActionNames())
+					.append("inputParameters", this.convertToDocumentList(a.getInputParameters()))
+					.append("outputParameters", this.convertToDocumentList(a.getOutputParameters()))
+					.append("configurationParameters", this.convertToDocumentList(a.getConfigurationParameters()));
+			
+			return toReturn;
+		}
+		
+		private List<Document> convertToDocumentList(Map<String, String> keyValues) {
+			List<Document> toReturn = new ArrayList<Document>();
+			for (Entry<String, String> e : keyValues.entrySet()) {
+				String key = e.getKey();
+				String value = e.getValue();
+				
+				toReturn.add(new Document(key, value));
+			}
+			return toReturn;
+		}
+	}
+	
+	private class WorkflowConverter implements DocumentConverter<Workflow> {
+
+		@Override
+		public Document convertToDocument(Workflow w) {
+			Document toReturn = new Document()
+					.append("workflowName", w.getWorkflowName())
+					.append("startActionName", w.getStartAction())
+					.append("endActionName", w.getEndAction());
+			
+			List<Document> actions = new ArrayList<Document>();
+			for (Action action : w.getActions()) {
+				Document doc = actionConverter.convertToDocument(action);
+				actions.add(doc);
+			}
+			
+			toReturn.append("actions", actions);
+			return toReturn;
+		}	
+	}
+	
+	private class DatasetConverter implements DocumentConverter<Dataset> {
+
+		@Override
+		public Document convertToDocument(Dataset t) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+		
 	}
 }
