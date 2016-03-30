@@ -68,6 +68,6 @@ public class OozieWorkflowGenerator {
 	}
 	
 	private void appendFooter() {
-		wSB.append(str)
+		
 	}
 }
