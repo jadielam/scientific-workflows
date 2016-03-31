@@ -23,7 +23,7 @@ import io.biblia.workflows.definition.Action;
  * @author jadiel
  *
  */
-public class CommandLineAction extends Action {
+public class JavaAction extends Action {
 
 	private final String mainClassName;
 	private final Set<String> parentActionNames;
@@ -31,7 +31,7 @@ public class CommandLineAction extends Action {
 	private final Map<String, String> outputParameters;
 	private final Map<String, String> configurationParameters;
 	
-	public CommandLineAction(String name, boolean forceComputation, 
+	public JavaAction(String name, boolean forceComputation, 
 			String mainClassName,
 			Set<String> parentActionNames,
 			LinkedHashMap<String, String> inputParameters, 

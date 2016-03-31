@@ -14,21 +14,21 @@ import org.json.simple.JSONObject;
 import com.google.common.base.CharMatcher;
 
 import io.biblia.workflows.definition.Action;
-import io.biblia.workflows.definition.actions.CommandLineAction;
+import io.biblia.workflows.definition.actions.JavaAction;
 import io.biblia.workflows.definition.parser.ActionNameConstants;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
 
-public class CommandLineActionParser extends io.biblia.workflows.definition.parser.ActionParser {
+public class JavaActionParser extends io.biblia.workflows.definition.parser.ActionParser {
 
-	private static CommandLineActionParser instance;
+	private static JavaActionParser instance;
 	
-	private CommandLineActionParser() {
+	private JavaActionParser() {
 		
 	}
 	
-	public static CommandLineActionParser getInstance() {
+	public static JavaActionParser getInstance() {
 		if (null == instance) {
-			instance = new CommandLineActionParser();
+			instance = new JavaActionParser();
 		}
 		return instance;
 	}
@@ -82,8 +82,8 @@ public class CommandLineActionParser extends io.biblia.workflows.definition.pars
 
 		String type = (String) actionObject.get("type");
 		if (null == type) throw new WorkflowParseException("The action does not have a type attribute");
-		if (!type.equals(COMMAND_LINE_ACTION)) {
-			throw new WorkflowParseException("The action type: "+ type + " cannot be parsed by CommandLineActionParser");
+		if (!type.equals(JAVA_ACTION)) {
+			throw new WorkflowParseException("The action type: "+ type + " cannot be parsed by JavaActionParser");
 		}
 		String name = (String) actionObject.get("name");
 		if (null == name) throw new WorkflowParseException("The action does not have a name");
@@ -97,7 +97,7 @@ public class CommandLineActionParser extends io.biblia.workflows.definition.pars
 		LinkedHashMap<String, String> outputParameters = this.getOutputParameters(actionObject);
 		LinkedHashMap<String, String> configurationParameters = this.getConfigurationParameters(actionObject);
 		
-		return new CommandLineAction(name, 
+		return new JavaAction(name, 
 				forceComputation, 
 				mainClassName, 
 				parentActionNames, 

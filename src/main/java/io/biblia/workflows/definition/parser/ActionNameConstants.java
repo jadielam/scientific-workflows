@@ -11,7 +11,7 @@ public interface ActionNameConstants {
 	/**
 	 * Command line actions
 	 */
-	String COMMAND_LINE_ACTION = "command-line";
+	String JAVA_ACTION = "command-line";
 	
 	/**
 	 * Actions that use the older map reduce api.
