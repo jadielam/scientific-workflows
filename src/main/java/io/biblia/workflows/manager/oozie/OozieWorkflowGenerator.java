@@ -131,11 +131,10 @@ public class OozieWorkflowGenerator implements EnvironmentVariables {
 			builder.openCloseTextElement("job-tracker", DEFAULT_JOB_TRACKER);
 			builder.openCloseTextElement("name-node", DEFAULT_NAME_NODE);
 			List<String> arguments = c.getArguments();
-			for (String arg : c.getArguments()) {
-				
+			for (String arg : arguments) {
+				builder.openCloseTextElement("arg", arg);
 			}
 			builder.closeElement("java");
-			
 		}
 	}
 	
