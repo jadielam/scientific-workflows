@@ -9,4 +9,5 @@ public interface EnvironmentVariables {
 	String SW_HADOOP_JOBTRACKER = "SW_HADOOP_JOBTRACKER";
 	
 	String SW_HADOOP_NAMENODE = "SW_HADOOP_NAMENODE";
+	
 }
