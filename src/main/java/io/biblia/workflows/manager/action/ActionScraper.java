@@ -20,7 +20,7 @@ class ActionScraper implements Runnable {
 	/**
 	 * The thread that runs this class
 	 */
-	private Thread t;
+	private static Thread t;
 	
 	/**
 	 * Queue to which actions to be submitted are added.
@@ -49,10 +49,14 @@ class ActionScraper implements Runnable {
 		t.start();
 	}
 	
+	public static void stop() {
+		t.interrupt();
+	}
+	
 	@Override
 	public void run() {
 		
-		while(true) {
+		while(!Thread.currentThread().isInterrupted()) {
 			//1. Every certain amount of time you find available
 			//actions from the database.
 			//1.1 Actions that qualify are the following:
@@ -81,8 +85,9 @@ class ActionScraper implements Runnable {
 			try {
 				Thread.sleep(ActionScraper.ACTION_SCRAPER_TIMEOUT);
 			} catch (InterruptedException e) {
-				//Do nothing, just keep doing what you know to do:
-				//scrape the database for more jobs.
+				
+				Thread.currentThread().interrupt();
+				break;
 			}
 		}
 	}

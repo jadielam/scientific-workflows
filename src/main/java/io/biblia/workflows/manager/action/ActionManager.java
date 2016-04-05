@@ -13,6 +13,8 @@ public class ActionManager {
 	
 	private final BlockingQueue<ProcessingAction> actionsQueue;
 	
+	private final ExecutorService actionSubmittersExecutor;
+	
 	private static final int NUMBER_OF_ACTION_SUBMITTERS = 5;
 	/**
 	 * Sets up a database scrapper, a concurrent queue
@@ -37,11 +39,11 @@ public class ActionManager {
 		ActionScraper.start(this.actionsQueue, actionPersistance);
 		
 		//3. Create the pool of action submitters
-		ExecutorService executor = 
+		this.actionSubmittersExecutor = 
 				Executors.newFixedThreadPool(NUMBER_OF_ACTION_SUBMITTERS);
 		
 		for (int i = 0; i < NUMBER_OF_ACTION_SUBMITTERS; ++i) {
-			executor.execute(new ActionSubmitter(this.actionsQueue));
+			this.actionSubmittersExecutor.execute(new ActionSubmitter(this.actionsQueue));
 		}
 		
 		//I want this to run forever. How can I make this to 
@@ -56,5 +58,13 @@ public class ActionManager {
 		}
 		
 		return instance;
+	}
+	
+	private void finishActionSubmitters() {
+		
+	}
+	
+	private void finishActionScraper() {
+		ActionScraper.stop();
 	}
 }
