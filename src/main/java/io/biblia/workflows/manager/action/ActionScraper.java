@@ -39,13 +39,55 @@ class ActionScraper implements Runnable {
 	 */
 	private static final long ACTION_SCRAPER_TIMEOUT = 60000;
 	
+	private class ActionScraperRunner implements Runnable {
+
+		@Override
+		public void run() {
+			
+			while(!Thread.currentThread().isInterrupted()) {
+				//1. Every certain amount of time you find available
+				//actions from the database.
+				//1.1 Actions that qualify are the following:
+				// Actions that are not being processed yet
+				// Actions that have been started processing, but have
+				// been on that state for a long time. That could signal
+				// that the server that started processing them died.
+				List<ProcessingAction> actions = actionDao.getAvailableActions();
+				
+				//2. For each of the actions, update the entry of the
+				//action in the database, if it is that it has not been
+				//updated by someone else first.  If it has been updated
+				//by someone else, drop it, otherwise, insert it into
+				//the queue.
+				for (ProcessingAction action : actions) {
+					try{
+						actionDao.updateProcessingAction(action);
+					}
+					catch(OutdatedActionException ex) {
+						continue;
+					}
+					
+					queue.add(action);
+				}
+				
+				try {
+					Thread.sleep(ActionScraper.ACTION_SCRAPER_TIMEOUT);
+				} catch (InterruptedException e) {
+					
+					Thread.currentThread().interrupt();
+				}
+			}
+		}
+		
+	}
+	
 	private ActionScraper(BlockingQueue<ProcessingAction> queue,
 			ActionPersistance actionDao) {
 		Preconditions.checkNotNull(queue);
 		Preconditions.checkNotNull(actionDao);
 		this.queue = queue;
 		this.actionDao = actionDao;
-		t = new Thread(this, "Scraper Thread");
+		t = new Thread(new ActionScraperRunner(), "Scraper Thread");
 		t.start();
 	}
 	
@@ -55,41 +97,7 @@ class ActionScraper implements Runnable {
 	
 	@Override
 	public void run() {
-		
-		while(!Thread.currentThread().isInterrupted()) {
-			//1. Every certain amount of time you find available
-			//actions from the database.
-			//1.1 Actions that qualify are the following:
-			// Actions that are not being processed yet
-			// Actions that have been started processing, but have
-			// been on that state for a long time. That could signal
-			// that the server that started processing them died.
-			List<ProcessingAction> actions = this.actionDao.getAvailableActions();
-			
-			//2. For each of the actions, update the entry of the
-			//action in the database, if it is that it has not been
-			//updated by someone else first.  If it has been updated
-			//by someone else, drop it, otherwise, insert it into
-			//the queue.
-			for (ProcessingAction action : actions) {
-				try{
-					this.actionDao.updateProcessingAction(action);
-				}
-				catch(OutdatedActionException ex) {
-					continue;
-				}
-				
-				this.queue.add(action);
-			}
-			
-			try {
-				Thread.sleep(ActionScraper.ACTION_SCRAPER_TIMEOUT);
-			} catch (InterruptedException e) {
-				
-				Thread.currentThread().interrupt();
-				break;
-			}
-		}
+
 	}
 
 	public static void start(BlockingQueue<ProcessingAction> actionsQueue,

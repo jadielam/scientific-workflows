@@ -11,11 +11,42 @@ public class ActionManager {
 
 	private static ActionManager instance = null;
 	
-	private final BlockingQueue<ProcessingAction> actionsQueue;
+	private static Thread t;
 	
-	private final ExecutorService actionSubmittersExecutor;
+	private static final BlockingQueue<ProcessingAction> actionsQueue;
+	
+	private static final ExecutorService actionSubmittersExecutor;
 	
 	private static final int NUMBER_OF_ACTION_SUBMITTERS = 5;
+	
+	static {
+		//1. Create the concurrent queue.
+		actionsQueue = new LinkedBlockingQueue<ProcessingAction>();
+		
+		//2. Create the executors.
+		actionSubmittersExecutor = 
+						Executors.newFixedThreadPool(NUMBER_OF_ACTION_SUBMITTERS);
+	}
+	
+	private class ActionManagerRunner implements Runnable {
+
+		@Override
+		public void run() {
+			while(!Thread.currentThread().isInterrupted()) {
+				
+				try {
+					ProcessingAction action = actionsQueue.take();
+					actionSubmittersExecutor.execute(new ActionSubmitter(action));
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+			}
+	
+		}
+		
+	}
+	
 	/**
 	 * Sets up a database scrapper, a concurrent queue
 	 * and a pool of action submitters.
@@ -32,39 +63,33 @@ public class ActionManager {
 	private ActionManager(ActionPersistance actionPersistance) {
 		
 		Preconditions.checkNotNull(actionPersistance);
-		//1. Create the concurrent queue.
-		this.actionsQueue = new LinkedBlockingQueue<ProcessingAction>();
-	
+		
 		//2. Start the Database scraper.
-		ActionScraper.start(this.actionsQueue, actionPersistance);
+		ActionScraper.start(actionsQueue, actionPersistance);
 		
-		//3. Create the pool of action submitters
-		this.actionSubmittersExecutor = 
-				Executors.newFixedThreadPool(NUMBER_OF_ACTION_SUBMITTERS);
+		t = new Thread(new ActionManagerRunner(), "ActionManager thread");
 		
-		for (int i = 0; i < NUMBER_OF_ACTION_SUBMITTERS; ++i) {
-			this.actionSubmittersExecutor.execute(new ActionSubmitter(this.actionsQueue));
-		}
-		
-		//I want this to run forever. How can I make this to 
-		//work properly?
-		//executor.shutdown();
+		t.start();
 		
 	}
 	
-	public static ActionManager getInstance(ActionPersistance persistance) {
+	public static void start(ActionPersistance persistance) {
 		if (null == instance) {
 			instance = new ActionManager(persistance);
 		}
-		
-		return instance;
 	}
 	
-	private void finishActionSubmitters() {
-		
+	public static void stop() {
+		finishActionScraper();
+		finishActionSubmitters();
+		t.interrupt();
 	}
 	
-	private void finishActionScraper() {
+	private static void finishActionSubmitters() {
+		actionSubmittersExecutor.shutdown();
+	}
+	
+	private static void finishActionScraper() {
 		ActionScraper.stop();
 	}
 }

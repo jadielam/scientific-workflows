@@ -1,35 +1,24 @@
 package io.biblia.workflows.manager.action;
 
-import java.util.concurrent.BlockingQueue;
-
 import com.google.common.base.Preconditions;
 
 public class ActionSubmitter implements Runnable {
-
-	private final BlockingQueue<ProcessingAction> actionsQueue;
 	
-	public ActionSubmitter(BlockingQueue<ProcessingAction> actionsQueue) {
-		Preconditions.checkNotNull(actionsQueue);
-		this.actionsQueue = actionsQueue;
+	private final ProcessingAction action;
+	
+	public ActionSubmitter(ProcessingAction action) {
+		Preconditions.checkNotNull(action);
+		this.action = action;
 	}
+	
 	@Override
 	public void run() {
-		
-		while (true) {
-			try {
-				ProcessingAction action = this.actionsQueue.take();
-				this.submitAction(action);
-				
-				try{
-					Thread.sleep(100);
-				}
-				catch(InterruptedException ex) {
-					continue;
-				}
-			}
-			catch(Exception e) {
-				e.printStackTrace();
-			}
+	
+		try {
+			this.submitAction(this.action);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
 		}
 	}
 	
