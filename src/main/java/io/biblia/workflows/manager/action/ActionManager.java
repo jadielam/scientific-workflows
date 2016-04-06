@@ -7,13 +7,15 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import com.google.common.base.Preconditions;
 
+import io.biblia.workflows.definition.Action;
+
 public class ActionManager {
 
 	private static ActionManager instance = null;
 	
 	private static Thread t;
 	
-	private static final BlockingQueue<ProcessingAction> actionsQueue;
+	private static final BlockingQueue<Action> actionsQueue;
 	
 	private static final ExecutorService actionSubmittersExecutor;
 	
@@ -21,7 +23,7 @@ public class ActionManager {
 	
 	static {
 		//1. Create the concurrent queue.
-		actionsQueue = new LinkedBlockingQueue<ProcessingAction>();
+		actionsQueue = new LinkedBlockingQueue<>();
 		
 		//2. Create the executors.
 		actionSubmittersExecutor = 
@@ -35,7 +37,7 @@ public class ActionManager {
 			while(!Thread.currentThread().isInterrupted()) {
 				
 				try {
-					ProcessingAction action = actionsQueue.take();
+					Action action = actionsQueue.take();
 					actionSubmittersExecutor.execute(new ActionSubmitter(action));
 					Thread.sleep(100);
 				} catch (InterruptedException e) {

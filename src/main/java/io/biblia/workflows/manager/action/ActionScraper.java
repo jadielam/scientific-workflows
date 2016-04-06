@@ -5,6 +5,8 @@ import java.util.concurrent.BlockingQueue;
 
 import com.google.common.base.Preconditions;
 
+import io.biblia.workflows.definition.Action;
+
 /**
  * Independent threaded class that runs every certain amount
  * of time (60 seconds) scraping the database to see if
@@ -25,7 +27,7 @@ class ActionScraper implements Runnable {
 	/**
 	 * Queue to which actions to be submitted are added.
 	 */
-	private final BlockingQueue<ProcessingAction> queue;
+	private final BlockingQueue<Action> queue;
 	
 	/**
 	 * Data access object that gets and updates actions
@@ -52,14 +54,14 @@ class ActionScraper implements Runnable {
 				// Actions that have been started processing, but have
 				// been on that state for a long time. That could signal
 				// that the server that started processing them died.
-				List<ProcessingAction> actions = actionDao.getAvailableActions();
+				List<Action> actions = actionDao.getAvailableActions();
 				
 				//2. For each of the actions, update the entry of the
 				//action in the database, if it is that it has not been
 				//updated by someone else first.  If it has been updated
 				//by someone else, drop it, otherwise, insert it into
 				//the queue.
-				for (ProcessingAction action : actions) {
+				for (Action action : actions) {
 					try{
 						actionDao.updateProcessingAction(action);
 					}
@@ -81,7 +83,7 @@ class ActionScraper implements Runnable {
 		
 	}
 	
-	private ActionScraper(BlockingQueue<ProcessingAction> queue,
+	private ActionScraper(BlockingQueue<Action> queue,
 			ActionPersistance actionDao) {
 		Preconditions.checkNotNull(queue);
 		Preconditions.checkNotNull(actionDao);
@@ -100,7 +102,7 @@ class ActionScraper implements Runnable {
 
 	}
 
-	public static void start(BlockingQueue<ProcessingAction> actionsQueue,
+	public static void start(BlockingQueue<Action> actionsQueue,
 			ActionPersistance actionDao) {
 		if (null == instance) {
 			instance = new ActionScraper(actionsQueue, actionDao);

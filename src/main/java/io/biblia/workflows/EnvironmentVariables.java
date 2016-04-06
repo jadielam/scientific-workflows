@@ -10,4 +10,6 @@ public interface EnvironmentVariables {
 	
 	String SW_HADOOP_NAMENODE = "SW_HADOOP_NAMENODE";
 	
+	String SW_OOZIE_URL = "SW_OOZIE_URL";
+	
 }
