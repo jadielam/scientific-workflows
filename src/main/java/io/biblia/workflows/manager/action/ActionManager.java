@@ -9,6 +9,26 @@ import com.google.common.base.Preconditions;
 
 import io.biblia.workflows.definition.Action;
 
+/**
+ * The action manager's purpose is to submit actions to Hadoop, in this case
+ * using Apache Oozie as intermediary.  It uses the database to synchronize
+ * with other processes that might also be submitting actions to Hadoop.
+ * It works as follows:
+ * - It has an actions queue with the actions that need to be submitted.
+ * - It has an actions scraper that queries the database for actions to 
+ * be submitted. THe scraper fills the actions queue with actions
+ * - The ActionManager takes new actions from the queue and hands them
+ * to ActionSubmitter threads that will submit the actions to Oozie and 
+ * updat the database accordingly.
+ * 
+ * In order to support multiple servers doing the same process at the same time,
+ * and to avoid the need of using a synchronization server such as Apache Zookeeper,
+ * I have implemented synchronization in the following way:
+ * 
+ * 1. Actions can be in mutiple state. To see the possible action states @see ActionState.
+ * There are listed here too: READY, PROCESSING, SUBMITTED, RUNNING, FINISHED,
+	FAILED, KILLED.
+ */
 public class ActionManager {
 
 	private static ActionManager instance = null;
