@@ -21,6 +21,7 @@ public class OozieClientUtil implements EnvironmentVariables {
 		Preconditions.checkNotNull(conf);
 		try {
 			//Submits and starts a workflow job.
+			//testing a push to git.
 			String jobId = client.run(conf);
 			return jobId;
 		} catch (OozieClientException e) {
