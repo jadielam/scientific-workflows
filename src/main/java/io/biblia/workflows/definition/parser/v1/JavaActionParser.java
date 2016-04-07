@@ -49,6 +49,8 @@ public class JavaActionParser extends io.biblia.workflows.definition.parser.Acti
 	 * 		type: "command-line",
 	 * 		name: "testing3",
 	 * 		mainClassName: "testing.java",
+	 *       jobTracker: "urlTOJobTracker",
+	 *       nameNode: "urlToNameNode",
 	 * 		forceComputation: true,
 	 * 		parentActions: [
 	 * 			{
@@ -89,6 +91,10 @@ public class JavaActionParser extends io.biblia.workflows.definition.parser.Acti
 		if (null == name) throw new WorkflowParseException("The action does not have a name");
 		String mainClassName = (String) actionObject.get("mainClassName");
 		if (null == mainClassName) throw new WorkflowParseException("The action does not have a mainClassName");
+      String nameNode = (String) actionObject.get("nameNode");
+      if (null == nameNode) throw new WorkflowParseException("The action does not have a nameNode attribute");
+      String jobTracker = (String) actionObject.get("jobTracker");
+      if (null == jobTracker) throw new WorkflowParseException("The action does not have a jobTracker attribute");
 		Boolean forceComputation = (Boolean) actionObject.get("forceComputation");
 		forceComputation = (forceComputation == null || !forceComputation) ? false : true;
 		
@@ -100,6 +106,8 @@ public class JavaActionParser extends io.biblia.workflows.definition.parser.Acti
 		return new JavaAction(name, 
 				forceComputation, 
 				mainClassName, 
+            jobTracker,
+            nameNode,
 				parentActionNames, 
 				inputParameters, 
 				outputParameters, 
