@@ -25,9 +25,37 @@ import io.biblia.workflows.definition.Action;
  * and to avoid the need of using a synchronization server such as Apache Zookeeper,
  * I have implemented synchronization in the following way:
  * 
- * 1. Actions can be in mutiple state. To see the possible action states @see ActionState.
+ * 1. Actions can be in mutiple state. To see the possible action states {@link ActionState}.
  * There are listed here too: READY, PROCESSING, SUBMITTED, RUNNING, FINISHED,
 	FAILED, KILLED.
+   
+   2. The {@link ActionScraper} will find available actions in the database to start
+   processing: Available actions are defined as actions that are in the READY state,
+   or actions that have been in the PROCESSING state for a long time.  The reason
+   to include these last kind of actions is the following: It well could be that
+   another server started processing an action and then it died without being 
+   able to change the state of that action to submitted.
+   
+   3. The {@link ActionManager} is constantly taking new elements from the queue and
+   passing them to {@link ActionSubmitter} threads that take care of submitting the
+   actions to Hadoop.  The decision of including old PROCESSING actions in the queue
+   makes the design of the {@link ActionSubmitter} more careful.
+   
+   4. The {@link ActionSubmitter} will immediately attempt to mark an action as submitted
+   in the database.  If it does not succeed, because the database contains a more recent
+   version of the action, it immediately drops the action that it is working on.  Otherwise
+   it continues with its course.
+   
+   5. A problem still without solution is the following: If an action is submitted to
+   Hadoop, but the server that submitted the action goes down, then the callback
+   notification endpoint of the submission of the action will not work and the database
+   will not be updated.  Because of that, another solution is having another thread
+   constantly running and checking status of actions that have been submitted
+   but that have not yet received a status of finished.  No, instead of that what I
+   should do is provide Oozie with a list of callbacks, or with a virtual address
+   callback which is a load balancer, and the balancer will send it to 
+   currently running servers at that addresss.  This is a best solution, and more 
+   natural.
  */
 public class ActionManager {
 
