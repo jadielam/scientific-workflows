@@ -38,9 +38,8 @@ public class ActionSubmitter implements Runnable {
 	 */
 	private void submitAction(Action action) {
 		
-		
 		  //1.2, Update database with submitted
-		  try {
+		try {
             this.persistance.updateActionState(action, ActionState.SUBMITTED);
         }
         catch (OutdatedActionException ex) {

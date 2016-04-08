@@ -108,7 +108,10 @@ public class OozieClientUtil implements EnvironmentVariables {
 			arguments.addAll(inputParameters.values());
 			arguments.addAll(outputParameters.values());
 			arguments.addAll(configurationParameters.values());
-			JavaAction oAction = new JavaAction(actionName, okName, errorName, mainClassName, arguments);
+			String nameNode = javaAction.getName();
+			String jobTracker = javaAction.getJobTracker();
+			JavaAction oAction = new JavaAction(actionName, okName, errorName, mainClassName, arguments,
+					jobTracker, nameNode);
 			return oAction;
 		} else
 			throw new UnsupportedOperationException("Could not convert from class type: "

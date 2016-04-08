@@ -61,6 +61,14 @@ public class JavaAction extends Action {
 		this.configurationParameters = Collections.unmodifiableMap(configurationParameters);
 	}
 
+	public String getNameNode() {
+		return this.nameNode;
+	}
+	
+	public String getJobTracker() {
+		return this.jobTracker;
+	}
+	
 	public String getMainClassName() {
 		return mainClassName;
 	}
