@@ -69,6 +69,8 @@ public class ActionManager {
 	
 	private static final int NUMBER_OF_ACTION_SUBMITTERS = 5;
 	
+	private ActionPersistance actionPersistance;
+	
 	static {
 		//1. Create the concurrent queue.
 		actionsQueue = new LinkedBlockingQueue<>();
@@ -86,7 +88,7 @@ public class ActionManager {
 				
 				try {
 					Action action = actionsQueue.take();
-					actionSubmittersExecutor.execute(new ActionSubmitter(action));
+					actionSubmittersExecutor.execute(new ActionSubmitter(action, actionPersistance));
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
@@ -114,6 +116,7 @@ public class ActionManager {
 		
 		Preconditions.checkNotNull(actionPersistance);
 		
+		this.actionPersistance = actionPersistance;
 		//2. Start the Database scraper.
 		ActionScraper.start(actionsQueue, actionPersistance);
 		

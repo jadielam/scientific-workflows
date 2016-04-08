@@ -14,9 +14,9 @@ public class OozieWorkflowGenerator implements EnvironmentVariables {
 	 */
 	private static final String XMLNS = "uri:oozie:workflow:0.5";
 	
-	private static final String DEFAULT_JOB_TRACKER; 
+	static final String DEFAULT_JOB_TRACKER; 
 			
-	private static final String DEFAULT_NAME_NODE;
+	static final String DEFAULT_NAME_NODE;
 	
 	static {
 		String jobTracker = System.getenv().get(SW_HADOOP_JOBTRACKER);

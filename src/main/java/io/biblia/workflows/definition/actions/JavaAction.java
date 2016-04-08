@@ -26,25 +26,35 @@ import io.biblia.workflows.definition.Action;
 public class JavaAction extends Action {
 
 	private final String mainClassName;
+	private final String jobTracker;
+	private final String nameNode;
 	private final Set<String> parentActionNames;
 	private final Map<String, String> inputParameters;
 	private final Map<String, String> outputParameters;
 	private final Map<String, String> configurationParameters;
 	
-	public JavaAction(String name, boolean forceComputation, 
+	public JavaAction(String name, 
+			String actionFolder,
+			boolean forceComputation, 
 			String mainClassName,
+			String jobTracker,
+			String nameNode,
 			Set<String> parentActionNames,
 			LinkedHashMap<String, String> inputParameters, 
 			LinkedHashMap<String, String> outputParameters, 
 			LinkedHashMap<String, String> configurationParameters) {
 	
-		super(name, forceComputation);
+		super(name, actionFolder, forceComputation);
 		Preconditions.checkNotNull(mainClassName);
+		Preconditions.checkNotNull(jobTracker);
+		Preconditions.checkNotNull(nameNode);
 		Preconditions.checkNotNull(parentActionNames);
 		Preconditions.checkNotNull(inputParameters);
 		Preconditions.checkNotNull(outputParameters);
 		Preconditions.checkNotNull(configurationParameters);
 		this.mainClassName = mainClassName;
+		this.jobTracker = jobTracker;
+		this.nameNode = nameNode;
 		this.parentActionNames = parentActionNames;
 		this.inputParameters = Collections.unmodifiableMap(inputParameters);
 		this.outputParameters = Collections.unmodifiableMap(outputParameters);

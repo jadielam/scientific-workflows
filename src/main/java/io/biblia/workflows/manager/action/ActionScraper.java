@@ -63,7 +63,7 @@ class ActionScraper implements Runnable {
 				//the queue.
 				for (Action action : actions) {
 					try{
-						actionDao.updateProcessingAction(action);
+						actionDao.updateActionState(action, ActionState.PROCESSING);
 					}
 					catch(OutdatedActionException ex) {
 						continue;

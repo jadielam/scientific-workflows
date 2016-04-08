@@ -1,5 +1,9 @@
 package io.biblia.workflows.manager.action;
 
+import java.io.IOException;
+
+import org.apache.oozie.client.OozieClientException;
+
 import com.google.common.base.Preconditions;
 
 import io.biblia.workflows.definition.Action;
@@ -45,8 +49,9 @@ public class ActionSubmitter implements Runnable {
 		
         //1.2.1 If database accepts update by comparing versions
 		  // Submit to Oozie.
+		  String submissionId = null;
 		  try{
-			   String submissionId = OozieClientUtil.submitAndStartOozieJob(action);
+			   submissionId = OozieClientUtil.submitAndStartOozieJob(action);
         }
         catch(OozieClientException | IOException ex) {
             ex.printStackTrace();
@@ -56,7 +61,7 @@ public class ActionSubmitter implements Runnable {
 				try{
             	 this.persistance.updateActionState(action, ActionState.READY);  
             }
-            catch(OutdatedActionException ex) {
+            catch(OutdatedActionException ex1) {
                 return;
             }
 				

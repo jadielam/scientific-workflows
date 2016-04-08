@@ -8,7 +8,9 @@ public interface ActionPersistance {
 	
 	public List<Action> getAvailableActions();
 	
-	public void updateProcessingAction(Action action) throws OutdatedActionException; 
+	public void updateActionState(Action action, ActionState state) throws OutdatedActionException;
+
+	public void addActionSubmissionId(Action action, String submissionId) throws OutdatedActionException;
 	
 }
 

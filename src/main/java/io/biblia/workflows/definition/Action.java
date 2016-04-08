@@ -14,11 +14,13 @@ import com.google.common.base.Preconditions;
 public abstract class Action {
 
 	private final String name;
+	private final String actionFolder;
 	private final boolean forceComputation;
 	
-	public Action(String name, boolean forceComputation) {
+	public Action(String name, String actionFolder, boolean forceComputation) {
 		Preconditions.checkNotNull(name);
 		this.name = name;
+		this.actionFolder = actionFolder;
 		this.forceComputation = forceComputation;
 	}
 	/**
@@ -29,6 +31,9 @@ public abstract class Action {
 		return this.name;
 	}
 	
+	public String getActionFolder() {
+		return this.actionFolder;
+	}
 	/**
 	 * Returns if this computation will be forced
 	 * to be exeuted, regardless of the presence
@@ -46,7 +51,7 @@ public abstract class Action {
 	public abstract Set<String> getParentActionNames();
 	
 	/**
-	 * Returns a list of input paramete paths.
+	 * Returns a list of input parameter paths.
 	 * A path can be a folder or a file. If a folder
 	 * all the files inside that folder are used as input.
 	 * @return
