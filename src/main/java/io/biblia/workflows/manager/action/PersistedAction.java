@@ -2,6 +2,7 @@ package io.biblia.workflows.manager.action;
 
 import com.google.common.base.Preconditions;
 import io.biblia.workflows.definition.Action;
+import org.bson.types.ObjectId;
 
 import java.util.Date;
 
@@ -11,18 +12,18 @@ import java.util.Date;
 public class PersistedAction {
 
     private final Action action;
-    private final String id;
+    private final ObjectId _id;
     private final ActionState state;
     private final Date lastUpdatedDate;
 
-    public PersistedAction(Action action, String id,
+    public PersistedAction(Action action, ObjectId _id,
                            ActionState state, Date lastUpdatedDate) {
         Preconditions.checkNotNull(action);
-        Preconditions.checkNotNull(id);
+        Preconditions.checkNotNull(_id);
         Preconditions.checkNotNull(state);
         Preconditions.checkNotNull(lastUpdatedDate);
         this.action = action;
-        this.id = id;
+        this._id = _id;
         this.state = state;
         this.lastUpdatedDate = lastUpdatedDate;
     }
@@ -31,8 +32,8 @@ public class PersistedAction {
         return action;
     }
 
-    public String getId() {
-        return id;
+    public ObjectId getId() {
+        return _id;
     }
 
     public ActionState getState() {

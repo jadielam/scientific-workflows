@@ -11,6 +11,7 @@ import io.biblia.workflows.definition.parser.WorkflowParseException;
 import io.biblia.workflows.definition.parser.v1.ActionParser;
 import org.bson.Document;
 import org.bson.json.JsonParseException;
+import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -91,7 +92,16 @@ public class MongoActionPersistance implements ActionPersistance {
         }
         return toReturn;
     }
-    
+
+    /**
+     * Inserts new action into the database.
+     * @param action
+     */
+    public void insertNewReadyAction(Action action) {
+        //TODO
+
+    }
+
     @Override
     public void updateActionState(PersistedAction action, ActionState state)
             throws OutdatedActionException {
@@ -109,7 +119,7 @@ public class MongoActionPersistance implements ActionPersistance {
     private PersistedAction parseAction(Document document) throws
             WorkflowParseException, NullPointerException, JsonParseException {
 
-        String id = document.getString("id");
+        ObjectId id = document.getObjectId("_id");
         Date date = (Date) document.getDate("lastUpdatedDate");
         String stateString = document.getString("state");
         ActionState state = ActionState.valueOf(stateString);

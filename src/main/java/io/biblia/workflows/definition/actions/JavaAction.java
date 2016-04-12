@@ -2,11 +2,10 @@ package io.biblia.workflows.definition.actions;
 
 import com.google.common.base.Preconditions;
 import io.biblia.workflows.definition.Action;
+import org.bson.Document;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Defines a command line action.
@@ -86,5 +85,30 @@ public class JavaAction extends Action {
 
 	public Map<String, String> getConfigurationParameters() {
 		return configurationParameters;
+	}
+
+	@Override
+	public Document toBson() {
+		Document document = super.toBson();
+		document.append("mainClass", this.mainClassName);
+		document.append("jobTracker", this.jobTracker);
+		document.append("nameNode", this.nameNode);
+		document.append("parentActionNames", this.parentActionNames);
+		document.append("inputParameters", this.convertToDocumentsList(this.inputParameters));
+		document.append("outputParameters", this.convertToDocumentsList(this.outputParameters));
+		document.append("configurationParameters", this.convertToDocumentsList(this.configurationParameters));
+		return document;
+	}
+
+	private List<Document> convertToDocumentsList(Map<String, String> parameters) {
+		List<Document> toReturn = new ArrayList<Document>();
+		Set<Entry<String, String>> entrySet = parameters.entrySet();
+		for (Entry<String, String> e : entrySet) {
+			String key = e.getKey();
+			String value = e.getValue();
+			Document toAdd = new Document(key, value);
+			toReturn.add(toAdd);
+		}
+		return toReturn;
 	}
 }

@@ -1,6 +1,7 @@
 package io.biblia.workflows.definition;
 
 import com.google.common.base.Preconditions;
+import org.bson.Document;
 
 import java.util.Map;
 import java.util.Set;
@@ -76,4 +77,13 @@ public abstract class Action {
 	public abstract Map<String, String> getOutputParameters();
 	
 	public abstract Map<String, String> getConfigurationParameters();
+
+	public Document toBson() {
+		Document toReturn = new Document();
+		toReturn.append("type", this.type);
+		toReturn.append("name", this.name);
+		toReturn.append("actionFolder", this.actionFolder);
+		toReturn.append("forceComputation", this.forceComputation);
+		return toReturn;
+	}
 }
