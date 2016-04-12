@@ -1,11 +1,10 @@
 package io.biblia.workflows.manager.action;
 
+import com.google.common.base.Preconditions;
+import io.biblia.workflows.definition.Action;
+
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
-
-import com.google.common.base.Preconditions;
-
-import io.biblia.workflows.definition.Action;
 
 /**
  * Independent threaded class that runs every certain amount
@@ -14,7 +13,7 @@ import io.biblia.workflows.definition.Action;
  * @author jadiel
  *
  */
-class ActionScraper implements Runnable {
+class ActionScraper {
 
 	
 	private static ActionScraper instance = null;
@@ -54,21 +53,21 @@ class ActionScraper implements Runnable {
 				// Actions that have been started processing, but have
 				// been on that state for a long time. That could signal
 				// that the server that started processing them died.
-				List<Action> actions = actionDao.getAvailableActions();
+				List<PersistedAction> actions = actionDao.getAvailableActions();
 				
 				//2. For each of the actions, update the entry of the
 				//action in the database, if it is that it has not been
 				//updated by someone else first.  If it has been updated
 				//by someone else, drop it, otherwise, insert it into
 				//the queue.
-				for (Action action : actions) {
+				for (PersistedAction pAction : actions) {
+					Action action = pAction.getAction();
 					try{
 						actionDao.updateActionState(action, ActionState.PROCESSING);
 					}
 					catch(OutdatedActionException ex) {
 						continue;
 					}
-					
 					queue.add(action);
 				}
 				
@@ -92,16 +91,19 @@ class ActionScraper implements Runnable {
 		t = new Thread(new ActionScraperRunner(), "Scraper Thread");
 		t.start();
 	}
-	
+
+	/**
+	 * Sends the interrupt signal to the thread running the ActionScraperRunner
+	 */
 	public static void stop() {
 		t.interrupt();
 	}
-	
-	@Override
-	public void run() {
 
-	}
-
+	/**
+	 * Starts the ActionScraper that continualy runs.
+	 * @param actionsQueue
+	 * @param actionDao
+     */
 	public static void start(BlockingQueue<Action> actionsQueue,
 			ActionPersistance actionDao) {
 		if (null == instance) {

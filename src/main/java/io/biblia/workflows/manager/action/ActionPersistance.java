@@ -1,12 +1,12 @@
 package io.biblia.workflows.manager.action;
 
-import java.util.List;
-
 import io.biblia.workflows.definition.Action;
+
+import java.util.List;
 
 public interface ActionPersistance {
 	
-	public List<Action> getAvailableActions();
+	public List<PersistedAction> getAvailableActions();
 	
 	public void updateActionState(Action action, ActionState state) throws OutdatedActionException;
 
