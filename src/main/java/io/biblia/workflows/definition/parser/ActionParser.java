@@ -1,8 +1,7 @@
 package io.biblia.workflows.definition.parser;
 
-import org.json.simple.JSONObject;
-
 import io.biblia.workflows.definition.Action;
+import org.bson.Document;
 
 public abstract class ActionParser implements ActionNameConstants {
 
@@ -12,5 +11,5 @@ public abstract class ActionParser implements ActionNameConstants {
 	 * @return
 	 * @throws WorkflowParseException
 	 */
-	public abstract Action parseAction(JSONObject object) throws WorkflowParseException;
+	public abstract Action parseAction(Document object) throws WorkflowParseException;
 }

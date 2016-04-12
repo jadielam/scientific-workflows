@@ -1,22 +1,12 @@
 package io.biblia.workflows.definition.parser.v1;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Set;
-
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-
 import com.google.common.base.CharMatcher;
-
 import io.biblia.workflows.definition.Action;
 import io.biblia.workflows.definition.actions.JavaAction;
-import io.biblia.workflows.definition.parser.ActionNameConstants;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
+import org.bson.Document;
+
+import java.util.*;
 
 public class JavaActionParser extends io.biblia.workflows.definition.parser.ActionParser {
 
@@ -50,7 +40,7 @@ public class JavaActionParser extends io.biblia.workflows.definition.parser.Acti
 	 * @throws WorkflowParseException
 	 */
 	@Override
-	public Action parseAction(JSONObject actionObject) throws WorkflowParseException {
+	public Action parseAction(Document actionObject) throws WorkflowParseException {
 
 		String type = (String) actionObject.get("type");
 		if (null == type)
@@ -81,7 +71,7 @@ public class JavaActionParser extends io.biblia.workflows.definition.parser.Acti
 		LinkedHashMap<String, String> outputParameters = this.getOutputParameters(actionObject);
 		LinkedHashMap<String, String> configurationParameters = this.getConfigurationParameters(actionObject);
 
-		return new JavaAction(name, actionFolder, 
+		return new JavaAction(name, type, actionFolder,
 				forceComputation, 
 				mainClassName, 
 				jobTracker, nameNode, 
@@ -91,15 +81,15 @@ public class JavaActionParser extends io.biblia.workflows.definition.parser.Acti
 				configurationParameters);
 	}
 
-	private Set<String> getParentActionNames(JSONObject actionObject) {
+	private Set<String> getParentActionNames(Document actionObject) {
 		Set<String> toReturn = new HashSet<String>();
-		JSONArray parentActions = (JSONArray) actionObject.get("parentActions");
+		List<Document> parentActions = (List<Document>) actionObject.get("parentActions");
 		if (null == parentActions) {
 			return Collections.unmodifiableSet(toReturn);
 		}
-		Iterator<JSONObject> parentActionsIt = parentActions.iterator();
+		Iterator<Document> parentActionsIt = parentActions.iterator();
 		while (parentActionsIt.hasNext()) {
-			JSONObject parentActionObject = parentActionsIt.next();
+			Document parentActionObject = parentActionsIt.next();
 			String parentActionName = (String) parentActionObject.get("name");
 			if (null == parentActionName) {
 				continue;
@@ -109,17 +99,17 @@ public class JavaActionParser extends io.biblia.workflows.definition.parser.Acti
 		return Collections.unmodifiableSet(toReturn);
 	}
 
-	private LinkedHashMap<String, String> getInputParameters(JSONObject actionObject) {
+	private LinkedHashMap<String, String> getInputParameters(Document actionObject) {
 		LinkedHashMap<String, String> toReturn = new LinkedHashMap<>();
-		JSONArray inputParameters = (JSONArray) actionObject.get("inputParameters");
+		List<Document> inputParameters = (List<Document>) actionObject.get("inputParameters");
 		if (null == inputParameters) {
 			return toReturn;
 		}
-		Iterator<JSONObject> inputParametersIt = inputParameters.iterator();
+		Iterator<Document> inputParametersIt = inputParameters.iterator();
 		int counter = 0;
 		while (inputParametersIt.hasNext()) {
 			counter++;
-			JSONObject inputParameterObject = inputParametersIt.next();
+			Document inputParameterObject = inputParametersIt.next();
 			String key = (String) inputParameterObject.get("key");
 			String value = (String) inputParameterObject.get("value");
 			if (null == value) {
@@ -135,17 +125,17 @@ public class JavaActionParser extends io.biblia.workflows.definition.parser.Acti
 		return toReturn;
 	}
 
-	private LinkedHashMap<String, String> getOutputParameters(JSONObject actionObject) {
+	private LinkedHashMap<String, String> getOutputParameters(Document actionObject) {
 		LinkedHashMap<String, String> toReturn = new LinkedHashMap<>();
-		JSONArray outputParameters = (JSONArray) actionObject.get("outputParameters");
+		List<Document> outputParameters = (List<Document>) actionObject.get("outputParameters");
 		if (null == outputParameters) {
 			return toReturn;
 		}
-		Iterator<JSONObject> outputParametersIt = outputParameters.iterator();
+		Iterator<Document> outputParametersIt = outputParameters.iterator();
 		int counter = 0;
 		while (outputParametersIt.hasNext()) {
 			counter++;
-			JSONObject outputParametersObject = outputParametersIt.next();
+			Document outputParametersObject = outputParametersIt.next();
 			String key = (String) outputParametersObject.get("key");
 			String value = (String) outputParametersObject.get("value");
 			if (null == value) {
@@ -167,18 +157,18 @@ public class JavaActionParser extends io.biblia.workflows.definition.parser.Acti
 	 * @return
 	 * @throws WorkflowParseException
 	 */
-	private LinkedHashMap<String, String> getConfigurationParameters(JSONObject actionObject)
+	private LinkedHashMap<String, String> getConfigurationParameters(Document actionObject)
 			throws WorkflowParseException {
 		LinkedHashMap<String, String> toReturn = new LinkedHashMap<>();
-		JSONArray configurationParameters = (JSONArray) actionObject.get("configurationParameters");
+		List<Document> configurationParameters = (List<Document>) actionObject.get("configurationParameters");
 		if (null == configurationParameters) {
 			return toReturn;
 		}
-		Iterator<JSONObject> configurationParametersIt = configurationParameters.iterator();
+		Iterator<Document> configurationParametersIt = configurationParameters.iterator();
 		int counter = 0;
 		while (configurationParametersIt.hasNext()) {
 			counter++;
-			JSONObject configurationParametersObject = configurationParametersIt.next();
+			Document configurationParametersObject = configurationParametersIt.next();
 			String key = (String) configurationParametersObject.get("key");
 			String value = (String) configurationParametersObject.get("value");
 			if (null == value) {

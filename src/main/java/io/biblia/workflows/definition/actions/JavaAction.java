@@ -1,14 +1,12 @@
 package io.biblia.workflows.definition.actions;
 
+import com.google.common.base.Preconditions;
+import io.biblia.workflows.definition.Action;
+
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import com.google.common.base.Preconditions;
-
-import io.biblia.workflows.definition.Action;
 
 /**
  * Defines a command line action.
@@ -33,7 +31,8 @@ public class JavaAction extends Action {
 	private final Map<String, String> outputParameters;
 	private final Map<String, String> configurationParameters;
 	
-	public JavaAction(String name, 
+	public JavaAction(String name,
+					  String type,
 			String actionFolder,
 			boolean forceComputation, 
 			String mainClassName,
@@ -44,7 +43,7 @@ public class JavaAction extends Action {
 			LinkedHashMap<String, String> outputParameters, 
 			LinkedHashMap<String, String> configurationParameters) {
 	
-		super(name, actionFolder, forceComputation);
+		super(name, type, actionFolder, forceComputation);
 		Preconditions.checkNotNull(mainClassName);
 		Preconditions.checkNotNull(jobTracker);
 		Preconditions.checkNotNull(nameNode);

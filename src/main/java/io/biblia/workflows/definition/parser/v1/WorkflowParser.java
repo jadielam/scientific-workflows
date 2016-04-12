@@ -1,20 +1,17 @@
 package io.biblia.workflows.definition.parser.v1;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
 import com.google.common.base.Preconditions;
-
 import io.biblia.workflows.definition.Action;
 import io.biblia.workflows.definition.InvalidWorkflowException;
 import io.biblia.workflows.definition.Workflow;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
+import org.bson.Document;
+import org.bson.json.JsonParseException;
+import org.json.simple.parser.ParseException;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class WorkflowParser implements io.biblia.workflows.definition.parser.WorkflowParser {
 
@@ -66,39 +63,39 @@ public class WorkflowParser implements io.biblia.workflows.definition.parser.Wor
 	 * 
 	 * 
 	 * }
-	 * @param workflow
-	 * @return
+	 * @param workflowString
+	 * @return the workflow parsed
 	 * @throws ParseException If the workflowString is not a properly formatted
 	 * JSON object
 	 * @throws 
 	 */
 	public Workflow parseWorkflow(String workflowString) throws WorkflowParseException, InvalidWorkflowException {
-		
-		JSONParser jsonParser = new JSONParser();
+
 		try{
-			JSONObject workflowObj = (JSONObject) jsonParser.parse(workflowString);
+
+			Document workflowObj = Document.parse(workflowString);
 			String name = (String) workflowObj.get("name");
 			if (null == name) throw new WorkflowParseException("The workflow did not include any name");
 			Preconditions.checkNotNull(name, "The workflow did not include a name attribute.");
 			
 			//1. Get start action name
-			JSONObject startActionObject = (JSONObject) workflowObj.get("startAction");
+			Document startActionObject = (Document) workflowObj.get("startAction");
 			if (null == startActionObject) throw new WorkflowParseException("The workflow definition did not have start action");
 			String startActionName = (String) startActionObject.get("name");
 			if (null == startActionName) throw new WorkflowParseException("The workflow definition did not have start action name");
 			
 			//2. Get end action name
-			JSONObject endActionObject = (JSONObject) workflowObj.get("endAction");
+			Document endActionObject = (Document) workflowObj.get("endAction");
 			if (null == endActionObject) throw new WorkflowParseException("The workflow definition did not have end action");
 			String endActionName = (String) endActionObject.get("name");
 			if (null == endActionName) throw new WorkflowParseException("The workflow definition did not have end action name");
 			
 			//3. Get actions
-			JSONArray actionsListObject = (JSONArray) workflowObj.get("actions");
-			Iterator<JSONObject> actionObjectsIt = actionsListObject.iterator();
+			List<Document> actionsListObject = (List<Document>) workflowObj.get("actions");
+			Iterator<Document> actionObjectsIt = actionsListObject.iterator();
 			List<Action> actions = new ArrayList<Action>();
 			while (actionObjectsIt.hasNext()) {
-				JSONObject actionObject = actionObjectsIt.next();
+				Document actionObject = actionObjectsIt.next();
 				Action action = actionParser.parseAction(actionObject);
 				actions.add(action);
 			}	
@@ -107,7 +104,7 @@ public class WorkflowParser implements io.biblia.workflows.definition.parser.Wor
 			return new Workflow(name, startActionName, endActionName, actions);
 			
 		}
-		catch(ParseException ex) {
+		catch(JsonParseException ex) {
 			throw new WorkflowParseException("Error parsing the workflow JSON object");
 		}
 	}

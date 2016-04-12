@@ -1,17 +1,13 @@
 package io.biblia.workflows.definition.parser;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
 import com.google.common.base.Preconditions;
-
 import io.biblia.workflows.definition.InvalidWorkflowException;
 import io.biblia.workflows.definition.Workflow;
+import org.bson.Document;
+import org.bson.json.JsonParseException;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class BaseWorkflowParser implements WorkflowParser {
 
@@ -38,10 +34,10 @@ public class BaseWorkflowParser implements WorkflowParser {
 		
 		//1. Check version and call the right version depending on parser		
 		//2. Parse the object and return a workflow object.
-		
-		JSONParser jsonParser = new JSONParser();
+
+
 		try{
-			JSONObject workflowObj = (JSONObject) jsonParser.parse(workflowString);
+			Document workflowObj = Document.parse(workflowString);
 			String version = (String) workflowObj.get("version");
 			Preconditions.checkNotNull(version, "The workflow did not include a version attribute.");		
 			WorkflowParser wParser = BaseWorkflowParser.registeredParsers.get(version);
@@ -53,7 +49,7 @@ public class BaseWorkflowParser implements WorkflowParser {
 				throw new WorkflowParseException("Could not parse that workflow version");
 			}
 		}
-		catch (ParseException ex) {
+		catch (JsonParseException ex) {
 			throw new WorkflowParseException("Error parsing the workflow definition JSON");
 		}
 		catch(NullPointerException ex) {

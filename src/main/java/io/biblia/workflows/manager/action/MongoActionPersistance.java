@@ -6,9 +6,14 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import io.biblia.workflows.definition.Action;
+import io.biblia.workflows.definition.parser.WorkflowParseException;
+import io.biblia.workflows.definition.parser.v1.ActionParser;
 import org.bson.Document;
+import org.bson.json.JsonParseException;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import static com.mongodb.client.model.Filters.*;
@@ -31,25 +36,36 @@ public class MongoActionPersistance implements ActionPersistance {
     
     public static final String ACTIONS_COLLECTION = "actions_cl";
     public static final String WORKFLOWS_DATABASE = "workflows_db";
+
+    /**
+     * The number of seconds for an action in PROCESSING state to be
+     * considered obsolete.
+     */
+    public static final int OUTDATED_SECONDS = 400;
     private final MongoClient mongo;
     private final MongoDatabase workflows;
     private final MongoCollection<Document> actions;
+    private final io.biblia.workflows.definition.parser.ActionParser parser;
     
     public MongoActionPersistance(MongoClient mongo) {
         this.mongo = mongo;
         this.workflows = this.mongo.getDatabase(WORKFLOWS_DATABASE);
         this.actions = this.workflows.getCollection(ACTIONS_COLLECTION);
-
+        this.parser = new ActionParser();
     }
     
     @Override
     public List<PersistedAction> getAvailableActions() {
     	List<PersistedAction> toReturn = new ArrayList<>();
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.SECOND, -1 * OUTDATED_SECONDS);
+        Date minus = calendar.getTime();
+
         final FindIterable<Document> documents = this.actions.find(or(
                 eq("state", "READY"),
                 and(
                         eq("state", "PROCESSING"),
-                        gte("lastUpdatedDate", "test")
+                        gte("lastUpdatedDate", minus)
                 )
                 )
         );
@@ -57,8 +73,14 @@ public class MongoActionPersistance implements ActionPersistance {
         try {
             while (iterator.hasNext()) {
                 Document next = iterator.next();
-                PersistedAction action = parseAction(next);
-                toReturn.add(action);
+                try{
+                    PersistedAction action = parseAction(next);
+                    toReturn.add(action);
+                }
+                catch(Exception e) {
+                    //TODO: Add logging here.
+                    continue;
+                }
             }
         }
         finally {
@@ -70,7 +92,7 @@ public class MongoActionPersistance implements ActionPersistance {
     @Override
     public void updateActionState(Action action, ActionState state)
             throws OutdatedActionException {
-    
+
     }
     
     @Override
@@ -78,10 +100,21 @@ public class MongoActionPersistance implements ActionPersistance {
     
     }
 
-    private PersistedAction parseAction(Document document) {
-        PersistedAction action = null;
-        String type = (String) document.get("type");
-        String id = (String) document.get("id");
-        return action;
+    private PersistedAction parseAction(Document document) throws
+            WorkflowParseException, NullPointerException, JsonParseException {
+
+        String id = document.getString("id");
+        Date date = (Date) document.getDate("lastUpdatedDate");
+        String stateString = document.getString("state");
+        ActionState state = ActionState.valueOf(stateString);
+        Document actionDoc = (Document) document.get("action");
+        Action action = this.parser.parseAction(actionDoc);
+
+        return new PersistedAction(action, id, state, date);
+    }
+
+    private interface DocumentToAction<T extends Action> {
+
+        public T parse(Document document);
     }
 }

@@ -1,10 +1,9 @@
 package io.biblia.workflows.definition;
 
-import java.util.List;
+import com.google.common.base.Preconditions;
+
 import java.util.Map;
 import java.util.Set;
-
-import com.google.common.base.Preconditions;
 
 /**
  * Represents the definition of a workflow action.
@@ -16,10 +15,15 @@ public abstract class Action {
 	private final String name;
 	private final String actionFolder;
 	private final boolean forceComputation;
+	private final String type;
 	
-	public Action(String name, String actionFolder, boolean forceComputation) {
+	public Action(String name, String type,
+				  String actionFolder,
+				  boolean forceComputation) {
 		Preconditions.checkNotNull(name);
+		Preconditions.checkNotNull(type);
 		this.name = name;
+		this.type = type;
 		this.actionFolder = actionFolder;
 		this.forceComputation = forceComputation;
 	}
@@ -43,7 +47,11 @@ public abstract class Action {
 	public boolean getForceComputation() {
 		return this.forceComputation;
 	}
-	
+
+	public String getType() {
+		return type;
+	}
+
 	/**
 	 * Returns a list of the parent action names
 	 * @return

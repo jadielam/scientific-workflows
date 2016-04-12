@@ -1,18 +1,18 @@
 package io.biblia.workflows.utils;
 
+import java.util.List;
+
+import org.bson.Document;
+
 public class TestXmlBuilder {
 
 	public static void main(String[] args) {
+
+		String json = "{ test: \"asdf\", test1: [{ a: 4}, {a:5}]}";
+		Document parse = Document.parse(json);
+		List<Document> inside = (List<Document>) parse.get("test1");
 		
-		XmlBuilder builder = new XmlBuilder();
-		builder.openElement("workflow");
-		builder.openElement("a", "size", "2");
-		builder.closeElement("a");
-		builder.openCloseTextElement("text", "asdf", "a", "a");
-		builder.openCloseElement("testing");
-		builder.closeElement("workflow");
-		
-		System.out.println(builder.toString());
+		System.out.println(inside);
 
 	}
 
