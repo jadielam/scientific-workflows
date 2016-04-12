@@ -62,12 +62,12 @@ public class MongoActionPersistance implements ActionPersistance {
         Date minus = calendar.getTime();
 
         final FindIterable<Document> documents = this.actions.find(or(
-                eq("state", "READY"),
+                eq("state", ActionState.READY.name()),
                 and(
-                        eq("state", "PROCESSING"),
-                        gte("lastUpdatedDate", minus)
+                    eq("state", ActionState.PROCESSING.name()),
+                    gte("lastUpdatedDate", minus)
                 )
-                )
+            )
         );
         MongoCursor<Document> iterator = documents.iterator();
         try {
@@ -90,14 +90,9 @@ public class MongoActionPersistance implements ActionPersistance {
     }
     
     @Override
-    public void updateActionState(Action action, ActionState state)
+    public void updateActionState(PersistedAction action, ActionState state)
             throws OutdatedActionException {
 
-    }
-    
-    @Override
-    public void addActionSubmissionId(Action action, String submissionId) {
-    
     }
 
     private PersistedAction parseAction(Document document) throws
@@ -111,10 +106,5 @@ public class MongoActionPersistance implements ActionPersistance {
         Action action = this.parser.parseAction(actionDoc);
 
         return new PersistedAction(action, id, state, date);
-    }
-
-    private interface DocumentToAction<T extends Action> {
-
-        public T parse(Document document);
     }
 }
