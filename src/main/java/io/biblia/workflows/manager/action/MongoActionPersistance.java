@@ -5,6 +5,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.result.UpdateResult;
 import io.biblia.workflows.definition.Action;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
 import io.biblia.workflows.definition.parser.v1.ActionParser;
@@ -23,10 +24,12 @@ import static com.mongodb.client.model.Filters.*;
  * {
  *     name: [String],
  *     id: [String],
- *     actionFolder: [String],
- *     forceComputation: [Boolean],
+ *     action: {
+ *          actionFolder: [String],
+ *          forceComputation: [Boolean],
+ *          type: "command-line" | "map-reduce-1",
+ *     }
  *     lastUpdatedDate: [Timestamp],
- *     type: ["command-line", "map-reduce-1"]
  *     state: ["READY", "PROCESSING", "SUBMITTED", "RUNNING", "FINISHED", "FAILED", "KILLED"];
  *     ...// Here go fields that are particular to specific action types
  *     ...//
@@ -92,7 +95,15 @@ public class MongoActionPersistance implements ActionPersistance {
     @Override
     public void updateActionState(PersistedAction action, ActionState state)
             throws OutdatedActionException {
+        final Document ifDoc = new Document().append("id", action.getId())
+                .append("lastUpdatedDate", action.getLastUpdatedDate());
+        final UpdateResult updateResult = this.actions.updateOne(new Document("id", action.getId()),
+                new Document("$set", new Document("state", state.name()))
+                        .append("$currentDate", new Document("lastUpdatedDate", true)));
 
+        if (updateResult.getMatchedCount() == 0) {
+            throw new OutdatedActionException();
+        }
     }
 
     private PersistedAction parseAction(Document document) throws
