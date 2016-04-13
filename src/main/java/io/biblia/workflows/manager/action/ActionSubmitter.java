@@ -6,7 +6,6 @@ import org.apache.oozie.client.OozieClientException;
 
 import com.google.common.base.Preconditions;
 
-import io.biblia.workflows.definition.Action;
 import io.biblia.workflows.manager.oozie.OozieClientUtil;
 
 public class ActionSubmitter implements Runnable {

@@ -1,7 +1,6 @@
 package io.biblia.workflows.manager.action;
 
 import com.google.common.base.Preconditions;
-import io.biblia.workflows.definition.Action;
 
 import java.util.List;
 import java.util.concurrent.BlockingQueue;

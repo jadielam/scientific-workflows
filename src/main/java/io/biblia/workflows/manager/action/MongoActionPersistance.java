@@ -31,6 +31,7 @@ import static com.mongodb.client.model.Filters.*;
  *          type: "command-line" | "map-reduce-1",
  *     }
  *     lastUpdatedDate: [Timestamp],
+ *     submissionId: [String] //Submission id given by Oozie.
  *     state: ["READY", "PROCESSING", "SUBMITTED", "RUNNING", "FINISHED", "FAILED", "KILLED"];
  *     ...// Here go fields that are particular to specific action types
  *     ...//
@@ -62,6 +63,7 @@ public class MongoActionPersistance implements ActionPersistance {
     public List<PersistedAction> getAvailableActions() {
     	List<PersistedAction> toReturn = new ArrayList<>();
         Calendar calendar = Calendar.getInstance();
+        //TODO: Check that this is valid.
         calendar.add(Calendar.SECOND, -1 * OUTDATED_SECONDS);
         Date minus = calendar.getTime();
 

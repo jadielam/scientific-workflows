@@ -33,5 +33,10 @@ public interface ActionPersistance {
 }
 
 class OutdatedActionException extends Exception {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4339790589818686835L;
 	
 }

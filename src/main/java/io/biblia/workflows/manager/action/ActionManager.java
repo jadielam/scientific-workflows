@@ -7,8 +7,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import com.google.common.base.Preconditions;
 
-import io.biblia.workflows.definition.Action;
-
 /**
  * The action manager's purpose is to submit actions to Hadoop, in this case
  * using Apache Oozie as intermediary.  It uses the database to synchronize
