@@ -39,6 +39,8 @@ class ActionScraper {
 	 */
 	private static final long ACTION_SCRAPER_TIMEOUT = 60000;
 	
+	private static final int QUEUE_SOFT_MAX_CAPACITY = 20;
+	
 	private class ActionScraperRunner implements Runnable {
 
 		@Override
@@ -52,7 +54,8 @@ class ActionScraper {
 				// Actions that have been started processing, but have
 				// been on that state for a long time. That could signal
 				// that the server that started processing them died.
-				List<PersistedAction> actions = actionDao.getAvailableActions();
+				int number = Math.max(QUEUE_SOFT_MAX_CAPACITY - queue.size(), 0);
+				List<PersistedAction> actions = actionDao.getAvailableActions(number);
 				
 				//2. For each of the actions, update the entry of the
 				//action in the database, if it is that it has not been

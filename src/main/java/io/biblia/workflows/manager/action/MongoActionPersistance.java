@@ -60,7 +60,7 @@ public class MongoActionPersistance implements ActionPersistance {
     }
     
     @Override
-    public List<PersistedAction> getAvailableActions() {
+    public List<PersistedAction> getAvailableActions(int n) {
     	List<PersistedAction> toReturn = new ArrayList<>();
         Calendar calendar = Calendar.getInstance();
         //TODO: Check that this is valid.
@@ -75,6 +75,11 @@ public class MongoActionPersistance implements ActionPersistance {
                 )
             )
         );
+        
+        if (n > 0) {
+        	documents.limit(n);
+        }
+        
         MongoCursor<Document> iterator = documents.iterator();
         try {
             while (iterator.hasNext()) {

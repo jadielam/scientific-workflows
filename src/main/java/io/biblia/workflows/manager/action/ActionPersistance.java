@@ -8,9 +8,11 @@ public interface ActionPersistance {
 	 * Returns all the actions that are in the READY state,
 	 * or that are in the PROCESSING state but have been there
 	 * for a long time.
+	 * @param n if n is -1 it returns all the actions, otherwise,
+	 * it returns n of the actions.
 	 * @return
 	 */
-	public List<PersistedAction> getAvailableActions();
+	public List<PersistedAction> getAvailableActions(int n);
 	
 	/**
 	 * Updates the state of the action to the specified state.
