@@ -26,7 +26,7 @@ class ActionScraper {
 	/**
 	 * Queue to which actions to be submitted are added.
 	 */
-	private final BlockingQueue<Action> queue;
+	private final BlockingQueue<PersistedAction> queue;
 	
 	/**
 	 * Data access object that gets and updates actions
@@ -61,14 +61,14 @@ class ActionScraper {
 				//by someone else, drop it, otherwise, insert it into
 				//the queue.
 				for (PersistedAction pAction : actions) {
-					Action action = pAction.getAction();
+					
 					try{
 						actionDao.updateActionState(pAction, ActionState.PROCESSING);
 					}
 					catch(OutdatedActionException ex) {
 						continue;
 					}
-					queue.add(action);
+					queue.add(pAction);
 				}
 				
 				try {
@@ -82,7 +82,7 @@ class ActionScraper {
 		
 	}
 	
-	private ActionScraper(BlockingQueue<Action> queue,
+	private ActionScraper(BlockingQueue<PersistedAction> queue,
 			ActionPersistance actionDao) {
 		Preconditions.checkNotNull(queue);
 		Preconditions.checkNotNull(actionDao);
@@ -104,7 +104,7 @@ class ActionScraper {
 	 * @param actionsQueue
 	 * @param actionDao
      */
-	public static void start(BlockingQueue<Action> actionsQueue,
+	public static void start(BlockingQueue<PersistedAction> actionsQueue,
 			ActionPersistance actionDao) {
 		if (null == instance) {
 			instance = new ActionScraper(actionsQueue, actionDao);

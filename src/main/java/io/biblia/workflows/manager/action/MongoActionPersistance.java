@@ -93,23 +93,14 @@ public class MongoActionPersistance implements ActionPersistance {
         return toReturn;
     }
 
-    /**
-     * Inserts new action into the database.
-     * @param action
-     */
-    public void insertNewReadyAction(Action action) {
-        //TODO
-
-    }
-
     @Override
     public void updateActionState(PersistedAction action, ActionState state)
             throws OutdatedActionException {
-        final Document ifDoc = new Document().append("id", action.getId())
+        final Document ifDoc = new Document().append("_id", action.getId())
                 .append("lastUpdatedDate", action.getLastUpdatedDate());
-        final UpdateResult updateResult = this.actions.updateOne(new Document("id", action.getId()),
-                new Document("$set", new Document("state", state.name()))
-                        .append("$currentDate", new Document("lastUpdatedDate", true)));
+        final Document upDoc = new Document().append("$set", new Document("state", state.name()))
+        		.append("$currentDate", new Document("lastUpdatedDate", true));
+        final UpdateResult updateResult = this.actions.updateOne(ifDoc, upDoc);
 
         if (updateResult.getMatchedCount() == 0) {
             throw new OutdatedActionException();
@@ -128,4 +119,17 @@ public class MongoActionPersistance implements ActionPersistance {
 
         return new PersistedAction(action, id, state, date);
     }
+
+	@Override
+	public void addActionSubmissionId(PersistedAction action, String id) throws OutdatedActionException {
+		final Document ifDoc = new Document().append("_id", action.getId())
+				.append("lastUpdatedDate", action.getLastUpdatedDate());
+		final Document upDoc = new Document().append("$set", new Document("submissionId", id))
+        		.append("$currentDate", new Document("lastUpdatedDate", true));
+		final UpdateResult updateResult = this.actions.updateOne(ifDoc, upDoc);
+		
+		if (updateResult.getMatchedCount() == 0) {
+			throw new OutdatedActionException();
+		}
+	}
 }
