@@ -3,9 +3,11 @@ package io.biblia.workflows.manager.action;
 import java.io.IOException;
 
 import org.apache.oozie.client.OozieClientException;
+import org.bson.json.JsonParseException;
 
 import com.google.common.base.Preconditions;
 
+import io.biblia.workflows.definition.parser.WorkflowParseException;
 import io.biblia.workflows.manager.oozie.OozieClientUtil;
 
 public class ActionSubmitter implements Runnable {
@@ -39,10 +41,12 @@ public class ActionSubmitter implements Runnable {
 
 		// 1.2, Update database with submitted
 		try {
-			this.persistance.updateActionState(action, ActionState.SUBMITTED);
+			action = this.persistance.updateActionState(action, ActionState.SUBMITTED);
 		} catch (OutdatedActionException ex) {
 			return;
-		}
+		} catch (Exception e) {
+			return;
+		} 
 
 		// 1.2.1 If database accepts update by comparing versions
 		// Submit to Oozie.
@@ -55,21 +59,25 @@ public class ActionSubmitter implements Runnable {
 			// 1.2.1.1 If there is an error submitting action, update
 			// database with state: READY.
 			try {
-				this.persistance.updateActionState(action, ActionState.READY);
+				action = this.persistance.updateActionState(action, ActionState.READY);
 			} catch (OutdatedActionException ex1) {
+				return;
+			} catch (Exception e) {
 				return;
 			}
 
 			return;
 		}
 		try {
-			this.persistance.addActionSubmissionId(action, submissionId);
+			action = this.persistance.addActionSubmissionId(action, submissionId);
 		} catch (OutdatedActionException ex) {
 			// This exception is not supposed to be thrown in here. Log the
 			// error
 			// as a bug to be fixed later on.
 		}
-
+		catch (Exception e) {
+			return;
+		}
 	}
 
 }

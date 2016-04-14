@@ -5,6 +5,8 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.FindOneAndUpdateOptions;
+import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.result.UpdateResult;
 import io.biblia.workflows.definition.Action;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
@@ -100,19 +102,63 @@ public class MongoActionPersistance implements ActionPersistance {
         return toReturn;
     }
 
+    /**
+     * Updates action state and updates the version of the document. 
+     * Returns the updated document.
+     * If the document version do not coincide, it throws an OutdatedActionException
+     * @throws WorkflowParseException 
+     * @throws JsonParseException 
+     * @throws NullPointerException 
+     * @throws OutdatedActionException
+     */
     @Override
-    public void updateActionState(PersistedAction action, ActionState state)
-            throws OutdatedActionException {
-        final Document ifDoc = new Document().append("_id", action.getId())
-                .append("lastUpdatedDate", action.getLastUpdatedDate());
-        final Document upDoc = new Document().append("$set", new Document("state", state.name()))
-        		.append("$currentDate", new Document("lastUpdatedDate", true));
-        final UpdateResult updateResult = this.actions.updateOne(ifDoc, upDoc);
+    public PersistedAction updateActionState(PersistedAction action, ActionState state)
+            throws OutdatedActionException, NullPointerException, JsonParseException, WorkflowParseException {
+        final Document filter = new Document().append("_id", action.getId())
+                .append("version", action.getVersion());
+        final Document update = new Document().append("$set", new Document("state", state.name()))
+        		.append("$currentDate", new Document("lastUpdatedDate", true))
+        		.append("$inc", new Document("version", 1));
 
-        if (updateResult.getMatchedCount() == 0) {
-            throw new OutdatedActionException();
+        FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
+        options.returnDocument(ReturnDocument.AFTER);
+        Document newDocument = this.actions.findOneAndUpdate(filter, update, options);
+        if (null == newDocument) {
+        	throw new OutdatedActionException();
+        }
+        else {
+        	return parseAction(newDocument);
         }
     }
+    
+    /**
+     * Adds the Oozie submission id to the persisted action and updates
+     * the version of the document.
+     * If the version of the action and the version in the database
+     * do not coincide, it throws an OutdatedActionException.
+     * @throws WorkflowParseException 
+     * @throws JsonParseException 
+     * @throws NullPointerException 
+     */
+	@Override
+	public PersistedAction addActionSubmissionId(PersistedAction action, String id) throws OutdatedActionException, NullPointerException, JsonParseException, WorkflowParseException {
+		final Document filter = new Document().append("_id", action.getId())
+				.append("version", action.getVersion());
+		final Document update = new Document().append("$set", new Document("submissionId", id))
+        		.append("$currentDate", new Document("lastUpdatedDate", true))
+        		.append("$inc", new Document("version", 1));
+		
+		FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
+		options.returnDocument(ReturnDocument.AFTER);
+		Document newDocument = this.actions.findOneAndUpdate(filter, update, options);
+		if (null == newDocument) {
+			throw new OutdatedActionException();
+		}
+		else {
+			return parseAction(newDocument);
+		}
+	}
+
 
     private PersistedAction parseAction(Document document) throws
             WorkflowParseException, NullPointerException, JsonParseException {
@@ -123,20 +169,9 @@ public class MongoActionPersistance implements ActionPersistance {
         ActionState state = ActionState.valueOf(stateString);
         Document actionDoc = (Document) document.get("action");
         Action action = this.parser.parseAction(actionDoc);
+        int version = document.getInteger("version");
 
-        return new PersistedAction(action, id, state, date);
+        return new PersistedAction(action, id, state, date, version);
     }
 
-	@Override
-	public void addActionSubmissionId(PersistedAction action, String id) throws OutdatedActionException {
-		final Document ifDoc = new Document().append("_id", action.getId())
-				.append("lastUpdatedDate", action.getLastUpdatedDate());
-		final Document upDoc = new Document().append("$set", new Document("submissionId", id))
-        		.append("$currentDate", new Document("lastUpdatedDate", true));
-		final UpdateResult updateResult = this.actions.updateOne(ifDoc, upDoc);
-		
-		if (updateResult.getMatchedCount() == 0) {
-			throw new OutdatedActionException();
-		}
-	}
 }

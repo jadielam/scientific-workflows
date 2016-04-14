@@ -2,6 +2,10 @@ package io.biblia.workflows.manager.action;
 
 import java.util.List;
 
+import org.bson.json.JsonParseException;
+
+import io.biblia.workflows.definition.parser.WorkflowParseException;
+
 public interface ActionPersistance {
 	
 	/**
@@ -21,8 +25,12 @@ public interface ActionPersistance {
 	 * @param action
 	 * @param state
 	 * @throws OutdatedActionException
+	 * @return returns the PersistedAction
+	 * @throws WorkflowParseException 
+	 * @throws JsonParseException 
+	 * @throws NullPointerException 
 	 */
-	public void updateActionState(PersistedAction action, ActionState state) throws OutdatedActionException;
+	public PersistedAction updateActionState(PersistedAction action, ActionState state) throws OutdatedActionException, NullPointerException, JsonParseException, WorkflowParseException;
 	
 	/**
 	 * Adds the Oozie submission id to the action.  If the action has
@@ -30,8 +38,12 @@ public interface ActionPersistance {
 	 * @param action
 	 * @param id
 	 * @throws OutdatedActionException
+	 * @return the updated persisted action.
+	 * @throws WorkflowParseException 
+	 * @throws JsonParseException 
+	 * @throws NullPointerException 
 	 */
-	public void addActionSubmissionId(PersistedAction action, String id) throws OutdatedActionException;
+	public PersistedAction addActionSubmissionId(PersistedAction action, String id) throws OutdatedActionException, NullPointerException, JsonParseException, WorkflowParseException;
 }
 
 class OutdatedActionException extends Exception {

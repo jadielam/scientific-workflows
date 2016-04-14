@@ -65,9 +65,12 @@ class ActionScraper {
 				for (PersistedAction pAction : actions) {
 					
 					try{
-						actionDao.updateActionState(pAction, ActionState.PROCESSING);
+						pAction = actionDao.updateActionState(pAction, ActionState.PROCESSING);
 					}
 					catch(OutdatedActionException ex) {
+						continue;
+					}
+					catch(Exception e) {
 						continue;
 					}
 					queue.add(pAction);

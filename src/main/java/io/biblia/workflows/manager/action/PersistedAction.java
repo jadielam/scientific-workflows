@@ -15,9 +15,11 @@ public class PersistedAction {
     private final ObjectId _id;
     private final ActionState state;
     private final Date lastUpdatedDate;
+    private int version;
 
     public PersistedAction(Action action, ObjectId _id,
-                           ActionState state, Date lastUpdatedDate) {
+                           ActionState state, Date lastUpdatedDate, 
+                           int version) {
         Preconditions.checkNotNull(action);
         Preconditions.checkNotNull(_id);
         Preconditions.checkNotNull(state);
@@ -26,6 +28,7 @@ public class PersistedAction {
         this._id = _id;
         this.state = state;
         this.lastUpdatedDate = lastUpdatedDate;
+        this.version = version;
     }
 
     public Action getAction() {
@@ -43,4 +46,18 @@ public class PersistedAction {
     public Date getLastUpdatedDate() {
         return lastUpdatedDate;
     }
+    
+    void setVersion(int version) {
+    	this.version = version;
+    }
+
+	public int getVersion() {
+		return version;
+	}
+
+	public ObjectId get_id() {
+		return _id;
+	}
+    
+    
 }
