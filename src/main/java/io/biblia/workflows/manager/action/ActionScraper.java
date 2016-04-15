@@ -93,7 +93,7 @@ class ActionScraper {
 		Preconditions.checkNotNull(actionDao);
 		this.queue = queue;
 		this.actionDao = actionDao;
-		t = new Thread(new ActionScraperRunner(), "Scraper Thread");
+		t = new Thread(new ActionScraperRunner(), "Action Scraper Thread");
 		t.start();
 	}
 
