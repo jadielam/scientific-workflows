@@ -7,7 +7,6 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
-import com.mongodb.client.result.UpdateResult;
 import io.biblia.workflows.definition.Action;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
 import io.biblia.workflows.definition.parser.v1.ActionParser;
