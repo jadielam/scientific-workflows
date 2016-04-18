@@ -34,12 +34,16 @@ public class FSDeleteParser extends io.biblia.workflows.definition.parser.Action
 		if (null == name) {
 			throw new WorkflowParseException("The action does not have a name");
 		}
+		String actionFolder = aObject.getString("actionFolder");
+		if (null == actionFolder) {
+			throw new WorkflowParseException("The action does not have attribute <actionFolder>");
+		}
 		String deletePath = aObject.getString("pathToDelete");
 		if (null == deletePath) {
 			throw new WorkflowParseException("The action does not have attribute <pathToDelete>");
 		}
 		
-		return new FSDeleteAction(name, deletePath);
+		return new FSDeleteAction(name, actionFolder, deletePath);
 	}
 	
 

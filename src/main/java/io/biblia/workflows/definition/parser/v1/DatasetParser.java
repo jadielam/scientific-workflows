@@ -9,8 +9,12 @@ public class DatasetParser extends io.biblia.workflows.definition.parser.Dataset
 
 	@Override
 	public Dataset parseDataset(Document object) throws DatasetParseException {
-		//TODO
-		return new Dataset();
+		
+		String path = object.getString("path");
+		if (null == path) {
+			throw new DatasetParseException("The dataset does not have a <path> attribute");
+		}
+		return new Dataset(path);
 	}
 
 }

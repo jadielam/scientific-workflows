@@ -1,6 +1,7 @@
 package io.biblia.workflows.manager.action;
 
 import java.util.List;
+import io.biblia.workflows.definition.Action;
 
 import org.bson.json.JsonParseException;
 
@@ -44,6 +45,14 @@ public interface ActionPersistance {
 	 * @throws NullPointerException 
 	 */
 	public PersistedAction addActionSubmissionId(PersistedAction action, String id) throws OutdatedActionException, NullPointerException, JsonParseException, WorkflowParseException;
+	
+	/**
+	 * Inserts a new action to the persistance.
+	 * @param action
+	 * @return
+	 */
+	public String insertAction(Action action);
+	
 }
 
 class OutdatedActionException extends Exception {

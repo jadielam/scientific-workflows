@@ -15,7 +15,7 @@ public class FSDeleteAction extends Action implements ActionNameConstants {
 	
 	private final String pathToDelete;
 	
-	public FSDeleteAction(String name, String pathToDelete) {
+	public FSDeleteAction(String name, String actionFolder, String pathToDelete) {
 		super(name, FS_DELETE_ACTION, null, true);
 		Preconditions.checkNotNull(pathToDelete);
 		this.pathToDelete = pathToDelete;

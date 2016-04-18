@@ -6,8 +6,9 @@ import io.biblia.workflows.definition.Dataset;
 
 public class DatasetDeletor implements Runnable {
 
-	private final PersistedDataset dataset;
+	private PersistedDataset dataset;
 	private final DatasetPersistance persistance;
+	private static final String DELETE_ACTION_ROOT_FOLDER = "TODO";
 	
 	public DatasetDeletor(PersistedDataset dataset, DatasetPersistance persistance) {
 		Preconditions.checkNotNull(dataset);
@@ -19,18 +20,22 @@ public class DatasetDeletor implements Runnable {
 	@Override
 	public void run() {
 		try {
-			this.deleteDataset(this.dataset);
+			this.deleteDataset();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 		}	
 	}
 	
-	private void deleteDataset(PersistedDataset dataset) {
+	/**
+	 * Creates oozie action that will take care of deleting the data.
+	 * @param dataset
+	 */
+	private void deleteDataset() {
 		
 		//1. Update database with DELETING state
 		try {
-			dataset = this.persistance.updateDatasetState(dataset, DatasetState.DELETING);
+			this.dataset = this.persistance.updateDatasetState(dataset, DatasetState.DELETING);
 		}
 		catch (OutdatedDatasetException ex) {
 			return;
@@ -38,21 +43,18 @@ public class DatasetDeletor implements Runnable {
 		catch (Exception ex) {
 			return;
 		}
-		//1.2.1 IF database accepts update by comparing versions
-		//create Oozie action that deletes dataset or folder
 		
-		//1.2.2 Persist oozie action to the database with a callback
-		//endpoint that specializes in handling dataset deletion actions.
-		//Add deletion action id to dataset so that the callback is able
-		//to recover the deletion action back from dataset id.
-		//The callback endpoint will both update the state of the
-		//dataset and of the action created to delete the dataset.
+		//1.2.1 Delete the datasets on that folder and if it succeeds, update the
+		//state to deleted, otherwise, if there is an error
 		
 		//1.2.1.1 If there is an error submitting the action the dataset, 
 		//update database with state TO_DELETE
 		
-		//1.2.2 Callback endpoint: by dataset it
-		
+	}
+	
+	private String generateActionFolder() {
+		String id = this.dataset.getId().toString();
+		return DELETE_ACTION_ROOT_FOLDER + "/" + id;
 	}
 	
 }
