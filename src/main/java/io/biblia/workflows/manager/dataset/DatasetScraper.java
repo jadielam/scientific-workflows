@@ -31,7 +31,7 @@ public class DatasetScraper {
 				
 				for (PersistedDataset pDataset : datasets) {
 					try {
-						pDataset = datasetDao.updateDatasetState(pDataset, DatasetState.DELETING);
+						pDataset = datasetDao.updateDatasetState(pDataset, DatasetState.PROCESSING);
 					}
 					catch(OutdatedDatasetException ex) {
 						continue;

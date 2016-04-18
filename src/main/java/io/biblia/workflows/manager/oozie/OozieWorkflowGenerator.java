@@ -136,6 +136,12 @@ public class OozieWorkflowGenerator implements EnvironmentVariables {
 			}
 			builder.closeElement("java");
 		}
+		else if (action instanceof FSDeleteAction) {
+			FSDeleteAction fs = (FSDeleteAction) action;
+			builder.openElement("fs");
+			builder.openCloseElement("delete", "path", fs.getPathToDelete());
+			builder.closeElement("fs");
+		}
 	}
 	
 	private void addProperty(XmlBuilder builder, String name, String value) {

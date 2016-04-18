@@ -55,7 +55,7 @@ public class MongoDatasetPersistance implements DatasetPersistance {
 					eq("claims", 0)
 				),
 				and(
-					eq("state", DatasetState.DELETING.name()),
+					eq("state", DatasetState.PROCESSING.name()),
 					gte("lastUpdatedDate", minus)
 				)
 			)

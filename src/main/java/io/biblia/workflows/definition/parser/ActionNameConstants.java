@@ -22,6 +22,8 @@ public interface ActionNameConstants {
 	 * Actions that use the newest map reduce api.
 	 */
 	String MAP_REDUCE_2_ACTION = "map-reduce-2";
+	
+	String FS_DELETE_ACTION = "fs-delete";
 
 
 }

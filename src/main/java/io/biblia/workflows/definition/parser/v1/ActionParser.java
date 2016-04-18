@@ -20,6 +20,7 @@ public class ActionParser extends io.biblia.workflows.definition.parser.ActionPa
 	static {
 		ActionParser.registeredParsers = new HashMap<String, io.biblia.workflows.definition.parser.ActionParser>();
 		ActionParser.registeredParsers.put(JAVA_ACTION, JavaActionParser.getInstance());
+		ActionParser.registeredParsers.put(FS_DELETE_ACTION, FSDeleteParser.getInstance());
 	}
 	
 	
