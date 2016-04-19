@@ -83,6 +83,7 @@ public class JavaActionParser extends io.biblia.workflows.definition.parser.Acti
 
 	private Set<String> getParentActionNames(Document actionObject) {
 		Set<String> toReturn = new HashSet<String>();
+		@SuppressWarnings("unchecked")
 		List<Document> parentActions = (List<Document>) actionObject.get("parentActions");
 		if (null == parentActions) {
 			return Collections.unmodifiableSet(toReturn);
@@ -101,6 +102,7 @@ public class JavaActionParser extends io.biblia.workflows.definition.parser.Acti
 
 	private LinkedHashMap<String, String> getInputParameters(Document actionObject) {
 		LinkedHashMap<String, String> toReturn = new LinkedHashMap<>();
+		@SuppressWarnings("unchecked")
 		List<Document> inputParameters = (List<Document>) actionObject.get("inputParameters");
 		if (null == inputParameters) {
 			return toReturn;
@@ -127,6 +129,7 @@ public class JavaActionParser extends io.biblia.workflows.definition.parser.Acti
 
 	private LinkedHashMap<String, String> getOutputParameters(Document actionObject) {
 		LinkedHashMap<String, String> toReturn = new LinkedHashMap<>();
+		@SuppressWarnings("unchecked")
 		List<Document> outputParameters = (List<Document>) actionObject.get("outputParameters");
 		if (null == outputParameters) {
 			return toReturn;
@@ -160,6 +163,7 @@ public class JavaActionParser extends io.biblia.workflows.definition.parser.Acti
 	private LinkedHashMap<String, String> getConfigurationParameters(Document actionObject)
 			throws WorkflowParseException {
 		LinkedHashMap<String, String> toReturn = new LinkedHashMap<>();
+		@SuppressWarnings("unchecked")
 		List<Document> configurationParameters = (List<Document>) actionObject.get("configurationParameters");
 		if (null == configurationParameters) {
 			return toReturn;

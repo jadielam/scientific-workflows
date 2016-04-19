@@ -1,4 +1,4 @@
-package io.biblia.workflows.manager.oozie;
+package io.biblia.workflows.oozie;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

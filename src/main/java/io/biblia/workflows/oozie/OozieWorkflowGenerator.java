@@ -1,10 +1,9 @@
-package io.biblia.workflows.manager.oozie;
+package io.biblia.workflows.oozie;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import io.biblia.workflows.EnvironmentVariables;
-import io.biblia.workflows.definition.Action;
 import io.biblia.workflows.utils.XmlBuilder;
 
 public class OozieWorkflowGenerator implements EnvironmentVariables {

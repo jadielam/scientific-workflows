@@ -35,5 +35,10 @@ public interface DatasetPersistance {
 }
 
 class OutdatedDatasetException extends Exception {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2531448080808892124L;
 	
 }

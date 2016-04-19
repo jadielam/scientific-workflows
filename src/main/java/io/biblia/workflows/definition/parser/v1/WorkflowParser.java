@@ -91,6 +91,7 @@ public class WorkflowParser implements io.biblia.workflows.definition.parser.Wor
 			if (null == endActionName) throw new WorkflowParseException("The workflow definition did not have end action name");
 			
 			//3. Get actions
+			@SuppressWarnings("unchecked")
 			List<Document> actionsListObject = (List<Document>) workflowObj.get("actions");
 			Iterator<Document> actionObjectsIt = actionsListObject.iterator();
 			List<Action> actions = new ArrayList<Action>();

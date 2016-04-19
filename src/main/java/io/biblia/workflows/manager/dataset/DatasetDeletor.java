@@ -1,14 +1,14 @@
 package io.biblia.workflows.manager.dataset;
 
-import com.google.common.base.Preconditions;
+import java.io.IOException;
 
-import io.biblia.workflows.definition.Dataset;
+import com.google.common.base.Preconditions;
+import io.biblia.workflows.hdfs.HdfsUtil;
 
 public class DatasetDeletor implements Runnable {
 
 	private PersistedDataset dataset;
 	private final DatasetPersistance persistance;
-	private static final String DELETE_ACTION_ROOT_FOLDER = "TODO";
 	
 	public DatasetDeletor(PersistedDataset dataset, DatasetPersistance persistance) {
 		Preconditions.checkNotNull(dataset);
@@ -46,15 +46,29 @@ public class DatasetDeletor implements Runnable {
 		
 		//1.2.1 Delete the datasets on that folder and if it succeeds, update the
 		//state to deleted, otherwise, if there is an error
+		try {
+			HdfsUtil.deletePath(this.dataset.getDataset().getPath());
+		}
+		catch(IOException ex) {
+			try{
+				this.dataset = this.persistance.updateDatasetState(this.dataset, DatasetState.TO_DELETE);
+			}
+			catch(Exception ex1) {
+				//Ignore it. I am going to return. THe system will clean up itself.
+			}
+			return;
+		}
+		
+		try {
+			this.dataset = this.persistance.updateDatasetState(this.dataset, DatasetState.DELETED);
+		}
+		catch (Exception e) {
+			return;
+		}
 		
 		//1.2.1.1 If there is an error submitting the action the dataset, 
 		//update database with state TO_DELETE
 		
-	}
-	
-	private String generateActionFolder() {
-		String id = this.dataset.getId().toString();
-		return DELETE_ACTION_ROOT_FOLDER + "/" + id;
 	}
 	
 }

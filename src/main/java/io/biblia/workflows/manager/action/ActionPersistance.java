@@ -4,6 +4,7 @@ import java.util.List;
 import io.biblia.workflows.definition.Action;
 
 import org.bson.json.JsonParseException;
+import org.bson.types.ObjectId;
 
 import io.biblia.workflows.definition.parser.WorkflowParseException;
 
@@ -52,6 +53,13 @@ public interface ActionPersistance {
 	 * @return
 	 */
 	public String insertAction(Action action);
+	
+	/**
+	 * Updates the state of an action ignoring the version of the action.
+	 * @param id
+	 * @param state
+	 */
+	public void forceUpdateActionState(ObjectId id, ActionState state);
 	
 }
 
