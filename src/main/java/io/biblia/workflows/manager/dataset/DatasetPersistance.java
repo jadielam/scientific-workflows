@@ -1,6 +1,7 @@
 package io.biblia.workflows.manager.dataset;
 
 import java.util.List;
+import io.biblia.workflows.definition.Dataset;
 import io.biblia.workflows.definition.parser.DatasetParseException;
 
 public interface DatasetPersistance {
@@ -24,6 +25,13 @@ public interface DatasetPersistance {
 	 */
 	PersistedDataset updateDatasetState(PersistedDataset dataset, 
 			DatasetState newState) throws OutdatedDatasetException, DatasetParseException;
+	
+	/**
+	 * Returns the id of the dataset inserted.
+	 * @param dataset
+	 * @return
+	 */
+	String insertDataset(Dataset dataset);
 }
 
 class OutdatedDatasetException extends Exception {

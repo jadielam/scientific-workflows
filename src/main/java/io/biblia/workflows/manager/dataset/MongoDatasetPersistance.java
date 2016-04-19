@@ -117,4 +117,10 @@ public class MongoDatasetPersistance implements DatasetPersistance {
 		return new PersistedDataset(dataset, id, state, date, version);
 	}
 
+	@Override
+	public String insertDataset(Dataset dataset) {
+		//TODO;
+		return null;
+	}
+
 }
