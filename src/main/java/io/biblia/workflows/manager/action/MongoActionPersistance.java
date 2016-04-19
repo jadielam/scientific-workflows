@@ -186,5 +186,15 @@ public class MongoActionPersistance implements ActionPersistance {
         return new PersistedAction(action, id, state, date, version);
     }
 
+	@Override
+	public void forceUpdateActionState(ObjectId id, ActionState state) {
+		
+		final Document filter = new Document().append("_id", id);
+		final Document update = new Document().append("$set", new Document("state", state))
+				.append("$currentDate", new Document("lastUpdatedDate", true))
+				.append("$inc", new Document("version", 1));
+		this.actions.updateOne(filter, update);
+	}
+
 
 }
