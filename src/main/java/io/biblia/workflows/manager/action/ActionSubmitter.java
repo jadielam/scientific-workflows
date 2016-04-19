@@ -8,7 +8,7 @@ import org.bson.json.JsonParseException;
 import com.google.common.base.Preconditions;
 
 import io.biblia.workflows.definition.parser.WorkflowParseException;
-import io.biblia.workflows.manager.oozie.OozieClientUtil;
+import io.biblia.workflows.oozie.OozieClientUtil;
 
 public class ActionSubmitter implements Runnable {
 

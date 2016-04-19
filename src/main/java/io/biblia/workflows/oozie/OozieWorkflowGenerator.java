@@ -1,4 +1,4 @@
-package io.biblia.workflows.manager.oozie;
+package io.biblia.workflows.oozie;
 
 import java.util.LinkedList;
 import java.util.List;
