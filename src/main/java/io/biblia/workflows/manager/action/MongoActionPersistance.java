@@ -103,12 +103,24 @@ public class MongoActionPersistance implements ActionPersistance {
 
 
 	@Override
-	public String insertAction(Action action) {
+	public String insertReadyAction(Action action) {
 		Document actionDoc = action.toBson();
 		Document toInsert = new Document();
 		toInsert.append("version", 1);
 		toInsert.append("lastUpdatedDate", new Date());
 		toInsert.append("state", ActionState.READY);
+		toInsert.append("action", actionDoc);
+		this.actions.insertOne(toInsert);
+		return toInsert.getObjectId("_id").toString();
+	}
+	
+	@Override
+	public String insertWaitingAction(Action action) {
+		Document actionDoc = action.toBson();
+		Document toInsert = new Document();
+		toInsert.append("version", 1);
+		toInsert.append("lastUpdatedDate", new Date());
+		toInsert.append("state", ActionState.WAITING);
 		toInsert.append("action", actionDoc);
 		this.actions.insertOne(toInsert);
 		return toInsert.getObjectId("_id").toString();

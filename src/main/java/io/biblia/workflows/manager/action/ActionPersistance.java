@@ -48,11 +48,20 @@ public interface ActionPersistance {
 	public PersistedAction addActionSubmissionId(PersistedAction action, String id) throws OutdatedActionException, NullPointerException, JsonParseException, WorkflowParseException;
 	
 	/**
-	 * Inserts a new action to the persistance.
+	 * Inserts a new action to the persistance that is in READY state
+	 * (ready to be submitted to Hadoop).
 	 * @param action
 	 * @return
 	 */
-	public String insertAction(Action action);
+	public String insertReadyAction(Action action);
+	
+	/**
+	 * Inserts a new action to the persistance that is in WAITING state.
+	 * (waiting for parent actions to finish).
+	 * @param action
+	 * @return
+	 */
+	public String insertWaitingAction(Action action);
 	
 	/**
 	 * Updates the state of an action ignoring the version of the action.

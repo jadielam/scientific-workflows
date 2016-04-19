@@ -2,6 +2,8 @@ package io.biblia.workflows.manager.action;
 
 /**
  * Explanation of the different action states:
+ * WAITING: Means that the action is in the database and waiting for
+ * parent actions before it can be submitted to Hadoop.
  * 
  * READY: Means that the action is in the database and ready to be
  * submitted to Hadoop
@@ -23,6 +25,6 @@ package io.biblia.workflows.manager.action;
  */
 public enum ActionState {
 
-	READY, PROCESSING, SUBMITTED, RUNNING, FINISHED,
+	WAITING, READY, PROCESSING, SUBMITTED, RUNNING, FINISHED,
 	FAILED, KILLED;
 }
