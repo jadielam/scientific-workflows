@@ -2,6 +2,8 @@ package io.biblia.workflows.manager.action;
 
 import org.bson.types.ObjectId;
 
+import com.google.common.base.Preconditions;
+
 /**
  * Handles the changing of an action to a state
  * @author jadiel
@@ -15,6 +17,7 @@ public class Callback {
 	private final ActionPersistance persistance;
 	
 	public Callback(ActionPersistance persistance) {
+		Preconditions.checkNotNull(persistance);
 		this.persistance = persistance;
 	}
 	

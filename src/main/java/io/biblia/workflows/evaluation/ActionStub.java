@@ -36,7 +36,7 @@ public class ActionStub {
 			System.err.println("ERROR: Not enough number of parameters were passed in args");
 			System.exit(1);
 		}
-		String inputFilePath = args[0];
+		//String inputFilePath = args[0];
 		String outputFilePath = args[1];
 		
 		int outputSizeMB = 0;
