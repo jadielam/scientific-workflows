@@ -1,7 +1,7 @@
 package io.biblia.workflows.definition.parser.v1;
 
 import com.google.common.base.Preconditions;
-import io.biblia.workflows.definition.Action;
+import io.biblia.workflows.definition.ManagedAction;
 import io.biblia.workflows.definition.InvalidWorkflowException;
 import io.biblia.workflows.definition.Workflow;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
@@ -94,10 +94,10 @@ public class WorkflowParser implements io.biblia.workflows.definition.parser.Wor
 			@SuppressWarnings("unchecked")
 			List<Document> actionsListObject = (List<Document>) workflowObj.get("actions");
 			Iterator<Document> actionObjectsIt = actionsListObject.iterator();
-			List<Action> actions = new ArrayList<Action>();
+			List<ManagedAction> actions = new ArrayList<ManagedAction>();
 			while (actionObjectsIt.hasNext()) {
 				Document actionObject = actionObjectsIt.next();
-				Action action = actionParser.parseAction(actionObject);
+				ManagedAction action = actionParser.parseAction(actionObject);
 				actions.add(action);
 			}	
 			

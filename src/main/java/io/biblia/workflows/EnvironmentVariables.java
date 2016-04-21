@@ -12,4 +12,6 @@ public interface EnvironmentVariables {
 	
 	String SW_OOZIE_URL = "SW_OOZIE_URL";
 	
+	String SW_CONFIGURATION_FILE = "SW_CONFIGURATION_FILE";
+	
 }

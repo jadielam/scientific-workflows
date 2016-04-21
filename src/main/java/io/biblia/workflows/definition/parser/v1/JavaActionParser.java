@@ -1,7 +1,7 @@
 package io.biblia.workflows.definition.parser.v1;
 
 import com.google.common.base.CharMatcher;
-import io.biblia.workflows.definition.Action;
+import io.biblia.workflows.definition.ManagedAction;
 import io.biblia.workflows.definition.actions.JavaAction;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
 import org.bson.Document;
@@ -40,7 +40,7 @@ public class JavaActionParser extends io.biblia.workflows.definition.parser.Acti
 	 * @throws WorkflowParseException
 	 */
 	@Override
-	public Action parseAction(Document actionObject) throws WorkflowParseException {
+	public ManagedAction parseAction(Document actionObject) throws WorkflowParseException {
 
 		String type = (String) actionObject.get("type");
 		if (null == type)

@@ -14,7 +14,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.UpdateResult;
 
-import io.biblia.workflows.definition.Action;
+import io.biblia.workflows.definition.ManagedAction;
 import io.biblia.workflows.definition.Dataset;
 import io.biblia.workflows.definition.Workflow;
 
@@ -45,10 +45,10 @@ public class WorkflowsMongoDAO implements DatabaseConstants, WorkflowsDAO {
 		
 	/** 
 	 * (non-Javadoc)
-	 * @see io.biblia.workflows.statistics.WorkflowsDAO#addAction(io.biblia.workflows.definition.Action)
+	 * @see io.biblia.workflows.statistics.WorkflowsDAO#addAction(io.biblia.workflows.definition.ManagedAction)
 	 */
 	@Override
-	public String addAction(Action action) {
+	public String addAction(ManagedAction action) {
 		Document document = this.actionConverter.convertToDocument(action);
 		return insertDocumentToCollection(document, ACTIONS_COLLECTION).toHexString();
 	}
@@ -119,10 +119,10 @@ public class WorkflowsMongoDAO implements DatabaseConstants, WorkflowsDAO {
 		public Document convertToDocument(T t);
 	}
 
-	private class ActionConverter implements DocumentConverter<Action> {
+	private class ActionConverter implements DocumentConverter<ManagedAction> {
 
 		@Override
-		public Document convertToDocument(Action a) {
+		public Document convertToDocument(ManagedAction a) {
 			Document toReturn = new Document()
 					.append("name", a.getName())
 					.append("forceComputation", a.getForceComputation())
@@ -156,7 +156,7 @@ public class WorkflowsMongoDAO implements DatabaseConstants, WorkflowsDAO {
 					.append("endActionName", w.getEndAction());
 			
 			List<Document> actions = new ArrayList<Document>();
-			for (Action action : w.getActions()) {
+			for (ManagedAction action : w.getActions()) {
 				Document doc = actionConverter.convertToDocument(action);
 				actions.add(doc);
 			}

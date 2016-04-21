@@ -2,7 +2,7 @@ package io.biblia.workflows.definition.parser.v1;
 
 import org.bson.Document;
 
-import io.biblia.workflows.definition.Action;
+import io.biblia.workflows.definition.ManagedAction;
 import io.biblia.workflows.definition.actions.FSDeleteAction;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
 
@@ -22,7 +22,7 @@ public class FSDeleteParser extends io.biblia.workflows.definition.parser.Action
 	}
 	
 	@Override
-	public Action parseAction(Document aObject) throws WorkflowParseException {
+	public ManagedAction parseAction(Document aObject) throws WorkflowParseException {
 		String type = (String) aObject.get("type");
 		if (null == type) {
 			throw new WorkflowParseException("The action does not have a type attribute");

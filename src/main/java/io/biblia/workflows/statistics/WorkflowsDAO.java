@@ -2,7 +2,7 @@ package io.biblia.workflows.statistics;
 
 import org.bson.types.ObjectId;
 
-import io.biblia.workflows.definition.Action;
+import io.biblia.workflows.definition.ManagedAction;
 import io.biblia.workflows.definition.Dataset;
 import io.biblia.workflows.definition.Workflow;
 
@@ -10,7 +10,7 @@ public interface WorkflowsDAO {
 
 	String addWorkflow(Workflow workflow);
 
-	String addAction(Action action);
+	String addAction(ManagedAction action);
 
 	String addSavedDataset(Dataset dataset);
 

@@ -1,4 +1,4 @@
-package io.biblia.workflows.definition.actions;
+package io.biblia.workflows.definition;
 
 import io.biblia.workflows.definition.parser.ActionNameConstants;
 

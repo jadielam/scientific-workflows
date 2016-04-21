@@ -7,7 +7,7 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
-import io.biblia.workflows.definition.Action;
+import io.biblia.workflows.definition.ManagedAction;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
 import io.biblia.workflows.definition.parser.v1.ActionParser;
 import org.bson.Document;
@@ -103,7 +103,7 @@ public class MongoActionPersistance implements ActionPersistance {
 
 
 	@Override
-	public String insertReadyAction(Action action) {
+	public String insertReadyAction(ManagedAction action) {
 		Document actionDoc = action.toBson();
 		Document toInsert = new Document();
 		toInsert.append("version", 1);
@@ -115,7 +115,7 @@ public class MongoActionPersistance implements ActionPersistance {
 	}
 	
 	@Override
-	public String insertWaitingAction(Action action) {
+	public String insertWaitingAction(ManagedAction action) {
 		Document actionDoc = action.toBson();
 		Document toInsert = new Document();
 		toInsert.append("version", 1);
@@ -192,7 +192,7 @@ public class MongoActionPersistance implements ActionPersistance {
         String stateString = document.getString("state");
         ActionState state = ActionState.valueOf(stateString);
         Document actionDoc = (Document) document.get("action");
-        Action action = this.parser.parseAction(actionDoc);
+        ManagedAction action = this.parser.parseAction(actionDoc);
         int version = document.getInteger("version");
 
         return new PersistedAction(action, id, state, date, version);

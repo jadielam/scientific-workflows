@@ -21,7 +21,7 @@ import org.apache.oozie.client.OozieClientException;
 import com.google.common.base.Preconditions;
 
 import io.biblia.workflows.EnvironmentVariables;
-import io.biblia.workflows.definition.Action;
+import io.biblia.workflows.definition.ManagedAction;
 
 public class OozieClientUtil implements EnvironmentVariables {
 
@@ -36,7 +36,7 @@ public class OozieClientUtil implements EnvironmentVariables {
 	}
 
 	/**
-	 * @param Action
+	 * @param ManagedAction
 	 *            action to submit to Oozie
 	 * @return the id of the workflow submitted to Oozie.
 	 * @throws OozieClientException
@@ -44,7 +44,7 @@ public class OozieClientUtil implements EnvironmentVariables {
 	 * @throws IOException
 	 *             whenever there is problem writing the workflow to hdfs.
 	 */
-	public static String submitAndStartOozieJob(Action action) throws OozieClientException, IOException {
+	public static String submitAndStartOozieJob(ManagedAction action) throws OozieClientException, IOException {
 		Preconditions.checkNotNull(action);
 		try {
 
@@ -96,7 +96,7 @@ public class OozieClientUtil implements EnvironmentVariables {
 	 *             whenever the runtime type of the action parameter does not
 	 *             have an implemented translation to an Oozie action type yet.
 	 */
-	private static OozieAction convertToOozieAction(Action action) throws UnsupportedOperationException {
+	private static OozieAction convertToOozieAction(ManagedAction action) throws UnsupportedOperationException {
 
 		if (action instanceof io.biblia.workflows.definition.actions.JavaAction) {
 			io.biblia.workflows.definition.actions.JavaAction javaAction = (io.biblia.workflows.definition.actions.JavaAction) action;

@@ -1,6 +1,6 @@
 package io.biblia.workflows.definition.parser.v1;
 
-import io.biblia.workflows.definition.Action;
+import io.biblia.workflows.definition.ManagedAction;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
 import org.bson.Document;
 
@@ -31,7 +31,7 @@ public class ActionParser extends io.biblia.workflows.definition.parser.ActionPa
 	 * @throws WorkflowParseException if no type parameter is found, or if no action parser
 	 * is registered for the type of that action.
 	 */
-	public Action parseAction(Document actionObject) throws WorkflowParseException {
+	public ManagedAction parseAction(Document actionObject) throws WorkflowParseException {
 		
 		String type = (String) actionObject.get("type");
 		if (null == type) {
@@ -42,7 +42,7 @@ public class ActionParser extends io.biblia.workflows.definition.parser.ActionPa
 			throw new WorkflowParseException("No ActionParser registered for the type: " + type);
 		}
 		
-		Action action = actionParser.parseAction(actionObject);
+		ManagedAction action = actionParser.parseAction(actionObject);
 		return action;
 	}
 	

@@ -41,7 +41,7 @@ public class Workflow {
 	/**
 	 * Contains all the actions of the workflow, keyed by the action name.
 	 */
-	private final Map<String, Action> actions = new HashMap<String, Action>();
+	private final Map<String, ManagedAction> actions = new HashMap<String, ManagedAction>();
 	
 	/**
 	 * Map from input parameter to action names that depend on it.
@@ -72,13 +72,13 @@ public class Workflow {
 	 * action.
 	 * @throws NullPointerException if any of the parameters passed is null.
 	 */
-	public Workflow(String workflowName, String startAction, String endAction, List<Action> actions) throws InvalidWorkflowException {
+	public Workflow(String workflowName, String startAction, String endAction, List<ManagedAction> actions) throws InvalidWorkflowException {
 		Preconditions.checkNotNull(workflowName);
 		Preconditions.checkNotNull(startAction);
 		Preconditions.checkNotNull(endAction);
 		Preconditions.checkNotNull(actions);
 		this.workflowName = workflowName;
-		for (Action action : actions) {
+		for (ManagedAction action : actions) {
 			if (null != action) {
 				String name = action.getName();
 				this.actions.put(name, action);
@@ -161,10 +161,10 @@ public class Workflow {
 		//Challenge: I had made that set to be unmodifiable at 
 		//creation time, so I will have to add an external datastructure 
 		//to be able to achieve this.
-		Set<Entry<String, Action>> entrySet = this.actions.entrySet();
-		for (Entry<String, Action> e : entrySet) {
+		Set<Entry<String, ManagedAction>> entrySet = this.actions.entrySet();
+		for (Entry<String, ManagedAction> e : entrySet) {
 			String actionName = e.getKey();
-			Action action = e.getValue();
+			ManagedAction action = e.getValue();
 			Set<String> parentNames = action.getParentActionNames();
 			Map<String, String> inputParameters = action.getInputParameters();
 			for (Entry<String, String> e1 : inputParameters.entrySet()) {
@@ -183,26 +183,26 @@ public class Workflow {
 		Queue<String> actionsQueue = new ArrayDeque<String>();
 		
 		
-		for (Entry<String, Action> e : entrySet) {
+		for (Entry<String, ManagedAction> e : entrySet) {
 			String actionName = e.getKey();
 			visited.put(actionName, Color.WHITE);
 		}
 		
-		for (Entry<String, Action> e : entrySet) {
+		for (Entry<String, ManagedAction> e : entrySet) {
 			String action = e.getKey();
 			dfs(action, actionsQueue, visited);
 		}
 		
 		//2. Validate that the start action is not a descendant of any other action.
-		Action startAction = this.actions.get(this.startActionName);
+		ManagedAction startAction = this.actions.get(this.startActionName);
 		Collection<String> parentActions = startAction.getParentActionNames();
 		if (null != parentActions && parentActions.size() > 0) {
 			throw new InvalidWorkflowException("startAction has parent actions");
 		}
 		
 		//3. Validate that all the referenced actions are defined.
-		for (Entry<String, Action> e : entrySet) {
-			Action action = e.getValue();
+		for (Entry<String, ManagedAction> e : entrySet) {
+			ManagedAction action = e.getValue();
 			Set<String> parentNames = action.getParentActionNames();
 			for (String parentName : parentNames) {
 				if (!this.actions.containsKey(parentName)) {
@@ -228,7 +228,7 @@ public class Workflow {
 		//1. If we have not visited this node yet, start visiting it
 		if (visited.get(currentAction).equals(Color.WHITE)) {
 			visited.put(currentAction, Color.GRAY);
-			Action action = this.actions.get(currentAction);
+			ManagedAction action = this.actions.get(currentAction);
 			Set<String> parentActions = action.getParentActionNames();
 			Set<String> augmentedParentActions = this.augmentedParents.get(currentAction);
 			actionsQueue.addAll(parentActions);
@@ -271,11 +271,11 @@ public class Workflow {
 	 * @param name
 	 * @return
 	 */
-	public Action getAction(String name) {
+	public ManagedAction getAction(String name) {
 		return this.actions.get(name);
 	}
 	
-	public Collection<Action> getActions() {
+	public Collection<ManagedAction> getActions() {
 		return Collections.unmodifiableCollection(this.actions.values());
 	}
 	/**
