@@ -10,6 +10,32 @@ import java.util.Map;
 /**
  * Class that parses an action.  It requires that action parsers for
  * specific actions to be registered here in this class.
+ * 
+ * An action looks like the following overall: 
+ * {
+ * 		name: "action-name",
+ * 		parentActions: [
+ * 			{
+ * 				name: "parent-name"
+ * 			}	
+ * 		],
+ * 		forceComputation: false,
+ * 		actionFolder: "asdfs",
+ * 		type: "type",
+ * 		additionalInput: [
+ * 			{
+ * 				key: "arg1",
+ * 				value: "/sdf/sd/sd/f",
+ * 			}
+ * 		],
+ * 		configurationParameters: [
+ * 			{
+ * 				key: "asdf",
+ * 				value: "asdf"
+ * 			}
+ * 		]
+ * 		
+ * 
  * @author jadiel
  *
  */

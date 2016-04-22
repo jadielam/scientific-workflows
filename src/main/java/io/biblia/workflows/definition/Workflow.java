@@ -41,26 +41,13 @@ public class Workflow {
 	/**
 	 * Contains all the actions of the workflow, keyed by the action name.
 	 */
-	private final Map<String, ManagedAction> actions = new HashMap<String, ManagedAction>();
+	private final Map<String, Action> actions = new HashMap<String, Action>();
 	
+	private final Set<Action> actionsSet;
 	/**
-	 * Map from input parameter to action names that depend on it.
+	 * Map from action to actions that depend on it.
 	 */
-	private final Map<String, Set<String>> inputParametersIndex = new HashMap<String, Set<String>>();
-	
-	/**
-	 * Map from outputParameter value to name of action that outputs it.
-	 */
-	private final Map<String, String> outputParametersIndex = new HashMap<String, String>();
-	
-	/**
-	 * Map from action name to a set of augmented parents. 
-	 * Augmented parents are implicit parents that are not defined
-	 * as parents in the action definition, yet the action
-	 * depends on them because they produce output that the 
-	 * action uses as input.
-	 */
-	private final Map<String, Set<String>> augmentedParents = new HashMap<String, Set<String>>();
+	private final Map<Action, Set<Action>> actionsDependency = new HashMap<>();
 	
 	/**
 	 * Constructs a workflow object.  It first validates the workflow
@@ -72,47 +59,23 @@ public class Workflow {
 	 * action.
 	 * @throws NullPointerException if any of the parameters passed is null.
 	 */
-	public Workflow(String workflowName, String startAction, String endAction, List<ManagedAction> actions) throws InvalidWorkflowException {
+	public Workflow(String workflowName, String startAction, String endAction, Set<Action> actions) throws InvalidWorkflowException {
 		Preconditions.checkNotNull(workflowName);
 		Preconditions.checkNotNull(startAction);
 		Preconditions.checkNotNull(endAction);
 		Preconditions.checkNotNull(actions);
+		this.actionsSet = actions;
 		this.workflowName = workflowName;
-		for (ManagedAction action : actions) {
+		for (Action action : actions) {
 			if (null != action) {
-				String name = action.getName();
+				String name = action.getUniqueName();
 				this.actions.put(name, action);
-				
-				//1. Building the input parameters index.
-				Map<String, String> inputParameters = action.getInputParameters();
-				for (Entry<String, String> e : inputParameters.entrySet()) {
-					String input = e.getValue();
-					if (this.inputParametersIndex.containsKey(input)) {
-						this.inputParametersIndex.get(input).add(name);
+				for (Action parentAction : action.getParents()) {
+					if (!this.actionsDependency.containsKey(parentAction)) {
+						this.actionsDependency.put(parentAction, new HashSet<Action>());
 					}
-					else {
-						Set<String> actionNames = new HashSet<String>();
-						actionNames.add(name);
-						this.inputParametersIndex.put(input, actionNames);
-					}
-				}
-				
-				//2. Building the output parameters index.
-				Map<String, String> outputParameters = action.getOutputParameters();
-				for (Entry<String, String> e : outputParameters.entrySet()) {
-					String output = e.getValue();
-					if (this.outputParametersIndex.containsKey(output)) {
-						throw new InvalidWorkflowException("The output parameter: " + output + " appears"
-								+ "in more than one action");
-					}
-					else {
-						this.outputParametersIndex.put(output, name);
-					}
-				}
-				
-				//3. Initializing the augmented parents map
-				this.augmentedParents.put(name, new HashSet<String>());
-				
+					this.actionsDependency.get(parentAction).add(action);
+				}				
 			}
 		}
 		if (this.actions.containsKey(startAction)) {
@@ -144,10 +107,6 @@ public class Workflow {
 	}
 	
 	/**
-	 * 0. It expands the list of parentActions to not only be the ones defined by 
-	 * the parentActionNames of each action, but also by the data dependencies among
-	 * the actions.
-	 *  
 	 * 1. Determines if the workflow definition constitutes a valid Directed Acyclic Graph.
 	 * In order to do that, it checks that there are no cycles in the graph.
 	 * 
@@ -157,56 +116,36 @@ public class Workflow {
 	 * met.
 	 */
 	private void validateWorkflow() throws InvalidWorkflowException {
-		//0. Expand the set of parent nodes of each action
-		//Challenge: I had made that set to be unmodifiable at 
-		//creation time, so I will have to add an external datastructure 
-		//to be able to achieve this.
-		Set<Entry<String, ManagedAction>> entrySet = this.actions.entrySet();
-		for (Entry<String, ManagedAction> e : entrySet) {
-			String actionName = e.getKey();
-			ManagedAction action = e.getValue();
-			Set<String> parentNames = action.getParentActionNames();
-			Map<String, String> inputParameters = action.getInputParameters();
-			for (Entry<String, String> e1 : inputParameters.entrySet()) {
-				String inputParameter = e1.getValue();
-				String parentActionName = this.outputParametersIndex.get(inputParameter);
-				if (null != parentActionName) {
-					if (!parentNames.contains(parentActionName)) {
-						this.augmentedParents.get(actionName).add(parentActionName);
-					}
-				}
-			}
-		}
+		Set<Entry<String, Action>> entrySet = this.actions.entrySet();
 		
 		//1. Validate that there are no cycles in the graph.
-		Map<String, Color> visited = new HashMap<String, Color>();
-		Queue<String> actionsQueue = new ArrayDeque<String>();
+		Map<Action, Color> visited = new HashMap<Action, Color>();
+		Queue<Action> actionsQueue = new ArrayDeque<Action>();
 		
-		
-		for (Entry<String, ManagedAction> e : entrySet) {
-			String actionName = e.getKey();
+		for (Entry<String, Action> e : entrySet) {
+			Action actionName = e.getValue();
 			visited.put(actionName, Color.WHITE);
 		}
 		
-		for (Entry<String, ManagedAction> e : entrySet) {
-			String action = e.getKey();
+		for (Entry<String, Action> e : entrySet) {
+			Action action = e.getValue();
 			dfs(action, actionsQueue, visited);
 		}
 		
 		//2. Validate that the start action is not a descendant of any other action.
-		ManagedAction startAction = this.actions.get(this.startActionName);
-		Collection<String> parentActions = startAction.getParentActionNames();
+		Action startAction = this.actions.get(this.startActionName);
+		Collection<Action> parentActions = startAction.getParents();
 		if (null != parentActions && parentActions.size() > 0) {
 			throw new InvalidWorkflowException("startAction has parent actions");
 		}
 		
 		//3. Validate that all the referenced actions are defined.
-		for (Entry<String, ManagedAction> e : entrySet) {
-			ManagedAction action = e.getValue();
-			Set<String> parentNames = action.getParentActionNames();
-			for (String parentName : parentNames) {
-				if (!this.actions.containsKey(parentName)) {
-					throw new InvalidWorkflowException("Action: " + parentName + " is referenced but not"
+		for (Entry<String, Action> e : entrySet) {
+			Action action = e.getValue();
+			Collection<Action> parentNames = action.getParents();
+			for (Action parent : parentNames) {
+				if (!this.actionsSet.contains(parent)) {
+					throw new InvalidWorkflowException("Action: " + parent.getOriginalName() + " is referenced but not"
 							+ "defined in the workflow.");
 				}
 			}
@@ -224,17 +163,15 @@ public class Workflow {
 	 * Color.BLACK means explored
 	 * @throws InvalidWorkflowException
 	 */
-	private void dfs(String currentAction, Queue<String> actionsQueue, Map<String, Color> visited) throws InvalidWorkflowException {
+	private void dfs(Action currentAction, Queue<Action> actionsQueue, Map<Action, Color> visited) throws InvalidWorkflowException {
 		//1. If we have not visited this node yet, start visiting it
 		if (visited.get(currentAction).equals(Color.WHITE)) {
 			visited.put(currentAction, Color.GRAY);
-			ManagedAction action = this.actions.get(currentAction);
-			Set<String> parentActions = action.getParentActionNames();
-			Set<String> augmentedParentActions = this.augmentedParents.get(currentAction);
+			Action action = this.actions.get(currentAction);
+			List<Action> parentActions = action.getParents();
 			actionsQueue.addAll(parentActions);
-			actionsQueue.addAll(augmentedParentActions);
 			while (!actionsQueue.isEmpty()) {
-				String nextAction = actionsQueue.poll();
+				Action nextAction = actionsQueue.poll();
 				dfs(nextAction, actionsQueue, visited);
 			}
 			visited.put(currentAction, Color.BLACK);
@@ -271,11 +208,11 @@ public class Workflow {
 	 * @param name
 	 * @return
 	 */
-	public ManagedAction getAction(String name) {
+	public Action getAction(String name) {
 		return this.actions.get(name);
 	}
 	
-	public Collection<ManagedAction> getActions() {
+	public Collection<Action> getActions() {
 		return Collections.unmodifiableCollection(this.actions.values());
 	}
 	/**

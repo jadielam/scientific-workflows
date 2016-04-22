@@ -1,6 +1,8 @@
 package io.biblia.workflows.definition;
 
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import io.biblia.workflows.Configuration;
 
@@ -29,13 +31,13 @@ public class ActionUtils {
 	}
 	
 	/**
-	 * 
+	 * To be used by command line actions.
 	 * @param shortName
 	 * @param extraInputs
 	 * @param actionConf
 	 * @return
 	 */
-	public static String createActionUniqueName(String shortName, LinkedHashMap<String, String> extraInputs, 
+	public static String createActionUniqueNameNaturalOrder(String shortName, LinkedHashMap<String, String> extraInputs, 
 			LinkedHashMap<String, String> actionConf) {
 		if (extraInputs.size() == 0 && actionConf.size() == 0
 				&& shortName.length() <= MAX_FOLDER_SIZE) {
@@ -54,6 +56,36 @@ public class ActionUtils {
 			return encrypt(concatenation.toString());
 		}
 	}
+	
+	/**
+	 * To be used by actions that are not command line actions.
+	 * @param shortName
+	 * @param extraInputs
+	 * @param actionConf
+	 * @return
+	 */
+	public static String createActionUniqueNameAlphabeticalOrder(String shortName, LinkedHashMap<String, String> extraInputs, 
+			LinkedHashMap<String, String> actionConf) {
+		if (extraInputs.size() == 0 && actionConf.size() == 0
+				&& shortName.length() <= MAX_FOLDER_SIZE) {
+			return shortName;
+		}
+		else {
+			StringBuilder concatenation = new StringBuilder();
+			concatenation.append(shortName);
+			SortedMap<String, String> sortedExtraInputs = new TreeMap<>(extraInputs);
+			for (Entry<String, String> e : sortedExtraInputs.entrySet()) {
+				concatenation.append(e.getKey()).append(e.getValue());
+			}
+			SortedMap<String, String> sortedActionConf = new TreeMap<>(actionConf);
+			for (Entry<String, String> e : sortedActionConf.entrySet()) {
+				concatenation.append(e.getKey()).append(e.getValue());
+			}
+			
+			return encrypt(concatenation.toString());
+		}
+	}
+
 	/**
 	 * Given an action name and its parents, it creates a long name for the action.
 	 * For example, given a parent ['/filter/extraction'] and a shortName 'computation'
@@ -71,8 +103,8 @@ public class ActionUtils {
 	 * @param actionConf
 	 * @return the long name of the action.
 	 */
-	public static List<String> createActionLongName(String uniqueName, 
-			Set<Action> parents
+	public static List<String> createActionLongNameAlphabeticalOrder(String uniqueName, 
+			List<Action> parents
 			) {
 		
 		List<String> toReturn = new ArrayList<String>();
@@ -81,7 +113,21 @@ public class ActionUtils {
 			toReturn.add(ROOT_FOLDER);
 		}
 		else {
-			toReturn = generateLongNameFromParentNames(parents);
+			toReturn = generateLongNameFromParentNamesAlphabeticalOrder(parents);
+		}
+		toReturn.add(uniqueName);
+		return toReturn;
+	}
+	
+	public static List<String> createActionLongNameNaturalOrder(String uniqueName,
+			List<Action> parents) {
+		List<String> toReturn = new ArrayList<String>();
+		
+		if (parents.size() == 0) {
+			toReturn.add(ROOT_FOLDER);
+		}
+		else {
+			toReturn = generateLongNameFromParentNamesNaturalOrder(parents);
 		}
 		toReturn.add(uniqueName);
 		return toReturn;
@@ -96,7 +142,7 @@ public class ActionUtils {
 	 * @param parents
 	 * @return
 	 */
-	private static List<String> generateLongNameFromParentNames(Set<Action> parents) {
+	private static List<String> generateLongNameFromParentNamesAlphabeticalOrder(List<Action> parents) {
 		
 		List<String> toReturn = new ArrayList<String>();
 		
@@ -114,6 +160,31 @@ public class ActionUtils {
 				parentNames.add(parent.getUniqueName());
 			}
 			Collections.sort(parentNames);
+			for (String name : parentNames) {
+				concatenation.append(name);
+			}
+			
+			toReturn.add(encrypt(concatenation.toString()));
+		}
+		return toReturn;
+	}
+	
+	private static List<String> generateLongNameFromParentNamesNaturalOrder(List<Action> parents) {
+		List<String> toReturn = new ArrayList<String>();
+		
+		if (parents.size() == 1) {
+			for (Action parent : parents) {
+				toReturn = parent.getLongName();
+			}
+		}
+		else if (parents.size() > 1) {
+			//Generate name from all parent names
+			StringBuilder concatenation = new StringBuilder();
+			List<String> parentNames = new ArrayList<String>();
+			
+			for (Action parent : parents) {
+				parentNames.add(parent.getUniqueName());
+			}
 			for (String name : parentNames) {
 				concatenation.append(name);
 			}
