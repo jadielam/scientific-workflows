@@ -217,6 +217,8 @@ public class ActionUtils {
 	 */
 	private static String encrypt(String string) {
 		//TODO
+		//BUild an encription that encrypts an string with the given restrictions of
+		//MAX_FOLDER_SIZE and valid characters.
 		return string;
 	}
 }

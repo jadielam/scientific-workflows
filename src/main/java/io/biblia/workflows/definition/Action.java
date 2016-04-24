@@ -13,7 +13,7 @@ public abstract class Action implements ActionAttributesConstants {
 
 	private final String originalName;
 	
-	private final int actionId;
+	private final Integer actionId;
 	
 	private List<String> longName;
 	
@@ -35,7 +35,7 @@ public abstract class Action implements ActionAttributesConstants {
 	
 	public Action(
 		String name,
-		int actionId,
+		Integer actionId,
 		String actionFolder,
 		ActionType type,
 		LinkedHashMap<String, String> additionalInput,
@@ -43,10 +43,11 @@ public abstract class Action implements ActionAttributesConstants {
 		List<Integer> parentIds,
 		boolean forceComputation,
 		String outputPath
-		) throws InvalidWorkflowException
+		) 
 	{
 		//1. Validation
 		Preconditions.checkNotNull(name);
+		Preconditions.checkNotNull(actionId);
 		Preconditions.checkNotNull(actionFolder);
 		Preconditions.checkNotNull(type);
 		Preconditions.checkNotNull(parentIds);
@@ -75,7 +76,7 @@ public abstract class Action implements ActionAttributesConstants {
 			LinkedHashMap<String, String> configuration,
 			List<Integer> parentIds,
 			boolean forceComputation
-			) throws InvalidWorkflowException
+			) 
 		{
 			//1. Validation
 			Preconditions.checkNotNull(name);
@@ -119,7 +120,7 @@ public abstract class Action implements ActionAttributesConstants {
 		return this.outputPath;
 	}
 	
-	public int getActionId() {
+	public Integer getActionId() {
 		return this.actionId;
 	}
 	public String getActionFolder() {

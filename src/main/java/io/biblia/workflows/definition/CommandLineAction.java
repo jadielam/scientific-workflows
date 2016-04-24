@@ -26,14 +26,14 @@ public class CommandLineAction extends Action {
 	 * @param forceComputation
 	 * @throws InvalidWorkflowException
 	 */
-	public CommandLineAction(String name, int actionId, String actionFolder,
+	public CommandLineAction(String name, Integer actionId, String actionFolder,
 			LinkedHashMap<String, String> additionalInput, 
 			LinkedHashMap<String, String> configuration,
 			List<Integer> parentsIds, boolean forceComputation,
 			String mainClassName, String jobTracker,
 			String nameNode
 			) 
-					throws InvalidWorkflowException {
+			 {
 		super(name, actionId, actionFolder, ActionType.COMMAND_LINE, additionalInput, 
 				configuration, parentsIds, forceComputation);
 		this.uniqueName = ActionUtils.createActionUniqueNameNaturalOrder(name, additionalInput, configuration);
@@ -54,7 +54,7 @@ public class CommandLineAction extends Action {
 	 * @param outputPath
 	 * @throws InvalidWorkflowException
 	 */
-	public CommandLineAction(String name, int actionId, String actionFolder,
+	public CommandLineAction(String name, Integer actionId, String actionFolder,
 			LinkedHashMap<String, String> additionalInput, 
 			LinkedHashMap<String, String> configuration,
 			List<Integer> parentsIds, boolean forceComputation,
@@ -62,7 +62,7 @@ public class CommandLineAction extends Action {
 			String mainClassName, String jobTracker,
 			String nameNode
 			) 
-					throws InvalidWorkflowException {
+			{
 		super(name, actionId, actionFolder, ActionType.COMMAND_LINE, additionalInput, 
 				configuration, parentsIds, forceComputation, outputPath);
 		this.uniqueName = ActionUtils.createActionUniqueNameNaturalOrder(name, additionalInput, configuration);

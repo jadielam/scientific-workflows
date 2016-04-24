@@ -1,7 +1,8 @@
 package io.biblia.workflows.manager.action;
 
 import java.util.List;
-import io.biblia.workflows.definition.ManagedAction;
+
+import io.biblia.workflows.definition.Action;
 
 import org.bson.json.JsonParseException;
 import org.bson.types.ObjectId;
@@ -53,7 +54,7 @@ public interface ActionPersistance {
 	 * @param action
 	 * @return
 	 */
-	public String insertReadyAction(ManagedAction action);
+	public String insertReadyAction(Action action);
 	
 	/**
 	 * Inserts a new action to the persistance that is in WAITING state.
@@ -61,7 +62,7 @@ public interface ActionPersistance {
 	 * @param action
 	 * @return
 	 */
-	public String insertWaitingAction(ManagedAction action);
+	public String insertWaitingAction(Action action);
 	
 	/**
 	 * Updates the state of an action ignoring the version of the action.

@@ -1,7 +1,7 @@
 package io.biblia.workflows.definition.parser.v1;
 
 import com.google.common.base.Preconditions;
-import io.biblia.workflows.definition.ManagedAction;
+import io.biblia.workflows.definition.Action;
 import io.biblia.workflows.definition.InvalidWorkflowException;
 import io.biblia.workflows.definition.Workflow;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
@@ -44,12 +44,8 @@ public class WorkflowParser implements io.biblia.workflows.definition.parser.Wor
 	 * {
 	 * 		name: "Workflow Name",
 	 * 		version: "1.0",
-	 * 		startAction: {
-	 * 			name: "name-1",
-	 * 		},
-	 * 		endAction: {
-	 *			name: "name-2",
-	 *		},
+	 * 		startActionId: 1
+	 * 		endActionId: 2
 	 *		actions: [
 	 *			{
 	 *				
@@ -79,30 +75,26 @@ public class WorkflowParser implements io.biblia.workflows.definition.parser.Wor
 			Preconditions.checkNotNull(name, "The workflow did not include a name attribute.");
 			
 			//1. Get start action name
-			Document startActionObject = (Document) workflowObj.get("startAction");
-			if (null == startActionObject) throw new WorkflowParseException("The workflow definition did not have start action");
-			String startActionName = (String) startActionObject.get("name");
-			if (null == startActionName) throw new WorkflowParseException("The workflow definition did not have start action name");
+			Integer startActionId = workflowObj.getInteger("startActionId");
+			if (null == startActionId) throw new WorkflowParseException("The workflow definition did not have start action");
 			
 			//2. Get end action name
-			Document endActionObject = (Document) workflowObj.get("endAction");
-			if (null == endActionObject) throw new WorkflowParseException("The workflow definition did not have end action");
-			String endActionName = (String) endActionObject.get("name");
-			if (null == endActionName) throw new WorkflowParseException("The workflow definition did not have end action name");
-			
+			Integer endActionId = workflowObj.getInteger("endActionId");
+			if (null == endActionId) throw new WorkflowParseException("The workflow definition did not have end action");
+		
 			//3. Get actions
 			@SuppressWarnings("unchecked")
 			List<Document> actionsListObject = (List<Document>) workflowObj.get("actions");
 			Iterator<Document> actionObjectsIt = actionsListObject.iterator();
-			List<ManagedAction> actions = new ArrayList<ManagedAction>();
+			List<Action> actions = new ArrayList<>();
 			while (actionObjectsIt.hasNext()) {
 				Document actionObject = actionObjectsIt.next();
-				ManagedAction action = actionParser.parseAction(actionObject);
+				Action action = actionParser.parseAction(actionObject);
 				actions.add(action);
 			}	
 			
 			//4. Create workflow object with a DAG
-			return new Workflow(name, startActionName, endActionName, actions);
+			return new Workflow(name, startActionId, endActionId, actions);
 			
 		}
 		catch(JsonParseException ex) {

@@ -53,6 +53,10 @@ implements ActionAttributesConstants  {
 		String name = (String) actionObject.get(ACTION_NAME);
 		if (null == name)
 			throw new WorkflowParseException("The action does not have a name");
+		Integer actionId = (Integer) actionObject.getInteger(ACTION_ID);
+		if (null == actionId) {
+			throw new WorkflowParseException("The action does not have an id");
+		}
 		String actionFolder = (String) actionObject.get(ACTION_FOLDER);
 		if (null == actionFolder)
 			throw new WorkflowParseException("The action does not have attribute <actionFolder>");
@@ -69,43 +73,44 @@ implements ActionAttributesConstants  {
 		forceComputation = (forceComputation == null || !forceComputation) ? false : true;
 		String outputFolder = actionObject.getString(ACTION_OUTPUT_PATH);
 
-		List<String> parentActionNames = this.getParentActionNames(actionObject);
+		List<Integer> parentActionIds = this.getParentActionIds(actionObject);
 		LinkedHashMap<String, String> additionalInput = this.getInputParameters(actionObject);
 		LinkedHashMap<String, String> configurationParameters = this.getConfigurationParameters(actionObject);
-
-		return new CommandLineAction(name, 
-				actionFolder, 
-				additionalInput, 
-				configurationParameters,
-				parentA
-				)
-		return new JavaAction(name, type, actionFolder,
-				forceComputation, 
-				mainClassName, 
-				jobTracker, nameNode, 
-				parentActionNames,
-				inputParameters, 
-				outputParameters, 
-				configurationParameters);
+		if (null == outputFolder) {
+			return new CommandLineAction(
+					name, actionId,
+					actionFolder,
+					additionalInput,
+					configurationParameters,
+					parentActionIds,
+					forceComputation,
+					mainClassName,
+					jobTracker,
+					nameNode);
+		}
+		else {
+			return new CommandLineAction(
+					name, actionId,
+					actionFolder,
+					additionalInput,
+					configurationParameters,
+					parentActionIds,
+					forceComputation,
+					outputFolder,
+					mainClassName,
+					jobTracker,
+					nameNode);
+		}	
 	}
 
-	private List<String> getParentActionNames(Document actionObject) {
-		List<String> toReturn = new ArrayList<String>();
+	private List<Integer> getParentActionIds(Document actionObject) {
 		@SuppressWarnings("unchecked")
-		List<Document> parentActions = (List<Document>) actionObject.get(ACTION_PARENT_ACTIONS);
+		List<Integer> parentActions = (List<Integer>) actionObject.get(ACTION_PARENT_ACTIONS);
 		if (null == parentActions) {
-			return Collections.unmodifiableList(toReturn);
+			return Collections.unmodifiableList(new ArrayList<>());
 		}
-		Iterator<Document> parentActionsIt = parentActions.iterator();
-		while (parentActionsIt.hasNext()) {
-			Document parentActionObject = parentActionsIt.next();
-			String parentActionName = (String) parentActionObject.get("name");
-			if (null == parentActionName) {
-				continue;
-			}
-			toReturn.add(parentActionName);
-		}
-		return Collections.unmodifiableList(toReturn);
+		
+		return Collections.unmodifiableList(parentActions);
 	}
 
 	private LinkedHashMap<String, String> getInputParameters(Document actionObject) {

@@ -58,7 +58,7 @@ public class Workflow {
 	 * action.
 	 * @throws NullPointerException if any of the parameters passed is null.
 	 */
-	public Workflow(String workflowName, int startActionId, int endActionId, Set<Action> actions) throws InvalidWorkflowException {
+	public Workflow(String workflowName, int startActionId, int endActionId, List<Action> actions) throws InvalidWorkflowException {
 		Preconditions.checkNotNull(workflowName);
 		Preconditions.checkNotNull(actions);
 		this.workflowName = workflowName;
@@ -104,6 +104,16 @@ public class Workflow {
 			throw new InvalidWorkflowException("End action: " + endActionId + " is not one of the actions of the workflow");
 		}
 		validateWorkflow();
+		
+		//3. Set long name of all actions.
+		//TODO: Make topological sort first.
+		for (Action action : actions) {
+			//TODO: make check that action is of the type that takes natural order.
+			//TODO: Maybe I need the action inside handle this, all I do is pass the long
+			//names of its parents and then I let the action figure out what to do with them
+			
+			//ActionUtils.createActionLongNameNaturalOrder(uniqueName, parents)
+		}
 	}
 	
 	/**
