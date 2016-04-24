@@ -2,8 +2,8 @@ package io.biblia.workflows.definition.parser.v1;
 
 import com.google.common.base.CharMatcher;
 import io.biblia.workflows.definition.Action;
+import io.biblia.workflows.definition.ActionAttributesConstants;
 import io.biblia.workflows.definition.CommandLineAction;
-import io.biblia.workflows.definition.parser.ActionAttributesConstants;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
 import org.bson.Document;
 
@@ -73,7 +73,12 @@ implements ActionAttributesConstants  {
 		LinkedHashMap<String, String> additionalInput = this.getInputParameters(actionObject);
 		LinkedHashMap<String, String> configurationParameters = this.getConfigurationParameters(actionObject);
 
-		return new CommandLineAction(name)
+		return new CommandLineAction(name, 
+				actionFolder, 
+				additionalInput, 
+				configurationParameters,
+				parentA
+				)
 		return new JavaAction(name, type, actionFolder,
 				forceComputation, 
 				mainClassName, 

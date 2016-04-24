@@ -1,8 +1,20 @@
-package io.biblia.workflows.definition.parser;
+package io.biblia.workflows.definition;
 
 public interface ActionAttributesConstants {
 
 	String ACTION_NAME = "name";
+	
+	String ACTION_ORIGINAL_NAME = "originalName";
+	
+	String ACTION_UNIQUE_NAME = "uniqueName";
+	
+	String ACTION_LONG_NAME = "longName";
+	
+	String ACTION_ID = "actionId";
+	
+	String ACTION_TYPE = "type";
+	
+	String ACTION_IS_MANAGED = "isManaged";
 	
 	String ACTION_FOLDER = "actionFolder";
 	

@@ -2,7 +2,6 @@ package io.biblia.workflows.definition;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -10,21 +9,25 @@ import org.bson.Document;
 
 import com.google.common.base.Preconditions;
 
-public abstract class Action {
+public abstract class Action implements ActionAttributesConstants {
 
 	private final String originalName;
+	
+	private final int actionId;
+	
+	private List<String> longName;
+	
+	private String outputPath;
 	
 	private final String actionFolder;
 	
 	private final ActionType type;
 	
-	private final LinkedHashSet<String> inputPaths;
-	
 	private final LinkedHashMap<String, String> additionalInput;
 	
 	private final LinkedHashMap<String, String> configuration;
 	
-	private final List<Action> parents;
+	private final List<Integer> parentIds;
 	
 	private final boolean forceComputation;
 	
@@ -32,44 +35,68 @@ public abstract class Action {
 	
 	public Action(
 		String name,
+		int actionId,
 		String actionFolder,
 		ActionType type,
 		LinkedHashMap<String, String> additionalInput,
 		LinkedHashMap<String, String> configuration,
-		List<Action> parents,
+		List<Integer> parentIds,
 		boolean forceComputation,
-		boolean isManaged
+		String outputPath
 		) throws InvalidWorkflowException
 	{
 		//1. Validation
 		Preconditions.checkNotNull(name);
 		Preconditions.checkNotNull(actionFolder);
 		Preconditions.checkNotNull(type);
-		Preconditions.checkNotNull(parents);
+		Preconditions.checkNotNull(parentIds);
 		Preconditions.checkNotNull(configuration);
 		Preconditions.checkNotNull(additionalInput);
 		
 		//2. Setting of fields.
 		this.originalName = name;
+		this.actionId = actionId;
 		this.actionFolder = actionFolder;
 		this.type = type;
-		this.parents = parents;
+		this.parentIds = parentIds;
 		this.configuration = new LinkedHashMap<>(configuration);
 		this.additionalInput = new LinkedHashMap<>(additionalInput);
-		this.inputPaths = new LinkedHashSet<>();
-		
-		//1.1 Checking that no two parents are equal
-		for (Action parent : parents) {
-			String outputPath = parent.getOutputPath();
-			if (inputPaths.contains(outputPath)) {
-				throw new InvalidWorkflowException("Action " + originalName + " has repeated parents"); 
-			}
-			inputPaths.add(outputPath);
-		}
 		this.forceComputation = forceComputation;
-		this.isManaged = true;
+		this.isManaged = false;
+		this.outputPath = outputPath;
 	}
 	
+	public Action(
+			String name,
+			int actionId,
+			String actionFolder,
+			ActionType type,
+			LinkedHashMap<String, String> additionalInput,
+			LinkedHashMap<String, String> configuration,
+			List<Integer> parentIds,
+			boolean forceComputation
+			) throws InvalidWorkflowException
+		{
+			//1. Validation
+			Preconditions.checkNotNull(name);
+			Preconditions.checkNotNull(actionFolder);
+			Preconditions.checkNotNull(type);
+			Preconditions.checkNotNull(parentIds);
+			Preconditions.checkNotNull(configuration);
+			Preconditions.checkNotNull(additionalInput);
+			
+			//2. Setting of fields.
+			this.originalName = name;
+			this.actionId = actionId;
+			this.actionFolder = actionFolder;
+			this.type = type;
+			this.parentIds = parentIds;
+			this.configuration = new LinkedHashMap<>(configuration);
+			this.additionalInput = new LinkedHashMap<>(additionalInput);
+			this.forceComputation = forceComputation;
+			this.isManaged = true;
+			this.outputPath = null;
+		}
 	
 	public String getOriginalName(){
 		return this.originalName;
@@ -77,16 +104,30 @@ public abstract class Action {
 	
 	public abstract String getUniqueName();
 	
-	public abstract List<String> getLongName();
+	public List<String> getLongName(){
+		return this.longName;
+	}
 	
-	public abstract String getOutputPath();
+	public void setLongName(List<String> longName) {
+		this.longName = longName;
+		if (null == this.outputPath) {
+			this.outputPath = ActionUtils.generateOutputPathFromLongName(longName);
+		}
+	}
 	
+	public String getOutputPath() {
+		return this.outputPath;
+	}
+	
+	public int getActionId() {
+		return this.actionId;
+	}
 	public String getActionFolder() {
 		return this.actionFolder;
 	}
 	
-	public List<Action> getParents() {
-		return this.parents;
+	public List<Integer> getParentIds() {
+		return this.parentIds;
 	}
 	
 	public LinkedHashMap<String, String> getExtraInputs() {
@@ -109,17 +150,14 @@ public abstract class Action {
 		return this.isManaged;
 	}
 	
-	public LinkedHashSet<String> getInputPaths() {
-		return this.inputPaths;
-	}
-	
 	public Document toBson() {
 		Document toReturn = new Document();
-		toReturn.append("originalName", this.getOriginalName());
-		toReturn.append("uniqueName", this.getUniqueName());
-		toReturn.append("longName", this.getLongName());
-		toReturn.append("outputPath", this.getOutputPath());
-		toReturn.append("actionFolder", this.getActionFolder());
+		toReturn.append(ACTION_ORIGINAL_NAME, this.getOriginalName());
+		toReturn.append(ACTION_UNIQUE_NAME, this.getUniqueName());
+		toReturn.append(ACTION_LONG_NAME, this.getLongName());
+		toReturn.append(ACTION_ID, this.getActionId());
+		toReturn.append(ACTION_OUTPUT_PATH, this.getOutputPath());
+		toReturn.append(ACTION_FOLDER, this.getActionFolder());
 		
 		List<Document> extraInput = new ArrayList<Document>();
 		for (Entry<String, String> e : this.additionalInput.entrySet()) {
@@ -137,12 +175,11 @@ public abstract class Action {
 			configurationParameters.add(configurationParameter);
 		}
 		
-		toReturn.append("extraInput", extraInput);
-		toReturn.append("configuration", configurationParameters);
-		toReturn.append("type", type);
-		toReturn.append("forceComputation", this.forceComputation());
-		toReturn.append("isManaged", this.isManaged());
-		toReturn.append("inputPaths", new ArrayList<String>(this.getInputPaths()));
+		toReturn.append(ACTION_ADDITIONAL_INPUT, extraInput);
+		toReturn.append(ACTION_CONFIGURATION_PARAMETERS, configurationParameters);
+		toReturn.append(ACTION_TYPE, type);
+		toReturn.append(ACTION_FORCE_COMPUTATION, this.forceComputation());
+		toReturn.append(ACTION_IS_MANAGED, this.isManaged());
 		return toReturn;
 	}
 

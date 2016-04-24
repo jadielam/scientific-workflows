@@ -31,19 +31,18 @@ public class Workflow {
 	/**
 	 * Name of the starting action of the workflow.
 	 */
-	private final String startActionName;
+	private final int startActionId;
 	
 	/**
 	 * Name of the end action of the workflow.
 	 */
-	private final String endActionName;
+	private final int endActionId;
 	
 	/**
 	 * Contains all the actions of the workflow, keyed by the action name.
 	 */
-	private final Map<String, Action> actions = new HashMap<String, Action>();
+	private final Map<Integer, Action> actions = new HashMap<>();
 	
-	private final Set<Action> actionsSet;
 	/**
 	 * Map from action to actions that depend on it.
 	 */
@@ -59,36 +58,50 @@ public class Workflow {
 	 * action.
 	 * @throws NullPointerException if any of the parameters passed is null.
 	 */
-	public Workflow(String workflowName, String startAction, String endAction, Set<Action> actions) throws InvalidWorkflowException {
+	public Workflow(String workflowName, int startActionId, int endActionId, Set<Action> actions) throws InvalidWorkflowException {
 		Preconditions.checkNotNull(workflowName);
-		Preconditions.checkNotNull(startAction);
-		Preconditions.checkNotNull(endAction);
 		Preconditions.checkNotNull(actions);
-		this.actionsSet = actions;
 		this.workflowName = workflowName;
+		
+		//1. Map from id to action
 		for (Action action : actions) {
 			if (null != action) {
-				String name = action.getUniqueName();
-				this.actions.put(name, action);
-				for (Action parentAction : action.getParents()) {
-					if (!this.actionsDependency.containsKey(parentAction)) {
-						this.actionsDependency.put(parentAction, new HashSet<Action>());
-					}
-					this.actionsDependency.get(parentAction).add(action);
-				}				
+				int id = action.getActionId();
+				if (actions.contains(id)) {
+					throw new InvalidWorkflowException("There is more than one action with the same id: "+ id);
+				}
+				this.actions.put(id, action);				
 			}
 		}
-		if (this.actions.containsKey(startAction)) {
-			this.startActionName = startAction;
+		
+		//2. Dependency map
+		for (Action action : actions) {
+			for (int parentActionId : action.getParentIds()) {
+				
+				Action parentAction = this.actions.get(parentActionId);
+				if (null == parentAction) {
+					throw new InvalidWorkflowException("The action with id " + parentActionId + " is "
+							+ "not defined");
+				}
+				
+				if (!this.actionsDependency.containsKey(parentAction)) {
+					this.actionsDependency.put(parentAction, new HashSet<Action>());
+				}
+				this.actionsDependency.get(parentAction).add(action);
+			}
+		}
+		
+		if (this.actions.containsKey(startActionId)) {
+			this.startActionId = startActionId;
 		} 
 		else {
-			throw new InvalidWorkflowException("Start action: " + startAction + " is not one of the actions of the workflow");
+			throw new InvalidWorkflowException("Start action: " + startActionId + " is not one of the actions of the workflow");
 		}
-		if (this.actions.containsKey(endAction)) {
-			this.endActionName = endAction;
+		if (this.actions.containsKey(endActionId)) {
+			this.endActionId = endActionId;
 		}
 		else {
-			throw new InvalidWorkflowException("End action: " + endAction + " is not one of the actions of the workflow");
+			throw new InvalidWorkflowException("End action: " + endActionId + " is not one of the actions of the workflow");
 		}
 		validateWorkflow();
 	}
@@ -116,40 +129,29 @@ public class Workflow {
 	 * met.
 	 */
 	private void validateWorkflow() throws InvalidWorkflowException {
-		Set<Entry<String, Action>> entrySet = this.actions.entrySet();
+		Set<Entry<Integer, Action>> entrySet = this.actions.entrySet();
 		
 		//1. Validate that there are no cycles in the graph.
 		Map<Action, Color> visited = new HashMap<Action, Color>();
-		Queue<Action> actionsQueue = new ArrayDeque<Action>();
+		Queue<Integer> actionsQueue = new ArrayDeque<>();
 		
-		for (Entry<String, Action> e : entrySet) {
+		for (Entry<Integer, Action> e : entrySet) {
 			Action actionName = e.getValue();
 			visited.put(actionName, Color.WHITE);
 		}
 		
-		for (Entry<String, Action> e : entrySet) {
+		for (Entry<Integer, Action> e : entrySet) {
 			Action action = e.getValue();
 			dfs(action, actionsQueue, visited);
 		}
 		
 		//2. Validate that the start action is not a descendant of any other action.
-		Action startAction = this.actions.get(this.startActionName);
-		Collection<Action> parentActions = startAction.getParents();
+		Action startAction = this.actions.get(this.startActionId);
+		Collection<Integer> parentActions = startAction.getParentIds();
 		if (null != parentActions && parentActions.size() > 0) {
 			throw new InvalidWorkflowException("startAction has parent actions");
 		}
 		
-		//3. Validate that all the referenced actions are defined.
-		for (Entry<String, Action> e : entrySet) {
-			Action action = e.getValue();
-			Collection<Action> parentNames = action.getParents();
-			for (Action parent : parentNames) {
-				if (!this.actionsSet.contains(parent)) {
-					throw new InvalidWorkflowException("Action: " + parent.getOriginalName() + " is referenced but not"
-							+ "defined in the workflow.");
-				}
-			}
-		}
 	}
 	
 	/**
@@ -163,15 +165,16 @@ public class Workflow {
 	 * Color.BLACK means explored
 	 * @throws InvalidWorkflowException
 	 */
-	private void dfs(Action currentAction, Queue<Action> actionsQueue, Map<Action, Color> visited) throws InvalidWorkflowException {
+	private void dfs(Action currentAction, Queue<Integer> actionsQueue, Map<Action, Color> visited) throws InvalidWorkflowException {
 		//1. If we have not visited this node yet, start visiting it
 		if (visited.get(currentAction).equals(Color.WHITE)) {
 			visited.put(currentAction, Color.GRAY);
 			Action action = this.actions.get(currentAction);
-			List<Action> parentActions = action.getParents();
-			actionsQueue.addAll(parentActions);
+			List<Integer> parentActionsIds = action.getParentIds();
+			actionsQueue.addAll(parentActionsIds);
 			while (!actionsQueue.isEmpty()) {
-				Action nextAction = actionsQueue.poll();
+				Integer nextActionId = actionsQueue.poll();
+				Action nextAction = this.actions.get(nextActionId);
 				dfs(nextAction, actionsQueue, visited);
 			}
 			visited.put(currentAction, Color.BLACK);
@@ -189,16 +192,16 @@ public class Workflow {
 	 * Returns the name of the start action
 	 * @return
 	 */
-	public String getStartAction() {
-		return startActionName;
+	public int getStartActionId() {
+		return startActionId;
 	}
 
 	/**
 	 * Returns the name of the end action
 	 * @return
 	 */
-	public String getEndAction() {
-		return endActionName;
+	public int getEndActionId() {
+		return endActionId;
 	}
 	
 	/**

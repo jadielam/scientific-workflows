@@ -9,10 +9,6 @@ public class CommandLineAction extends Action {
 
 	private final String uniqueName;
 	
-	private final List<String> longName;
-	
-	private final String outputPath;
-	
 	private final String mainClassName;
 	
 	private final String jobTracker;
@@ -30,19 +26,17 @@ public class CommandLineAction extends Action {
 	 * @param forceComputation
 	 * @throws InvalidWorkflowException
 	 */
-	public CommandLineAction(String name, String actionFolder,
+	public CommandLineAction(String name, int actionId, String actionFolder,
 			LinkedHashMap<String, String> additionalInput, 
 			LinkedHashMap<String, String> configuration,
-			List<Action> parents, boolean forceComputation,
+			List<Integer> parentsIds, boolean forceComputation,
 			String mainClassName, String jobTracker,
 			String nameNode
 			) 
 					throws InvalidWorkflowException {
-		super(name, actionFolder, ActionType.COMMAND_LINE, additionalInput, 
-				configuration, parents, forceComputation, true);
+		super(name, actionId, actionFolder, ActionType.COMMAND_LINE, additionalInput, 
+				configuration, parentsIds, forceComputation);
 		this.uniqueName = ActionUtils.createActionUniqueNameNaturalOrder(name, additionalInput, configuration);
-		this.longName = ActionUtils.createActionLongNameNaturalOrder(this.uniqueName, parents);
-		this.outputPath = ActionUtils.generateOutputPathFromLongName(this.longName);
 		this.mainClassName = mainClassName;
 		this.jobTracker = jobTracker;
 		this.nameNode = nameNode;
@@ -60,20 +54,18 @@ public class CommandLineAction extends Action {
 	 * @param outputPath
 	 * @throws InvalidWorkflowException
 	 */
-	public CommandLineAction(String name, String actionFolder,
+	public CommandLineAction(String name, int actionId, String actionFolder,
 			LinkedHashMap<String, String> additionalInput, 
 			LinkedHashMap<String, String> configuration,
-			List<Action> parents, boolean forceComputation,
+			List<Integer> parentsIds, boolean forceComputation,
 			String outputPath,
 			String mainClassName, String jobTracker,
 			String nameNode
 			) 
 					throws InvalidWorkflowException {
-		super(name, actionFolder, ActionType.COMMAND_LINE, additionalInput, 
-				configuration, parents, forceComputation, false);
+		super(name, actionId, actionFolder, ActionType.COMMAND_LINE, additionalInput, 
+				configuration, parentsIds, forceComputation, outputPath);
 		this.uniqueName = ActionUtils.createActionUniqueNameNaturalOrder(name, additionalInput, configuration);
-		this.longName = ActionUtils.createActionLongNameNaturalOrder(this.uniqueName, parents);
-		this.outputPath = outputPath;
 		this.mainClassName = mainClassName;
 		this.jobTracker = jobTracker;
 		this.nameNode = nameNode;
@@ -83,17 +75,6 @@ public class CommandLineAction extends Action {
 	public String getUniqueName() {
 		return this.uniqueName;
 	}
-
-	@Override
-	public List<String> getLongName() {
-		return this.longName;
-	}
-
-	@Override
-	public String getOutputPath() {
-		return this.outputPath;
-	}
-	
 	
 	public String getMainClassName() {
 		return mainClassName;

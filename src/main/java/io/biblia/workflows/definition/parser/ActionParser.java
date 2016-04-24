@@ -1,6 +1,8 @@
 package io.biblia.workflows.definition.parser;
 
 import io.biblia.workflows.definition.Action;
+import io.biblia.workflows.definition.ActionNameConstants;
+
 import org.bson.Document;
 
 public abstract class ActionParser implements ActionNameConstants {

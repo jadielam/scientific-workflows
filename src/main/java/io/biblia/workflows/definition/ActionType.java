@@ -1,7 +1,5 @@
 package io.biblia.workflows.definition;
 
-import io.biblia.workflows.definition.parser.ActionNameConstants;
-
 /**
  * Created by dearj019 on 4/12/16.
  */

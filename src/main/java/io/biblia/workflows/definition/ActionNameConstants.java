@@ -1,4 +1,4 @@
-package io.biblia.workflows.definition.parser;
+package io.biblia.workflows.definition;
 
 /**
  * Represents different types of actions supported
