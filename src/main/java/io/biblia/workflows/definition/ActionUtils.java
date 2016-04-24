@@ -1,6 +1,5 @@
 package io.biblia.workflows.definition;
 
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 

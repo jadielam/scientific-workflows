@@ -1,24 +1,26 @@
 package io.biblia.workflows.definition.parser.v1;
 
 import com.google.common.base.CharMatcher;
-import io.biblia.workflows.definition.ManagedAction;
-import io.biblia.workflows.definition.actions.JavaAction;
+import io.biblia.workflows.definition.Action;
+import io.biblia.workflows.definition.CommandLineAction;
+import io.biblia.workflows.definition.parser.ActionAttributesConstants;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
 import org.bson.Document;
 
 import java.util.*;
 
-public class JavaActionParser extends io.biblia.workflows.definition.parser.ActionParser {
+public class CommandLineActionParser extends io.biblia.workflows.definition.parser.ActionParser 
+implements ActionAttributesConstants  {
 
-	private static JavaActionParser instance;
+	private static CommandLineActionParser instance;
 
-	private JavaActionParser() {
+	private CommandLineActionParser() {
 
 	}
 
-	public static JavaActionParser getInstance() {
+	public static CommandLineActionParser getInstance() {
 		if (null == instance) {
-			instance = new JavaActionParser();
+			instance = new CommandLineActionParser();
 		}
 		return instance;
 	}
@@ -32,7 +34,7 @@ public class JavaActionParser extends io.biblia.workflows.definition.parser.Acti
 	 * Example provided below: { type: "command-line", name: "testing3",
 	 * mainClassName: "testing.java", jobTracker: "urlTOJobTracker", nameNode:
 	 * "urlToNameNode", forceComputation: true, parentActions: [ { name:
-	 * "testing1" }, { name: "testing2" } ], inputParameters: [ { value:
+	 * "testing1" }, { name: "testing2" } ], additionalInput: [ { value:
 	 * "path/to/file" } ], outputParameters: [ { value: "path/to/file" }
 	 * 
 	 * ], configurationParameters: [ { value: "anything" } ] }
@@ -40,37 +42,38 @@ public class JavaActionParser extends io.biblia.workflows.definition.parser.Acti
 	 * @throws WorkflowParseException
 	 */
 	@Override
-	public ManagedAction parseAction(Document actionObject) throws WorkflowParseException {
+	public Action parseAction(Document actionObject) throws WorkflowParseException {
 
 		String type = (String) actionObject.get("type");
 		if (null == type)
 			throw new WorkflowParseException("The action does not have a type attribute");
-		if (!type.equals(JAVA_ACTION)) {
-			throw new WorkflowParseException("The action type: " + type + " cannot be parsed by JavaActionParser");
+		if (!type.equals(COMMAND_LINE_ACTION)) {
+			throw new WorkflowParseException("The action type: " + type + " cannot be parsed by CommandLineActionParser");
 		}
-		String name = (String) actionObject.get("name");
+		String name = (String) actionObject.get(ACTION_NAME);
 		if (null == name)
 			throw new WorkflowParseException("The action does not have a name");
-		String actionFolder = (String) actionObject.get("actionFolder");
+		String actionFolder = (String) actionObject.get(ACTION_FOLDER);
 		if (null == actionFolder)
 			throw new WorkflowParseException("The action does not have attribute <actionFolder>");
-		String mainClassName = (String) actionObject.get("mainClassName");
+		String mainClassName = (String) actionObject.get(COMMANDLINE_MAIN_CLASS_NAME);
 		if (null == mainClassName)
 			throw new WorkflowParseException("The action does not have a mainClassName");
-		String nameNode = (String) actionObject.get("nameNode");
+		String nameNode = (String) actionObject.get(COMMANDLINE_NAME_NODE);
 		if (null == nameNode)
 			throw new WorkflowParseException("The action does not have a nameNode attribute");
-		String jobTracker = (String) actionObject.get("jobTracker");
+		String jobTracker = (String) actionObject.get(COMMANDLINE_JOB_TRACKER);
 		if (null == jobTracker)
 			throw new WorkflowParseException("The action does not have a jobTracker attribute");
-		Boolean forceComputation = (Boolean) actionObject.get("forceComputation");
+		Boolean forceComputation = (Boolean) actionObject.get(ACTION_FORCE_COMPUTATION);
 		forceComputation = (forceComputation == null || !forceComputation) ? false : true;
+		String outputFolder = actionObject.getString(ACTION_OUTPUT_PATH);
 
-		Set<String> parentActionNames = this.getParentActionNames(actionObject);
-		LinkedHashMap<String, String> inputParameters = this.getInputParameters(actionObject);
-		LinkedHashMap<String, String> outputParameters = this.getOutputParameters(actionObject);
+		List<String> parentActionNames = this.getParentActionNames(actionObject);
+		LinkedHashMap<String, String> additionalInput = this.getInputParameters(actionObject);
 		LinkedHashMap<String, String> configurationParameters = this.getConfigurationParameters(actionObject);
 
+		return new CommandLineAction(name)
 		return new JavaAction(name, type, actionFolder,
 				forceComputation, 
 				mainClassName, 
@@ -81,12 +84,12 @@ public class JavaActionParser extends io.biblia.workflows.definition.parser.Acti
 				configurationParameters);
 	}
 
-	private Set<String> getParentActionNames(Document actionObject) {
-		Set<String> toReturn = new HashSet<String>();
+	private List<String> getParentActionNames(Document actionObject) {
+		List<String> toReturn = new ArrayList<String>();
 		@SuppressWarnings("unchecked")
-		List<Document> parentActions = (List<Document>) actionObject.get("parentActions");
+		List<Document> parentActions = (List<Document>) actionObject.get(ACTION_PARENT_ACTIONS);
 		if (null == parentActions) {
-			return Collections.unmodifiableSet(toReturn);
+			return Collections.unmodifiableList(toReturn);
 		}
 		Iterator<Document> parentActionsIt = parentActions.iterator();
 		while (parentActionsIt.hasNext()) {
@@ -97,13 +100,13 @@ public class JavaActionParser extends io.biblia.workflows.definition.parser.Acti
 			}
 			toReturn.add(parentActionName);
 		}
-		return Collections.unmodifiableSet(toReturn);
+		return Collections.unmodifiableList(toReturn);
 	}
 
 	private LinkedHashMap<String, String> getInputParameters(Document actionObject) {
 		LinkedHashMap<String, String> toReturn = new LinkedHashMap<>();
 		@SuppressWarnings("unchecked")
-		List<Document> inputParameters = (List<Document>) actionObject.get("inputParameters");
+		List<Document> inputParameters = (List<Document>) actionObject.get(ACTION_ADDITIONAL_INPUT);
 		if (null == inputParameters) {
 			return toReturn;
 		}
@@ -127,32 +130,6 @@ public class JavaActionParser extends io.biblia.workflows.definition.parser.Acti
 		return toReturn;
 	}
 
-	private LinkedHashMap<String, String> getOutputParameters(Document actionObject) {
-		LinkedHashMap<String, String> toReturn = new LinkedHashMap<>();
-		@SuppressWarnings("unchecked")
-		List<Document> outputParameters = (List<Document>) actionObject.get("outputParameters");
-		if (null == outputParameters) {
-			return toReturn;
-		}
-		Iterator<Document> outputParametersIt = outputParameters.iterator();
-		int counter = 0;
-		while (outputParametersIt.hasNext()) {
-			counter++;
-			Document outputParametersObject = outputParametersIt.next();
-			String key = (String) outputParametersObject.get("key");
-			String value = (String) outputParametersObject.get("value");
-			if (null == value) {
-				continue;
-			}
-			if (null == key) {
-				toReturn.put(Integer.toString(counter), value);
-			} else {
-				toReturn.put(key, value);
-			}
-		}
-		return toReturn;
-	}
-
 	/**
 	 * If the configuration parameter has spaces.
 	 * 
@@ -164,7 +141,7 @@ public class JavaActionParser extends io.biblia.workflows.definition.parser.Acti
 			throws WorkflowParseException {
 		LinkedHashMap<String, String> toReturn = new LinkedHashMap<>();
 		@SuppressWarnings("unchecked")
-		List<Document> configurationParameters = (List<Document>) actionObject.get("configurationParameters");
+		List<Document> configurationParameters = (List<Document>) actionObject.get(ACTION_CONFIGURATION_PARAMETERS);
 		if (null == configurationParameters) {
 			return toReturn;
 		}

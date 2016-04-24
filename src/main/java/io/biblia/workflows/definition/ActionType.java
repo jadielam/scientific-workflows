@@ -7,8 +7,7 @@ import io.biblia.workflows.definition.parser.ActionNameConstants;
  */
 public enum ActionType implements ActionNameConstants {
 
-    COMMAND_LINE(JAVA_ACTION),
-    FS_DELETE(FS_DELETE_ACTION),
+    COMMAND_LINE(COMMAND_LINE_ACTION),
     MAP_REDUCE_1(MAP_REDUUCE_1_ACTION),
     MAP_REDUCE_2(MAP_REDUCE_2_ACTION);
 

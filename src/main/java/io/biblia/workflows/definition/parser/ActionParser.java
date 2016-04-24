@@ -1,6 +1,6 @@
 package io.biblia.workflows.definition.parser;
 
-import io.biblia.workflows.definition.ManagedAction;
+import io.biblia.workflows.definition.Action;
 import org.bson.Document;
 
 public abstract class ActionParser implements ActionNameConstants {
@@ -11,5 +11,5 @@ public abstract class ActionParser implements ActionNameConstants {
 	 * @return
 	 * @throws WorkflowParseException
 	 */
-	public abstract ManagedAction parseAction(Document object) throws WorkflowParseException;
+	public abstract Action parseAction(Document object) throws WorkflowParseException;
 }
