@@ -3,7 +3,7 @@ package io.biblia.workflows.statistics;
 import org.bson.types.ObjectId;
 
 import io.biblia.workflows.EnvironmentVariables;
-import io.biblia.workflows.definition.ManagedAction;
+import io.biblia.workflows.definition.Action;
 import io.biblia.workflows.definition.Dataset;
 import io.biblia.workflows.definition.Workflow;
 
@@ -26,7 +26,7 @@ public class Registrar {
 		this.dao.addWorkflow(workflow);
 	}
 	
-	public void addAction(ManagedAction action) {
+	public void addAction(Action action) {
 		this.dao.addAction(action);
 	}
 	

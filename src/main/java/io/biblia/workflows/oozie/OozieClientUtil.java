@@ -105,28 +105,20 @@ public class OozieClientUtil implements EnvironmentVariables {
 			String errorName = END_NODE_NAME;
 			String mainClassName = javaAction.getMainClassName();
 			Map<String, String> inputParameters = javaAction.getInputParameters();
-			Map<String, String> outputParameters = javaAction.getOutputParameters();
-			Map<String, String> configurationParameters = javaAction.getConfigurationParameters();
+			Map<String, String> additionalInput = javaAction.getExtraInputs();
+			String output = javaAction.getOutputPath();
+			Map<String, String> configurationParameters = javaAction.getConfiguration();
 			List<String> arguments = new ArrayList<>();
 			arguments.addAll(inputParameters.values());
-			arguments.addAll(outputParameters.values());
+			arguments.addAll(additionalInput.values());
+			arguments.add(output);
 			arguments.addAll(configurationParameters.values());
-			String nameNode = javaAction.getName();
+			String nameNode = javaAction.getNameNode();
 			String jobTracker = javaAction.getJobTracker();
 			JavaAction oAction = new JavaAction(actionName, okName, errorName, mainClassName, arguments, jobTracker,
 					nameNode);
 			return oAction;
 		}
-		else if (action instanceof io.biblia.workflows.definition.actions.FSDeleteAction) {
-			io.biblia.workflows.definition.actions.FSDeleteAction fsDelete = (io.biblia.workflows.definition.actions.FSDeleteAction) action;
-			String actionName = fsDelete.getName();
-			String okName = END_NODE_NAME;
-			String errorName = END_NODE_NAME;
-			String pathToDelete = fsDelete.getPathToDelete();
-			FSDeleteAction deleteAction = new FSDeleteAction(actionName, okName, errorName, pathToDelete);
-			return deleteAction;
-		}
-
 		else
 			throw new UnsupportedOperationException("Could not convert from class type: "
 					+ action.getClass().getSimpleName() + " to any known Oozie action type");

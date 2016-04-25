@@ -14,7 +14,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.UpdateResult;
 
-import io.biblia.workflows.definition.ManagedAction;
+import io.biblia.workflows.definition.Action;
 import io.biblia.workflows.definition.Dataset;
 import io.biblia.workflows.definition.Workflow;
 
@@ -48,7 +48,7 @@ public class WorkflowsMongoDAO implements DatabaseConstants, WorkflowsDAO {
 	 * @see io.biblia.workflows.statistics.WorkflowsDAO#addAction(io.biblia.workflows.definition.ManagedAction)
 	 */
 	@Override
-	public String addAction(ManagedAction action) {
+	public String addAction(Action action) {
 		Document document = this.actionConverter.convertToDocument(action);
 		return insertDocumentToCollection(document, ACTIONS_COLLECTION).toHexString();
 	}
@@ -119,19 +119,13 @@ public class WorkflowsMongoDAO implements DatabaseConstants, WorkflowsDAO {
 		public Document convertToDocument(T t);
 	}
 
-	private class ActionConverter implements DocumentConverter<ManagedAction> {
+	private class ActionConverter implements DocumentConverter<Action> {
 
 		@Override
-		public Document convertToDocument(ManagedAction a) {
-			Document toReturn = new Document()
-					.append("name", a.getName())
-					.append("forceComputation", a.getForceComputation())
-					.append("parentActionNames", a.getParentActionNames())
-					.append("inputParameters", this.convertToDocumentList(a.getInputParameters()))
-					.append("outputParameters", this.convertToDocumentList(a.getOutputParameters()))
-					.append("configurationParameters", this.convertToDocumentList(a.getConfigurationParameters()));
-			
-			return toReturn;
+		public Document convertToDocument(Action a) {
+			//TODO
+			return null;
+		
 		}
 		
 		private List<Document> convertToDocumentList(Map<String, String> keyValues) {
@@ -150,19 +144,8 @@ public class WorkflowsMongoDAO implements DatabaseConstants, WorkflowsDAO {
 
 		@Override
 		public Document convertToDocument(Workflow w) {
-			Document toReturn = new Document()
-					.append("workflowName", w.getWorkflowName())
-					.append("startActionName", w.getStartAction())
-					.append("endActionName", w.getEndAction());
-			
-			List<Document> actions = new ArrayList<Document>();
-			for (ManagedAction action : w.getActions()) {
-				Document doc = actionConverter.convertToDocument(action);
-				actions.add(doc);
-			}
-			
-			toReturn.append("actions", actions);
-			return toReturn;
+			//TODO
+			return null;
 		}	
 	}
 	

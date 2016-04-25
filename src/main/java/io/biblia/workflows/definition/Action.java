@@ -17,6 +17,8 @@ public abstract class Action implements ActionAttributesConstants {
 	
 	private List<String> longName;
 	
+	private LinkedHashMap<String, String> inputParameters;
+	
 	private String outputPath;
 	
 	private final String actionFolder;
@@ -104,6 +106,14 @@ public abstract class Action implements ActionAttributesConstants {
 	}
 	
 	public abstract String getUniqueName();
+	
+	public LinkedHashMap<String, String> getInputParameters() {
+		return this.inputParameters;
+	}
+	
+	public void setInputParameters(LinkedHashMap<String, String> inputParameters) {
+		this.inputParameters = inputParameters;
+	}
 	
 	public List<String> getLongName(){
 		return this.longName;

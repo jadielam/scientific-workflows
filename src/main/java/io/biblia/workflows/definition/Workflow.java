@@ -113,6 +113,9 @@ public class Workflow {
 			//names of its parents and then I let the action figure out what to do with them
 			
 			//ActionUtils.createActionLongNameNaturalOrder(uniqueName, parents)
+			//Set action long name on the action
+			
+			//Set action inputParameters on the action too here.
 		}
 	}
 	
