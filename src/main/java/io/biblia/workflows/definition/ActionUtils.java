@@ -10,15 +10,21 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map.Entry;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class ActionUtils {
 
 	private static final String MAX_FOLDER_SIZE_KEY = "workflows.definition.maxFolderSize";
 	private static final String ROOT_FOLDER = "workflows";
 	private static final String DIVIDER = "/";
+	private static final String ENCRYPT_DIVIDER = "~";
 	private static int MAX_FOLDER_SIZE;
+	private static MessageDigest digester;
 	
+	static
 	{
+		//1. MAX_FOLDER_SIZE
 		final int DEFAULT_MAX_FOLDER_SIZE = 255;
 		String sizeS = Configuration.getValue(MAX_FOLDER_SIZE_KEY);
 		try {
@@ -27,6 +33,15 @@ public class ActionUtils {
 		catch(NumberFormatException ex) {
 			MAX_FOLDER_SIZE = DEFAULT_MAX_FOLDER_SIZE;
 		}
+		
+		//2. Encryptor
+		try{
+			digester = MessageDigest.getInstance("SHA-1");
+		}
+		catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		
 	}
 	
 	/**
@@ -46,10 +61,12 @@ public class ActionUtils {
 			StringBuilder concatenation = new StringBuilder();
 			concatenation.append(shortName);
 			for (Entry<String, String> e : extraInputs.entrySet()) {
-				concatenation.append(e.getKey()).append(e.getValue());
+				concatenation.append(e.getKey()).append("*").append(e.getValue());
+				concatenation.append(ENCRYPT_DIVIDER);
 			}
 			for (Entry<String, String> e : actionConf.entrySet()) {
-				concatenation.append(e.getKey()).append(e.getValue());
+				concatenation.append(e.getKey()).append(ENCRYPT_DIVIDER).append(e.getValue());
+				concatenation.append(ENCRYPT_DIVIDER);
 			}
 			
 			return encrypt(concatenation.toString());
@@ -161,6 +178,7 @@ public class ActionUtils {
 			Collections.sort(parentNames);
 			for (String name : parentNames) {
 				concatenation.append(name);
+				concatenation.append(ENCRYPT_DIVIDER);
 			}
 			
 			toReturn.add(encrypt(concatenation.toString()));
@@ -186,6 +204,7 @@ public class ActionUtils {
 			}
 			for (String name : parentNames) {
 				concatenation.append(name);
+				concatenation.append(ENCRYPT_DIVIDER);
 			}
 			
 			toReturn.add(encrypt(concatenation.toString()));
@@ -209,16 +228,26 @@ public class ActionUtils {
 	}
 	
 	/**
-	 * Returns an encrypted String that of size less than or equal to the MAX_FOLDER_SIZE.
-	 * It also takes care of not using certain String characters on its encryption, mainly
-	 * characters that will not make valid names, such as "/", " ", etc.
+	 * Returns an encrypted String using the SHA-1 algorithm.
 	 * @param string
 	 * @return
 	 */
 	private static String encrypt(String string) {
-		//TODO
-		//BUild an encription that encrypts an string with the given restrictions of
-		//MAX_FOLDER_SIZE and valid characters.
-		return string;
+		if (null == string || string.length() == 0) {
+			throw new IllegalArgumentException("String to encrypt cannot be null"
+					+ " or of zero length");
+		}
+		digester.update(string.getBytes());
+		byte[] hash = digester.digest();
+		StringBuffer hexString = new StringBuffer();
+		for (int i = 0; i < hash.length; ++i) {
+			if ((0xff & hash[i]) < 0x10) {
+				hexString.append("0" + Integer.toHexString((0xFF & hash[i])));
+			}
+			else {
+				hexString.append(Integer.toHexString(0xFF & hash[i]));
+			}
+		}
+		return hexString.toString();
 	}
 }
