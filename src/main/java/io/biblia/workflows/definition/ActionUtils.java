@@ -18,7 +18,7 @@ public class ActionUtils {
 	private static final String MAX_FOLDER_SIZE_KEY = "workflows.definition.maxFolderSize";
 	private static final String ROOT_FOLDER = "workflows";
 	private static final String DIVIDER = "/";
-	private static final String ENCRYPT_DIVIDER = "~";
+	public static final String ENCRYPT_DIVIDER = "~";
 	private static int MAX_FOLDER_SIZE;
 	private static MessageDigest digester;
 	
@@ -41,7 +41,6 @@ public class ActionUtils {
 		catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}
-		
 	}
 	
 	/**
@@ -114,36 +113,36 @@ public class ActionUtils {
 	 * 
 	 * If 
 	 * @param shortName
-	 * @param parents
+	 * @param parentsLongNames
 	 * @param extraInputs
 	 * @param actionConf
 	 * @return the long name of the action.
 	 */
 	public static List<String> createActionLongNameAlphabeticalOrder(String uniqueName, 
-			List<Action> parents
+			List<List<String>> parentsLongNames
 			) {
 		
 		List<String> toReturn = new ArrayList<String>();
 		
-		if (parents.size() == 0) {
+		if (parentsLongNames.size() == 0) {
 			toReturn.add(ROOT_FOLDER);
 		}
 		else {
-			toReturn = generateLongNameFromParentNamesAlphabeticalOrder(parents);
+			toReturn = generateLongNameFromParentNamesAlphabeticalOrder(parentsLongNames);
 		}
 		toReturn.add(uniqueName);
 		return toReturn;
 	}
 	
 	public static List<String> createActionLongNameNaturalOrder(String uniqueName,
-			List<Action> parents) {
+			List<List<String>> parentsLongNames) {
 		List<String> toReturn = new ArrayList<String>();
 		
-		if (parents.size() == 0) {
+		if (parentsLongNames.size() == 0) {
 			toReturn.add(ROOT_FOLDER);
 		}
 		else {
-			toReturn = generateLongNameFromParentNamesNaturalOrder(parents);
+			toReturn = generateLongNameFromParentNamesNaturalOrder(parentsLongNames);
 		}
 		toReturn.add(uniqueName);
 		return toReturn;
@@ -152,28 +151,26 @@ public class ActionUtils {
 	/**
 	 * If parents.size == 0 returns empty list
 	 * else if parents.size == 1 returns the longName of the parent
-	 * as the only String in the lsit.
+	 * as the only String in the list.
 	 * else if parents.size > 1 returns uses the long names of all the parents
 	 * to produce the new name
 	 * @param parents
 	 * @return
 	 */
-	private static List<String> generateLongNameFromParentNamesAlphabeticalOrder(List<Action> parents) {
+	private static List<String> generateLongNameFromParentNamesAlphabeticalOrder(List<List<String>> parents) {
 		
 		List<String> toReturn = new ArrayList<String>();
 		
 		if (parents.size() == 1) {
-			for (Action parent : parents) {
-				toReturn = parent.getLongName();
-			}
+			toReturn = parents.get(0);
 		}
 		else if (parents.size() > 1) {
 			//Generate name from all parent names
 			StringBuilder concatenation = new StringBuilder();
 			List<String> parentNames = new ArrayList<String>();
 			
-			for (Action parent : parents) {
-				parentNames.add(parent.getUniqueName());
+			for (List<String> longNames : parents) {
+				parentNames.add(longNames.get(longNames.size() - 1));
 			}
 			Collections.sort(parentNames);
 			for (String name : parentNames) {
@@ -186,21 +183,19 @@ public class ActionUtils {
 		return toReturn;
 	}
 	
-	private static List<String> generateLongNameFromParentNamesNaturalOrder(List<Action> parents) {
+	private static List<String> generateLongNameFromParentNamesNaturalOrder(List<List<String>> parents) {
 		List<String> toReturn = new ArrayList<String>();
 		
 		if (parents.size() == 1) {
-			for (Action parent : parents) {
-				toReturn = parent.getLongName();
-			}
+			toReturn = parents.get(0);
 		}
 		else if (parents.size() > 1) {
 			//Generate name from all parent names
 			StringBuilder concatenation = new StringBuilder();
 			List<String> parentNames = new ArrayList<String>();
 			
-			for (Action parent : parents) {
-				parentNames.add(parent.getUniqueName());
+			for (List<String> longNames : parents) {
+				parentNames.add(longNames.get(longNames.size() - 1));
 			}
 			for (String name : parentNames) {
 				concatenation.append(name);

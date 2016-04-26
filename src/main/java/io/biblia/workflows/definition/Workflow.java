@@ -8,6 +8,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 import com.google.common.base.Preconditions;
 
@@ -103,20 +106,37 @@ public class Workflow {
 		else {
 			throw new InvalidWorkflowException("End action: " + endActionId + " is not one of the actions of the workflow");
 		}
-		validateWorkflow();
+		
+		List<List<Action>> topologicalSorts = validateWorkflow();
 		
 		//3. Set long name of all actions.
-		//TODO: Make topological sort first.
-		for (Action action : actions) {
-			//TODO: make check that action is of the type that takes natural order.
-			//TODO: Maybe I need the action inside handle this, all I do is pass the long
-			//names of its parents and then I let the action figure out what to do with them
-			
-			//ActionUtils.createActionLongNameNaturalOrder(uniqueName, parents)
-			//Set action long name on the action
-			
-			//Set action inputParameters on the action too here.
+		for (List<Action> subgraph : topologicalSorts) {
+			for (Action action : subgraph) {
+				
+				List<Integer> parentsIds = action.getParentIds();
+				List<Action> parents = new ArrayList<>();
+				List<List<String>> parentsLongNames = new ArrayList<>();
+				LinkedHashMap<String, String> parentsOutput = new LinkedHashMap<>();
+				for (Integer id : parentsIds) {
+					if (this.actions.containsKey(id)) {
+						Action parent = this.actions.get(id);
+						List<String> longName = parent.getLongName();
+						String output = parent.getOutputPath();
+						parents.add(parent);
+						parentsLongNames.add(longName);
+						parentsOutput.put(id.toString(), output);
+					}
+				}
+				
+				//1. set the long name of the action.
+				action.setLongName(parentsLongNames);
+				
+				//2. set the input parameters of the action
+				action.setInputParameters(parentsOutput); 		
+			}
 		}
+		
+		
 	}
 	
 	/**
@@ -140,10 +160,13 @@ public class Workflow {
 	 * action in the workflow.
 	 * @throws InvalidWorkflowException if any of the constraints specified above are not
 	 * met.
+	 * 
+	 * @return Returns a list of lists topologically sorted.  More than one list indicates
+	 * that the graph had more than one independent subgraphs.
 	 */
-	private void validateWorkflow() throws InvalidWorkflowException {
+	private List<List<Action>> validateWorkflow() throws InvalidWorkflowException {
 		Set<Entry<Integer, Action>> entrySet = this.actions.entrySet();
-		
+		List<List<Action>> topologicalSorts = new ArrayList<>();
 		//1. Validate that there are no cycles in the graph.
 		Map<Action, Color> visited = new HashMap<Action, Color>();
 		Queue<Integer> actionsQueue = new ArrayDeque<>();
@@ -155,7 +178,10 @@ public class Workflow {
 		
 		for (Entry<Integer, Action> e : entrySet) {
 			Action action = e.getValue();
-			dfs(action, actionsQueue, visited);
+			List<Action> topologicalSort = dfs(action, actionsQueue, visited);
+			if (topologicalSort.size() > 0) {
+				topologicalSorts.add(topologicalSort);
+			}
 		}
 		
 		//2. Validate that the start action is not a descendant of any other action.
@@ -165,21 +191,24 @@ public class Workflow {
 			throw new InvalidWorkflowException("startAction has parent actions");
 		}
 		
+		return topologicalSorts;
 	}
 	
 	/**
 	 * This is a modification of the dfs algorithm that is used to detect if there
-	 * are cycles in the graph.
+	 * are cycles in the graph.  It also returns a list of actions topologically sorted
 	 * @param currentAction The action being explored
 	 * @param actionsQueue Datastructure to keep the next actions to be explored.
 	 * @param visited a Map that indicates if a node has been explored or not.
 	 * Color.WHITE means not explored
 	 * Color.GRAY means exploring
 	 * Color.BLACK means explored
+	 * @return Topologically sorted list
 	 * @throws InvalidWorkflowException
 	 */
-	private void dfs(Action currentAction, Queue<Integer> actionsQueue, Map<Action, Color> visited) throws InvalidWorkflowException {
+	private List<Action> dfs(Action currentAction, Queue<Integer> actionsQueue, Map<Action, Color> visited) throws InvalidWorkflowException {
 		//1. If we have not visited this node yet, start visiting it
+		LinkedList<Action> topologicalSort = new LinkedList<>();
 		if (visited.get(currentAction).equals(Color.WHITE)) {
 			visited.put(currentAction, Color.GRAY);
 			Action action = this.actions.get(currentAction);
@@ -191,6 +220,7 @@ public class Workflow {
 				dfs(nextAction, actionsQueue, visited);
 			}
 			visited.put(currentAction, Color.BLACK);
+			topologicalSort.addFirst(currentAction);
 		}
 		//2. Else if this node is currently being visited,
 		//this is a cycle and we are in trouble, throw an exception	
@@ -199,6 +229,8 @@ public class Workflow {
 		}
 		//3. If the node is black, do nothing. It has been opened and closed, and there is no need to
 		//visit it again.
+		
+		return topologicalSort;
 	}
 
 	/**

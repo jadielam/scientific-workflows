@@ -11,28 +11,84 @@ import com.google.common.base.Preconditions;
 
 public abstract class Action implements ActionAttributesConstants {
 
+	/**
+	 * THe name given to the action in the workflow submitted to
+	 * the system.  More than one action in a workflow can share the 
+	 * same original name.
+	 */
 	private final String originalName;
 	
+	/**
+	 * THe action id given to the action in the workflow submitted
+	 * to the system. The action id is unique per workflow.
+	 */
 	private final Integer actionId;
 	
-	private List<String> longName;
+	/**
+	 * The action long name is the most unique identifier of this action.
+	 * It encodes in it the action unique name of its parents, together
+	 * with this action own unique name.
+	 * 
+	 * For example, given the graph: a1 -> a2 -> a3
+	 * Then the long name of a3 is [a1_uniquename, a2_uniquename, a3_uniquename]
+	 * 
+	 * Trouble comes when one action has more than one parent
+	 * Then, the action long name only has two levels:
+	 * [hashcode, a3_uniquename]
+	 */
+	List<String> longName;
 	
+	/**
+	 * The input paths of the action.  I am using a map because the inputs
+	 * can then be identified by keys. I am using a LinkedHashMap, because
+	 * the order they are inserted could be important, specifically in the 
+	 * case of command line actions, where the order in which you pass 
+	 * the parameters is important.
+	 */
 	private LinkedHashMap<String, String> inputParameters;
 	
-	private String outputPath;
+	/**
+	 * The path to which this action outputs its dataset.
+	 */
+	String outputPath;
 	
+	/**
+	 * THe HDFS folder where the action lives.
+	 */
 	private final String actionFolder;
 	
+	/**
+	 * The type of the action
+	 */
 	private final ActionType type;
 	
+	/**
+	 * Additional input used by the action. This is input that is not 
+	 * managed by the system and that the action can access.
+	 */
 	private final LinkedHashMap<String, String> additionalInput;
 	
+	/**
+	 * Configuration parameters to the action.
+	 */
 	private final LinkedHashMap<String, String> configuration;
 	
+	/**
+	 * The list of the ids of parents given to you.
+	 */
 	private final List<Integer> parentIds;
 	
+	/**
+	 * True if the action will be forced to compute regardless of if its 
+	 * output already exists. False otherwise (that is, if the system will de-
+	 * termine if the action needs to be computed or not).
+	 */
 	private final boolean forceComputation;
 	
+	/**
+	 * True if the action output is managed by the system. False if the
+	 * action output will live outside of the realm of the system.
+	 */
 	private final boolean isManaged;
 	
 	public Action(
@@ -116,17 +172,18 @@ public abstract class Action implements ActionAttributesConstants {
 	}
 	
 	public List<String> getLongName(){
+		if (null == this.longName) {
+			throw new IllegalStateException("longName has not been set yet");
+		}
 		return this.longName;
 	}
 	
-	public void setLongName(List<String> longName) {
-		this.longName = longName;
-		if (null == this.outputPath) {
-			this.outputPath = ActionUtils.generateOutputPathFromLongName(longName);
-		}
-	}
+	public abstract void setLongName(List<List<String>> parentLongNames);
 	
 	public String getOutputPath() {
+		if (null == this.outputPath) {
+			throw new IllegalStateException("outputPath has not been set yet");
+		}
 		return this.outputPath;
 	}
 	

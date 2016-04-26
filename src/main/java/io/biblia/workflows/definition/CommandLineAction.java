@@ -76,6 +76,14 @@ public class CommandLineAction extends Action {
 		return this.uniqueName;
 	}
 	
+	@Override
+	public void setLongName(List<List<String>> parentLongNames) {
+		this.longName = ActionUtils.createActionLongNameNaturalOrder(this.getUniqueName(), parentLongNames);
+		if (null == this.outputPath) {
+			this.outputPath = ActionUtils.generateOutputPathFromLongName(longName);
+		}
+	}
+	
 	public String getMainClassName() {
 		return mainClassName;
 	}
@@ -121,7 +129,9 @@ public class CommandLineAction extends Action {
 			return false;
 		return true;
 	}
-	
+
+
+
 	
 
 }
