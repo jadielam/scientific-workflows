@@ -8,6 +8,15 @@ import com.google.common.base.Preconditions;
 
 import java.util.concurrent.BlockingQueue;
 
+/**
+ * It sets to run the dataset scraper and the dataset deletors.
+ * The dataset scraper is constantly checking for datasets
+ * marked TO_DELETE in the database to fill the queue of datasets
+ * to be deleted.  The Dataset deletors are consumers that
+ * take those datasets from the queue and delete them.
+ * @author dearj019
+ *
+ */
 public class DatasetManager {
 
 	private static DatasetManager instance = null;

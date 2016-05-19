@@ -28,7 +28,8 @@ public class DatasetDeletor implements Runnable {
 	}
 	
 	/**
-	 * Creates oozie action that will take care of deleting the data.
+	 * Deletes the data from the path where it is in. If it cannot delete it
+	 * it marks it with state TO_DELETE again.
 	 * @param dataset
 	 */
 	private void deleteDataset() {
@@ -65,10 +66,6 @@ public class DatasetDeletor implements Runnable {
 		catch (Exception e) {
 			return;
 		}
-		
-		//1.2.1.1 If there is an error submitting the action the dataset, 
-		//update database with state TO_DELETE
-		
 	}
 	
 }

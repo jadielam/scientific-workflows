@@ -5,6 +5,12 @@ import java.util.concurrent.BlockingQueue;
 
 import com.google.common.base.Preconditions;
 
+/**
+ * Singleton instance that runs on its own thread and that is constantly
+ * checking for new datasets to delete.
+ * @author dearj019
+ *
+ */
 public class DatasetScraper {
 
 	private static DatasetScraper instance = null;
