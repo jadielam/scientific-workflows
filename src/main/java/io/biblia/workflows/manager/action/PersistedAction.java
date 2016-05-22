@@ -12,10 +12,30 @@ import java.util.Date;
  */
 public class PersistedAction {
 
+	/**
+	 * The action definition submitted to the
+	 * system initially.
+	 */
     private final Action action;
+    
+    /**
+     * The id of the entry in mongodb
+     */
     private final ObjectId _id;
+    
+    /**
+     * The current state of the action.
+     */
     private final ActionState state;
+    
+    /**
+     * Last time the entry was updated
+     */
     private final Date lastUpdatedDate;
+    
+    /**
+     * An integer used for versioning.
+     */
     private int version;
 
     public PersistedAction(Action action, ObjectId _id,

@@ -16,6 +16,9 @@ public class Callback {
 	//here. It is critical, since the system can enter an infinite loop of actions
 	//being submitted if it fails to talk to database.
 	
+	//TODO: Here in the callback I need to update the time an action ended running
+	//as well as the size of the output it produced.  The output it produced was
+	//a folder.
 
 	private final ActionPersistance aPersistance;
 	private final DatasetPersistance dPersistance;

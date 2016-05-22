@@ -8,6 +8,14 @@ import com.google.common.base.Preconditions;
 
 import io.biblia.workflows.oozie.OozieClientUtil;
 
+/**
+ * Submits an action to be run. The medium where it will
+ * be ran depends on the type of the action.  We are using
+ * Oozie as an intermediary right now on the submission
+ * of the action.
+ * @author dearj019
+ *
+ */
 public class ActionSubmitter implements Runnable {
 
 	private final PersistedAction action;

@@ -27,9 +27,9 @@ public interface DatasetPersistance {
 			DatasetState newState) throws OutdatedDatasetException, DatasetParseException;
 	
 	/**
-	 * Returns the id of the dataset inserted.
+	 * Inserts the dataset into MongoDB
 	 * @param dataset
-	 * @return
+	 * @return the id of the dataset inserted as a String
 	 */
 	String insertDataset(Dataset dataset);
 }

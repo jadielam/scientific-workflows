@@ -10,20 +10,25 @@ import com.google.common.base.Preconditions;
 /**
  * The action manager's purpose is to submit actions to Hadoop, in this case
  * using Apache Oozie as intermediary.  It uses the database to synchronize
- * with other processes that might also be submitting actions to Hadoop.
+ * with other processes that might also be submitting actions to Hadoop. (Because
+ * actions to be submitted to Hadoop will be saved in the dataset, and there will be
+ * a scrapper getting new actions to submit from the database.  In order to not have 
+ * multiple scrapers getting the same actions, we need that synchronization, which is
+ * implemented by adding a state field to the actions, as well as versioning.)
+ * 
  * It works as follows:
  * - It has an actions queue with the actions that need to be submitted.
  * - It has an actions scraper that queries the database for actions to 
  * be submitted. THe scraper fills the actions queue with actions
  * - The ActionManager takes new actions from the queue and hands them
  * to ActionSubmitter threads that will submit the actions to Oozie and 
- * updat the database accordingly.
+ * update the database accordingly.
  * 
  * In order to support multiple servers doing the same process at the same time,
  * and to avoid the need of using a synchronization server such as Apache Zookeeper,
  * I have implemented synchronization in the following way:
  * 
- * 1. Actions can be in mutiple state. To see the possible action states {@link ActionState}.
+ * 1. Actions can be in one of many states. To see the possible action states {@link ActionState}.
  * There are listed here too: READY, PROCESSING, SUBMITTED, RUNNING, FINISHED,
 	FAILED, KILLED.
    
@@ -47,7 +52,8 @@ import com.google.common.base.Preconditions;
    5. A problem still without solution is the following: If an action is submitted to
    Hadoop, but the server that submitted the action goes down, then the callback
    notification endpoint of the submission of the action will not work and the database
-   will not be updated.  Because of that, another solution is having another thread
+   will not be updated (IMPORTANT: the callback should (will) work. All I need is a load balancer here).
+   Because of that, another solution is having another thread
    constantly running and checking status of actions that have been submitted
    but that have not yet received a status of finished.  No, instead of that what I
    should do is provide Oozie with a list of callbacks, or with a virtual address

@@ -55,7 +55,10 @@ public class MongoDatasetPersistance implements DatasetPersistance {
 					eq("claims", 0)
 				),
 				and(
-					eq("state", DatasetState.DELETING.name()),	
+					or(
+						eq("state", DatasetState.DELETING.name()),
+						eq("state", DatasetState.PROCESSING.name())
+					),
 					gte("lastUpdatedDate", minus)
 				)
 			)
@@ -113,14 +116,29 @@ public class MongoDatasetPersistance implements DatasetPersistance {
 		Document datasetDoc = (Document) document.get("dataset");
 		Dataset dataset = this.parser.parseDataset(datasetDoc);
 		int version = document.getInteger("version", 0);
+		int claims = document.getInteger("claims", 0);
 		
-		return new PersistedDataset(dataset, id, state, date, version);
+		return new PersistedDataset(dataset, id, state, date, version, claims);
 	}
 
+	/**
+	 * Inserts a new dataset to the collection with the status STORED
+	 * on it
+	 * @return the ObjectId used to store it in MongoDB as a string.
+	 * TODO: This is wrong. The id of the dataset is its path
+	 * and 
+	 */
 	@Override
 	public String insertDataset(Dataset dataset) {
-		//TODO;
-		return null;
+		
+		Document datasetDoc = dataset.toBson();
+		Document toInsert = new Document();
+		toInsert.append("version", 1);
+		toInsert.append("lastUpdatedDate", new Date());
+		toInsert.append("state", DatasetState.STORED);
+		toInsert.append("dataset", datasetDoc);
+		this.datasets.insertOne(toInsert);
+		return toInsert.getObjectId("_id").toString();
 	}
 
 }
