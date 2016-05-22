@@ -7,18 +7,8 @@ import com.google.common.base.Preconditions;
 
 import java.util.Date;
 
-public class PersistedDataset {
+public class PersistedDataset extends Dataset {
 
-	/**
-	 * Contains the original dataset information
-	 */
-	private final Dataset dataset;
-	
-	/**
-	 * The id of the object in mongodb
-	 */
-	private final ObjectId _id;
-	
 	/**
 	 * The current state of the dataset
 	 */
@@ -44,15 +34,11 @@ public class PersistedDataset {
 	 */
 	private final int claims;
 	
-	public PersistedDataset(Dataset dataset, ObjectId _id,
-			DatasetState state, Date lastUpdatedDate,
-			int version, int claims) {
-		Preconditions.checkNotNull(dataset);
-		Preconditions.checkNotNull(_id);
+	public PersistedDataset(String path, Integer sizeInMB, DatasetState state,
+			Date lastUpdatedDate, int version, int claims) {
+		super(path, sizeInMB);
 		Preconditions.checkNotNull(state);
 		Preconditions.checkNotNull(lastUpdatedDate);
-		this.dataset = dataset;
-		this._id = _id;
 		this.state = state;
 		this.lastUpdatedDate = lastUpdatedDate;
 		this.version = version;
@@ -61,14 +47,6 @@ public class PersistedDataset {
 	
 	public int getClaims() {
 		return this.claims;
-	}
-	
-	public Dataset getDataset() {
-		return this.dataset;
-	}
-	
-	public ObjectId getId() {
-		return this._id;
 	}
 	
 	public DatasetState getState() {

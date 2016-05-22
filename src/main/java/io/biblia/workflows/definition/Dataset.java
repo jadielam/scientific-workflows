@@ -14,11 +14,6 @@ public class Dataset implements DatasetAttributesConstants {
 	
 	private final Integer sizeInMB;
 	
-	public Dataset(String path) {
-		this.path = path;
-		this.sizeInMB = null;
-	}
-	
 	public Dataset(String path, Integer sizeInMB) {
 		this.path = path;
 		this.sizeInMB = sizeInMB;

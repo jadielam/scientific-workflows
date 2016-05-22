@@ -15,6 +15,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.ReturnDocument;
+import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 
 import io.biblia.workflows.definition.parser.v1.DatasetParser;
@@ -33,13 +34,11 @@ public class MongoDatasetPersistance implements DatasetPersistance {
 	private final MongoClient mongo;
 	private final MongoDatabase workflows;
 	private final MongoCollection<Document> datasets;
-	private final io.biblia.workflows.definition.parser.DatasetParser parser;
 	
 	public MongoDatasetPersistance(MongoClient mongo) {
 		this.mongo = mongo;
 		this.workflows = this.mongo.getDatabase(WORKFLOWS_DATABASE);
 		this.datasets = this.workflows.getCollection(DATASETS_COLLECTION);
-		this.parser = new DatasetParser();
 	}
 	
 	@Override
@@ -90,7 +89,7 @@ public class MongoDatasetPersistance implements DatasetPersistance {
 	@Override
 	public PersistedDataset updateDatasetState(PersistedDataset dataset, DatasetState newState)
 			throws OutdatedDatasetException, DatasetParseException {
-		final Document filter = new Document().append("_id", dataset.getId())
+		final Document filter = new Document().append("path", dataset.getPath())
 				.append("version", dataset.getVersion());
 		final Document update = new Document().append("$set", new Document("state", newState.name()))
 				.append("$currentDate", new Document("lastUpdatedDate", true))
@@ -109,36 +108,38 @@ public class MongoDatasetPersistance implements DatasetPersistance {
 	
 	private PersistedDataset parseDataset(Document document) throws DatasetParseException {
 		
-		ObjectId id = document.getObjectId("_id");
 		Date date = (Date) document.getDate("lastUpdatedDate");
 		String stateString = document.getString("state");
 		DatasetState state = DatasetState.valueOf(stateString);
-		Document datasetDoc = (Document) document.get("dataset");
-		Dataset dataset = this.parser.parseDataset(datasetDoc);
+		String path =  document.getString("path");
+		Integer sizeInMB = document.getInteger("sizeInMB");
 		int version = document.getInteger("version", 0);
 		int claims = document.getInteger("claims", 0);
 		
-		return new PersistedDataset(dataset, id, state, date, version, claims);
+		return new PersistedDataset(path, sizeInMB, state, date, version, claims);
 	}
 
 	/**
 	 * Inserts a new dataset to the collection with the status STORED
-	 * on it
+	 * on it.  If that path already exists, it repalces it with the new
+	 * data.
 	 * @return the ObjectId used to store it in MongoDB as a string.
-	 * TODO: This is wrong. The id of the dataset is its path
-	 * and 
+	 * 
 	 */
 	@Override
 	public String insertDataset(Dataset dataset) {
 		
-		Document datasetDoc = dataset.toBson();
-		Document toInsert = new Document();
-		toInsert.append("version", 1);
-		toInsert.append("lastUpdatedDate", new Date());
-		toInsert.append("state", DatasetState.STORED);
-		toInsert.append("dataset", datasetDoc);
-		this.datasets.insertOne(toInsert);
-		return toInsert.getObjectId("_id").toString();
+		final Document filter = new Document().append("path", dataset.getPath());
+		final Document replace = new Document().append("version", 1)
+				.append("lastUpdatedDate", new Date())
+				.append("version", 1)
+				.append("state", DatasetState.STORED)
+				.append("sizeInMB", dataset.getSizeInMB());
+		UpdateOptions options = new UpdateOptions();
+		options.upsert(true);
+		
+		this.datasets.replaceOne(filter,  replace, options);
+		return dataset.getPath();
 	}
 
 }
