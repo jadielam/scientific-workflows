@@ -1,7 +1,15 @@
 package io.biblia.workflows.manager.action;
 
+import java.util.Date;
+import java.util.List;
+
 import org.bson.types.ObjectId;
+
+import io.biblia.workflows.hdfs.HdfsUtil;
 import io.biblia.workflows.manager.dataset.DatasetPersistance;
+import io.biblia.workflows.manager.dataset.PersistedDataset;
+import io.biblia.workflows.oozie.OozieClientUtil;
+import io.biblia.workflows.manager.dataset.DatasetState;
 
 import com.google.common.base.Preconditions;
 
@@ -31,7 +39,14 @@ public class Callback {
 		this.dPersistance = dPersistance;
 	}
 	
+	/**
+	 * I need to design this call in such a way that if
+	 * it is called twice for one same action, nothing bad
+	 * happens.
+	 * @param actionId
+	 */
 	public void actionFinished(String actionId) {
+		Preconditions.checkNotNull(actionId);
 		
 		//1. Decrease dataset claims
 		decreaseDatasetClaims(actionId);
@@ -40,13 +55,34 @@ public class Callback {
 		//are not waiting on any other dependants.
 		readyChildActions(actionId);
 		
-		//3. Update action state and time it took to run the action.
+		//3. Update action state
 		ObjectId id = new ObjectId(actionId); 
 		this.aPersistance.forceUpdateActionState(id, ActionState.FINISHED);
 		
-		//TODO
-		//4. Update the size of the output produced by the action.
-		//and the state on that output
+		//4.1 Updating start and end time of the action.
+		//4.2 Insert a record of the output of the action into the database
+		try{
+			//1. Updating start and end time.
+			PersistedAction action = this.aPersistance.getActionById(actionId);
+			String oozieId = action.getSubmissionId();
+			List<Date> times = OozieClientUtil.getStartAndEndTime(oozieId);
+			Date startTime = times.get(0);
+			Date endTime = times.get(1);
+			this.aPersistance.addStartAndEndTime(action, startTime, endTime);
+			
+			//2. Inserting a record of the output action into the database.
+			String outputPath = action.getAction().getOutputPath();
+			Double sizeInMB = HdfsUtil.getSizeInMB(outputPath);
+			if (null != sizeInMB) {
+				PersistedDataset newDataset = new PersistedDataset(outputPath,
+						sizeInMB, DatasetState.STORED, new Date(), 1, 0);
+				this.dPersistance.insertDataset(newDataset);
+			}
+		}
+		catch(Exception e) {
+			//Do nothing.
+		}
+		
 	}
 	
 	public void actionFailed(String actionId) {

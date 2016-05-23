@@ -121,7 +121,7 @@ public class MongoDatasetPersistance implements DatasetPersistance {
 
 	/**
 	 * Inserts a new dataset to the collection with the status STORED
-	 * on it.  If that path already exists, it repalces it with the new
+	 * on it.  If that path already exists, it replaces it with the new
 	 * data.
 	 * @return the ObjectId used to store it in MongoDB as a string.
 	 * 

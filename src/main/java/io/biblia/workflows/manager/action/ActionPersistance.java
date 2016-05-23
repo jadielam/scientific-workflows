@@ -1,9 +1,11 @@
 package io.biblia.workflows.manager.action;
 
 import java.util.List;
+import java.util.Date;
 
 import io.biblia.workflows.definition.Action;
 
+import org.bson.Document;
 import org.bson.json.JsonParseException;
 import org.bson.types.ObjectId;
 
@@ -36,6 +38,14 @@ public interface ActionPersistance {
 	public PersistedAction updateActionState(PersistedAction action, ActionState state) throws OutdatedActionException, NullPointerException, JsonParseException, WorkflowParseException;
 	
 	/**
+	 * Given the action id, it retrieves and parses the action into a PersistedAction
+	 * @param actionId
+	 * @return
+	 */
+	public PersistedAction getActionById(String actionId) throws WorkflowParseException,
+		NullPointerException, JsonParseException;
+	
+	/**
 	 * Adds the Oozie submission id to the action.  If the action has
 	 * been modified by someone else, it throws the OutdatedActionException.
 	 * @param action
@@ -47,6 +57,15 @@ public interface ActionPersistance {
 	 * @throws NullPointerException 
 	 */
 	public PersistedAction addActionSubmissionId(PersistedAction action, String id) throws OutdatedActionException, NullPointerException, JsonParseException, WorkflowParseException;
+	
+	/**
+	 * Adds start and end time to an action.
+	 * @param action
+	 * @param startTime
+	 * @param endTime
+	 * @return
+	 */
+	public PersistedAction addStartAndEndTime(PersistedAction action, Date startTime, Date endTime) throws OutdatedActionException, NullPointerException, JsonParseException, WorkflowParseException;
 	
 	/**
 	 * Inserts a new action to the persistance that is in READY state

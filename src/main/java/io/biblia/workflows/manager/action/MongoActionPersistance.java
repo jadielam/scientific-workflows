@@ -65,7 +65,8 @@ public class MongoActionPersistance implements ActionPersistance {
     public List<PersistedAction> getAvailableActions(int n) {
     	List<PersistedAction> toReturn = new ArrayList<>();
         Calendar calendar = Calendar.getInstance();
-        //TODO: Check that this is valid.
+        //TODO: Check that this is valid. That this is subtracting
+        //seconds from the date as I envision.
         calendar.add(Calendar.SECOND, -1 * OUTDATED_SECONDS);
         Date minus = calendar.getTime();
 
@@ -112,7 +113,7 @@ public class MongoActionPersistance implements ActionPersistance {
 		toInsert.append("state", ActionState.READY);
 		toInsert.append("action", actionDoc);
 		this.actions.insertOne(toInsert);
-		return toInsert.getObjectId("_id").toString();
+		return toInsert.getObjectId("_id").toHexString();
 	}
 	
 	@Override
@@ -124,7 +125,7 @@ public class MongoActionPersistance implements ActionPersistance {
 		toInsert.append("state", ActionState.WAITING);
 		toInsert.append("action", actionDoc);
 		this.actions.insertOne(toInsert);
-		return toInsert.getObjectId("_id").toString();
+		return toInsert.getObjectId("_id").toHexString();
 	}
 	
     /**
@@ -183,6 +184,29 @@ public class MongoActionPersistance implements ActionPersistance {
 			return parseAction(newDocument);
 		}
 	}
+	
+	@Override
+	public PersistedAction addStartAndEndTime(PersistedAction action, Date startTime, Date endTime)
+			throws OutdatedActionException, NullPointerException, JsonParseException, WorkflowParseException{
+		final Document filter = new Document().append("_id", action.getId())
+				.append("version", action.getVersion());
+		final Document update = new Document().append("$set", new Document("startTime", startTime))
+				.append("$set", new Document("endTime", endTime))
+				.append("$currentDate", new Document("lastUpdatedDate", true))
+				.append("$inc", new Document("version", 1));
+		
+		FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
+		options.returnDocument(ReturnDocument.AFTER);
+		Document newDocument = this.actions.findOneAndUpdate(filter,  update, options);
+		if (null == newDocument) {
+			throw new OutdatedActionException();
+		}
+		else {
+			return parseAction(newDocument);
+		}
+	}
+
+	
 
 
     private PersistedAction parseAction(Document document) throws
@@ -192,11 +216,15 @@ public class MongoActionPersistance implements ActionPersistance {
         Date date = (Date) document.getDate("lastUpdatedDate");
         String stateString = document.getString("state");
         ActionState state = ActionState.valueOf(stateString);
+        String submissionId = document.getString("submissionId");
+        Date startTime = document.getDate("startTime");
+        Date endTime = document.getDate("endTime");
         Document actionDoc = (Document) document.get("action");
         Action action = this.parser.parseAction(actionDoc);
         int version = document.getInteger("version");
 
-        return new PersistedAction(action, id, state, date, version);
+        return new PersistedAction(action, id, state, date, version, submissionId,
+        		startTime, endTime);
     }
 
 	@Override
@@ -208,6 +236,19 @@ public class MongoActionPersistance implements ActionPersistance {
 				.append("$inc", new Document("version", 1));
 		this.actions.updateOne(filter, update);
 	}
+
+	@Override
+	public PersistedAction getActionById(String actionId) throws WorkflowParseException,
+		NullPointerException, JsonParseException
+	{
+		ObjectId id = new ObjectId(actionId);
+		final Document filter = new Document().append("_id", id);
+		final Document update = new Document();
+		final Document found = this.actions.findOneAndUpdate(filter, update);
+		PersistedAction toReturn = parseAction(found);
+		return toReturn;
+	}
+
 
 
 }

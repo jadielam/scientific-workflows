@@ -10,12 +10,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Date;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.oozie.client.OozieClient;
+import org.apache.oozie.client.WorkflowJob;
 import org.apache.oozie.client.OozieClientException;
 
 import com.google.common.base.Preconditions;
@@ -89,6 +91,34 @@ public class OozieClientUtil implements EnvironmentVariables {
 		} catch (OozieClientException e) {
 			throw e;
 		}
+	}
+	
+	/**
+	 * Returns a list with two elements, where the first element
+	 * is the start date of the jobid, and the second element
+	 * is the end date of the jobid.
+	 * Returns a list with two null entries
+	 * @param jobId
+	 * @return
+	 */
+	public static List<Date> getStartAndEndTime(String jobId) {
+		List<Date> toReturn = new ArrayList<Date>();
+		toReturn.add(null);
+		toReturn.add(null);
+		try{
+			WorkflowJob info = client.getJobInfo(jobId);
+			if (null != info) {
+				Date start = info.getStartTime();
+				Date end = info.getEndTime();
+				toReturn.set(0, start);
+				toReturn.set(1, end);
+			}
+		}
+		catch(OozieClientException ex) {
+			//TODO: Log error here
+			//and do nothing here.
+		}
+		return toReturn;
 	}
 
 	/**
