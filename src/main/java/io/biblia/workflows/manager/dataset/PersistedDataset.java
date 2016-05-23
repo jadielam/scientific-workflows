@@ -34,7 +34,7 @@ public class PersistedDataset extends Dataset {
 	 */
 	private final int claims;
 	
-	public PersistedDataset(String path, Integer sizeInMB, DatasetState state,
+	public PersistedDataset(String path, Double sizeInMB, DatasetState state,
 			Date lastUpdatedDate, int version, int claims) {
 		super(path, sizeInMB);
 		Preconditions.checkNotNull(state);

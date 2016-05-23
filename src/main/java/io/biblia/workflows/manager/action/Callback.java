@@ -32,20 +32,52 @@ public class Callback {
 	}
 	
 	public void actionFinished(String actionId) {
+		
+		//1. Decrease dataset claims
 		decreaseDatasetClaims(actionId);
+		
+		//2. Change state of child actions to READY if they
+		//are not waiting on any other dependants.
 		readyChildActions(actionId);
+		
+		//3. Update action state and time it took to run the action.
 		ObjectId id = new ObjectId(actionId); 
 		this.aPersistance.forceUpdateActionState(id, ActionState.FINISHED);
+		
+		//TODO
+		//4. Update the size of the output produced by the action.
+		//and the state on that output
 	}
 	
 	public void actionFailed(String actionId) {
+		
+		//1. Decrease dataset claims
 		decreaseDatasetClaims(actionId);
 		ObjectId id = new ObjectId(actionId);
+		
+		//TODO
+		//2. Remove the output produced by the action
+		//and update the database with the output state accordingly.
+		//IMPORTANT: For the sake of concurrency correctness,
+		//we need to remove the output produced by the action
+		//before updating the state of the action to FAILED.
+		
+		//3. Update the action state to FAILED
 		this.aPersistance.forceUpdateActionState(id, ActionState.FAILED);
 	}
 	
 	public void actionKilled(String actionId) {
+		//1. Decrease dataset claims
 		decreaseDatasetClaims(actionId);
+		
+		//TODO
+		//2. Remove the output produced by the action and
+		//update the database with the output state accordingly.
+		//IMPORTANT: For the sake of concurrency correctness,
+		//we need to remove the output produced by the action
+		//before updating the state of the action to KILLED.
+
+		//3. Update the state of the action.
 		ObjectId id = new ObjectId(actionId);
 		this.aPersistance.forceUpdateActionState(id, ActionState.KILLED);
 	}

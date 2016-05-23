@@ -48,7 +48,7 @@ public class DatasetDeletor implements Runnable {
 		//1.2.1 Delete the datasets on that folder and if it succeeds, update the
 		//state to deleted, otherwise, if there is an error
 		try {
-			HdfsUtil.deletePath(this.dataset.getDataset().getPath());
+			HdfsUtil.deletePath(this.dataset.getPath());
 		}
 		catch(IOException ex) {
 			try{

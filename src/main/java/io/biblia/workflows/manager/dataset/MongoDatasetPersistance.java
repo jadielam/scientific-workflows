@@ -112,7 +112,7 @@ public class MongoDatasetPersistance implements DatasetPersistance {
 		String stateString = document.getString("state");
 		DatasetState state = DatasetState.valueOf(stateString);
 		String path =  document.getString("path");
-		Integer sizeInMB = document.getInteger("sizeInMB");
+		Double sizeInMB = document.getDouble("sizeInMB");
 		int version = document.getInteger("version", 0);
 		int claims = document.getInteger("claims", 0);
 		

@@ -12,9 +12,9 @@ public class Dataset implements DatasetAttributesConstants {
 
 	private final String path;
 	
-	private final Integer sizeInMB;
+	private final Double sizeInMB;
 	
-	public Dataset(String path, Integer sizeInMB) {
+	public Dataset(String path, Double sizeInMB) {
 		this.path = path;
 		this.sizeInMB = sizeInMB;
 	}
@@ -23,7 +23,7 @@ public class Dataset implements DatasetAttributesConstants {
 		return path;
 	}
 	
-	public Integer getSizeInMB() {
+	public Double getSizeInMB() {
 		return this.sizeInMB;
 	}
 

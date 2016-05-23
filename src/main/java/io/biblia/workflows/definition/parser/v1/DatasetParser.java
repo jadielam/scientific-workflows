@@ -16,7 +16,7 @@ implements DatasetAttributesConstants {
 		if (null == path) {
 			throw new DatasetParseException("The dataset does not have a <path> attribute");
 		}
-		Integer sizeInMB = object.getInteger(DATASET_SIZE_IN_MB);
+		Double sizeInMB = object.getDouble(DATASET_SIZE_IN_MB);
 		if (null == sizeInMB) {
 			throw new DatasetParseException("The dataset does not have a <sizeInMB> attribute");
 		}
