@@ -1,5 +1,6 @@
 package io.biblia.workflows.manager.action;
 
+import java.util.List;
 import com.google.common.base.Preconditions;
 
 import io.biblia.workflows.definition.Action;
@@ -54,10 +55,12 @@ public class PersistedAction {
      * Time when Hadoop (or the runner) finished running the action.
      */
     private Date endTime = null;
+    
+    private List<String> parentsActionIds;
 
     public PersistedAction(Action action, ObjectId _id,
                            ActionState state, Date lastUpdatedDate, 
-                           int version) {
+                           int version, List<String> parentsActionIds) {
         Preconditions.checkNotNull(action);
         Preconditions.checkNotNull(_id);
         Preconditions.checkNotNull(state);
@@ -68,11 +71,12 @@ public class PersistedAction {
         this.lastUpdatedDate = lastUpdatedDate;
         this.version = version;
         this.submissionId = null;
+        this.parentsActionIds = parentsActionIds;
     }
     
     public PersistedAction(Action action, ObjectId _id,
             ActionState state, Date lastUpdatedDate, 
-            int version, String submissionId) {
+            int version, String submissionId, List<String> parentsActionIds) {
     	Preconditions.checkNotNull(action);
     	Preconditions.checkNotNull(_id);
     	Preconditions.checkNotNull(state);
@@ -83,12 +87,13 @@ public class PersistedAction {
     	this.lastUpdatedDate = lastUpdatedDate;
     	this.version = version;
     	this.submissionId = submissionId;
+    	this.parentsActionIds = parentsActionIds;
     }
     
     public PersistedAction(Action action, ObjectId _id,
             ActionState state, Date lastUpdatedDate, 
             int version, String submissionId,
-            Date startTime, Date endTime) {
+            Date startTime, Date endTime, List<String> parentsActionIds) {
     	Preconditions.checkNotNull(action);
     	Preconditions.checkNotNull(_id);
     	Preconditions.checkNotNull(state);
@@ -101,6 +106,7 @@ public class PersistedAction {
     	this.submissionId = submissionId;
     	this.startTime = startTime;
     	this.endTime = endTime;
+    	this.parentsActionIds = parentsActionIds;
     } 
     
     public Action getAction() {
@@ -134,6 +140,8 @@ public class PersistedAction {
 	public String getSubmissionId() {
 		return this.submissionId;
 	}
-    
-    
+	
+	public List<String> getParentActionIds() {
+		return this.parentsActionIds;
+	}
 }

@@ -132,13 +132,7 @@ public class Callback {
 	 * @return Returns a list with all the child actions ids
 	 */
 	private List<String> readyChildActions(String actionId) {
-		
-		//TODO
-		//In order to do this, I need to be sure that I am storing the actions
-		//of the workflow in the correct format.
-		//toReadyChildActions I also need to remove the action from the list
-		//of waiting actions on the database.
-		return null;
+		return this.aPersistance.readyChildActions(actionId);
 	}
 	
 }

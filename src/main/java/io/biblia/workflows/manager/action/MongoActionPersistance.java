@@ -105,25 +105,27 @@ public class MongoActionPersistance implements ActionPersistance {
 
 
 	@Override
-	public String insertReadyAction(Action action) {
+	public String insertReadyAction(Action action, List<String> parentsActionIds) {
 		Document actionDoc = action.toBson();
 		Document toInsert = new Document();
 		toInsert.append("version", 1);
 		toInsert.append("lastUpdatedDate", new Date());
 		toInsert.append("state", ActionState.READY);
 		toInsert.append("action", actionDoc);
+		toInsert.append("parentsActionIds", parentsActionIds);
 		this.actions.insertOne(toInsert);
 		return toInsert.getObjectId("_id").toHexString();
 	}
 	
 	@Override
-	public String insertWaitingAction(Action action) {
+	public String insertWaitingAction(Action action, List<String> parentsActionIds) {
 		Document actionDoc = action.toBson();
 		Document toInsert = new Document();
 		toInsert.append("version", 1);
 		toInsert.append("lastUpdatedDate", new Date());
 		toInsert.append("state", ActionState.WAITING);
 		toInsert.append("action", actionDoc);
+		toInsert.append("parentsActionIds", parentsActionIds);
 		this.actions.insertOne(toInsert);
 		return toInsert.getObjectId("_id").toHexString();
 	}
@@ -222,9 +224,10 @@ public class MongoActionPersistance implements ActionPersistance {
         Document actionDoc = (Document) document.get("action");
         Action action = this.parser.parseAction(actionDoc);
         int version = document.getInteger("version");
+        List<String> parentsActionIds = (List<String>) document.get("parentsActionIds", List.class);
 
         return new PersistedAction(action, id, state, date, version, submissionId,
-        		startTime, endTime);
+        		startTime, endTime, parentsActionIds);
     }
 
 	@Override
@@ -247,6 +250,28 @@ public class MongoActionPersistance implements ActionPersistance {
 		final Document found = this.actions.findOneAndUpdate(filter, update);
 		PersistedAction toReturn = parseAction(found);
 		return toReturn;
+	}
+
+	@Override
+	public List<String> readyChildActions(String actionId) {
+		//1. Find all the child actions with actionId as parent
+		final FindIterable<Document> documents = this.actions.find(and(
+                eq("state", ActionState.WAITING.name()),
+                and(
+                    eq("state", ActionState.PROCESSING.name()),
+                    gte("lastUpdatedDate", minus)
+                )
+            )
+        );
+        
+        
+		
+		//2. Remove actionId from all the child actions that have it as parent
+		
+		//3. Mark as READY all actions that are not ready and that are among 
+		//the actions in list 1, and whose list of parent actions were emptied by
+		//step 2.
+		return null;
 	}
 
 

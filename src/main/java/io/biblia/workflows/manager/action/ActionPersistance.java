@@ -71,17 +71,21 @@ public interface ActionPersistance {
 	 * Inserts a new action to the persistance that is in READY state
 	 * (ready to be submitted to Hadoop).
 	 * @param action
+	 * @param parentsActionIds The ObjectIds of the parents already submitted
+	 * to the system
 	 * @return
 	 */
-	public String insertReadyAction(Action action);
+	public String insertReadyAction(Action action, List<String> parentsActionIds);
 	
 	/**
 	 * Inserts a new action to the persistance that is in WAITING state.
 	 * (waiting for parent actions to finish).
 	 * @param action
+	 * @param parentsActionIds The ObjectIds of the parents already submitted to
+	 * MongoDB
 	 * @return
 	 */
-	public String insertWaitingAction(Action action);
+	public String insertWaitingAction(Action action, List<String> parentsActionIds);
 	
 	/**
 	 * Updates the state of an action ignoring the version of the action.
@@ -89,6 +93,18 @@ public interface ActionPersistance {
 	 * @param state
 	 */
 	public void forceUpdateActionState(ObjectId id, ActionState state);
+	
+	/**
+	 * The implementation of this function is interesting:
+	 * 1. It finds all the child actions of actionId
+	 * 2. It removes actionId from all those child actions
+	 * 3. from the list found in 1, it marks as READY all the actions
+	 * that do not have any other dependency.
+	 * 
+	 * @param actionId
+	 * @return It returns all the child actions found on step 1.
+	 */
+	public List<String> readyChildActions(String actionId);
 	
 }
 
