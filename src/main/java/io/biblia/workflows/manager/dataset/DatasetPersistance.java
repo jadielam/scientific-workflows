@@ -27,11 +27,38 @@ public interface DatasetPersistance {
 			DatasetState newState) throws OutdatedDatasetException, DatasetParseException;
 	
 	/**
-	 * Inserts the dataset into MongoDB
+	 * Inserts the dataset into MongoDB. If the dataset already exists, it
+	 * replaces by a new one with version and lastUpdatedDate initialized new.
 	 * @param dataset
 	 * @return the id of the dataset inserted as a String
 	 */
-	String insertDataset(Dataset dataset);
+	String insertDataset(PersistedDataset dataset);
+	
+	/**
+	 * Adds the given action id to the list of actions that depend on this
+	 * dataset. When a dataset is initially created, it is given an initial 
+	 * list of claims. New claims are added as new actions that did not
+	 * exist yet are created that depend on this dataset.
+	 * @param datasetPath
+	 * @param actionId
+	 * @return the updated dataset
+	 */
+	PersistedDataset addClaimToDataset(String datasetPath, String actionId) throws DatasetParseException;
+	
+	/**
+	 * Removes the action id from the list of actions that depend on a dataset.
+	 * It is usually called whenever an action has finished executing.
+	 * @param datasetPath
+	 * @param actionId
+	 * @return
+	 */
+	PersistedDataset removeClaimFromDataset(String datasetPath, String actionId) throws DatasetParseException;
+	
+	/**
+	 * Removes all the claims that this action has over datasets.
+	 * @param actionId
+	 */
+	void removeClaimFromDatasets(String actionId);
 }
 
 class OutdatedDatasetException extends Exception {

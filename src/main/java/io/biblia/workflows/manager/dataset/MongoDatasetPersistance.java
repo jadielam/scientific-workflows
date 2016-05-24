@@ -4,6 +4,11 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
+import java.util.HashMap;
 
 import io.biblia.workflows.definition.Dataset;
 import io.biblia.workflows.definition.parser.DatasetParseException;
@@ -51,7 +56,8 @@ public class MongoDatasetPersistance implements DatasetPersistance {
 		final FindIterable<Document> documents = this.datasets.find(or(
 				and(
 					eq("state", DatasetState.TO_DELETE.name()),
-					eq("claims", 0)
+					//TODO: Check that this is right.
+					eq("claims", Collections.<String>emptyList())
 				),
 				and(
 					or(
@@ -85,16 +91,27 @@ public class MongoDatasetPersistance implements DatasetPersistance {
 		}
 		return toReturn;
 	}
-
-	@Override
-	public PersistedDataset updateDatasetState(PersistedDataset dataset, DatasetState newState)
-			throws OutdatedDatasetException, DatasetParseException {
+	
+	/**
+	 * 
+	 * @param dataset
+	 * @param fields
+	 * @return
+	 */
+	private PersistedDataset updateDatasetFields(PersistedDataset dataset, Map<String, Object> fields)
+			throws OutdatedDatasetException, DatasetParseException
+	{
 		final Document filter = new Document().append("path", dataset.getPath())
-				.append("version", dataset.getVersion());
-		final Document update = new Document().append("$set", new Document("state", newState.name()))
-				.append("$currentDate", new Document("lastUpdatedDate", true))
-				.append("$inc",new Document("version", 1));
-		
+				.append("version",dataset.getVersion());
+		final Document update = new Document();
+		Set<Entry<String, Object>> entrySet = fields.entrySet();
+		for (Entry<String, Object> entry : entrySet) {
+			String key = entry.getKey();
+			Object o = entry.getValue();
+			update.append("$set", new Document(key, o));
+		}
+		update.append("$currentDate", new Document("lastUpdatedDate", true))
+			.append("$inc", new Document("version", 1));
 		FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
 		options.returnDocument(ReturnDocument.AFTER);
 		Document newDocument = this.datasets.findOneAndUpdate(filter, update, options);
@@ -106,6 +123,14 @@ public class MongoDatasetPersistance implements DatasetPersistance {
 		}
 	}
 	
+	@Override
+	public PersistedDataset updateDatasetState(PersistedDataset dataset, DatasetState newState)
+			throws OutdatedDatasetException, DatasetParseException {
+		final Map<String, Object> fields = new HashMap<>();
+		fields.put("state", newState.name());
+		return this.updateDatasetFields(dataset, fields);
+	}
+	
 	private PersistedDataset parseDataset(Document document) throws DatasetParseException {
 		
 		Date date = (Date) document.getDate("lastUpdatedDate");
@@ -114,7 +139,7 @@ public class MongoDatasetPersistance implements DatasetPersistance {
 		String path =  document.getString("path");
 		Double sizeInMB = document.getDouble("sizeInMB");
 		int version = document.getInteger("version", 0);
-		int claims = document.getInteger("claims", 0);
+		List<String> claims = (List<String>) document.get("claims", List.class);
 		
 		return new PersistedDataset(path, sizeInMB, state, date, version, claims);
 	}
@@ -127,19 +152,54 @@ public class MongoDatasetPersistance implements DatasetPersistance {
 	 * 
 	 */
 	@Override
-	public String insertDataset(Dataset dataset) {
+	public String insertDataset(PersistedDataset dataset) {
 		
 		final Document filter = new Document().append("path", dataset.getPath());
 		final Document replace = new Document().append("version", 1)
 				.append("lastUpdatedDate", new Date())
 				.append("version", 1)
 				.append("state", DatasetState.STORED)
-				.append("sizeInMB", dataset.getSizeInMB());
+				.append("sizeInMB", dataset.getSizeInMB())
+				.append("claims", dataset.getClaims());
 		UpdateOptions options = new UpdateOptions();
 		options.upsert(true);
 		
 		this.datasets.replaceOne(filter,  replace, options);
 		return dataset.getPath();
 	}
+
+	@Override
+	public PersistedDataset addClaimToDataset(String datasetPath, String actionId) 
+		throws DatasetParseException
+	{
+		final Document filter = new Document().append("path", datasetPath);
+		final Document update = new Document().append("$addToSet", new Document("claims", actionId));
+		FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
+		options.returnDocument(ReturnDocument.AFTER);
+		Document newDocument = this.datasets.findOneAndUpdate(filter, update, options);
+		return parseDataset(newDocument);
+	}
+
+	@Override
+	public PersistedDataset removeClaimFromDataset(String datasetPath, String actionId) 
+		throws DatasetParseException
+	{
+		final Document filter = new Document().append("path", datasetPath);
+		final Document update = new Document()
+				.append("$pull", new Document("claims", actionId));
+		FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
+		options.returnDocument(ReturnDocument.AFTER);
+		Document newDocument = this.datasets.findOneAndUpdate(filter,  update, options);
+		return parseDataset(newDocument);
+	}
+
+	@Override
+	public void removeClaimFromDatasets(String actionId) {
+		final Document filter = new Document().append("claims", actionId);
+		final Document update = new Document()
+				.append("$pull", new Document("claims", actionId));
+		this.datasets.updateMany(filter, update);
+	}
+
 
 }

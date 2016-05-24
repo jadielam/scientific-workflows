@@ -2,6 +2,7 @@ package io.biblia.workflows.manager.action;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Collections;
 
 import org.bson.types.ObjectId;
 
@@ -23,10 +24,6 @@ public class Callback {
 	//TODO: Add logging of errors if there is an error talking to the database
 	//here. It is critical, since the system can enter an infinite loop of actions
 	//being submitted if it fails to talk to database.
-	
-	//TODO: Here in the callback I need to update the time an action ended running
-	//as well as the size of the output it produced.  The output it produced was
-	//a folder.
 
 	private final ActionPersistance aPersistance;
 	private final DatasetPersistance dPersistance;
@@ -53,7 +50,7 @@ public class Callback {
 		
 		//2. Change state of child actions to READY if they
 		//are not waiting on any other dependants.
-		readyChildActions(actionId);
+		List<String> childActionIds = readyChildActions(actionId);
 		
 		//3. Update action state
 		ObjectId id = new ObjectId(actionId); 
@@ -75,7 +72,7 @@ public class Callback {
 			Double sizeInMB = HdfsUtil.getSizeInMB(outputPath);
 			if (null != sizeInMB) {
 				PersistedDataset newDataset = new PersistedDataset(outputPath,
-						sizeInMB, DatasetState.STORED, new Date(), 1, 0);
+						sizeInMB, DatasetState.STORED, new Date(), 1, childActionIds);
 				this.dPersistance.insertDataset(newDataset);
 			}
 		}
@@ -124,20 +121,24 @@ public class Callback {
 	 * @param actionId
 	 */
 	private void decreaseDatasetClaims(String actionId) {
-		//TODO
-		//TODO: Add decreasing the claims on datasets on which I hold a claim.  
-		//I will know that by getting the datasets ids from the database.
+		this.dPersistance.removeClaimFromDatasets(actionId);
 	}
 	
 	/**
-	 * If a child action has all of its parents finished, change its
-	 * state to READY.
+	 * It finds all the child actions. It removes the current action from
+	 * the parent actions on those child actions.  If a child action
+	 * has all its parent actions gone, its state is marked to READY.
 	 * @param actionId
+	 * @return Returns a list with all the child actions ids
 	 */
-	private void readyChildActions(String actionId) {
+	private List<String> readyChildActions(String actionId) {
+		
 		//TODO
 		//In order to do this, I need to be sure that I am storing the actions
 		//of the workflow in the correct format.
+		//toReadyChildActions I also need to remove the action from the list
+		//of waiting actions on the database.
+		return null;
 	}
 	
 }

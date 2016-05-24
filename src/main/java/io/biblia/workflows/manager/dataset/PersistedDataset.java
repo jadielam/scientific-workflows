@@ -2,6 +2,7 @@ package io.biblia.workflows.manager.dataset;
 
 import io.biblia.workflows.definition.Dataset;
 import org.bson.types.ObjectId;
+import java.util.List;
 
 import com.google.common.base.Preconditions;
 
@@ -28,14 +29,14 @@ public class PersistedDataset extends Dataset {
 	private final int version;
 	
 	/**
-	 * It registers the number of claims that
-	 * a dataset has.  A dataset has claims whenever
+	 * It registers the ids of actions that have placed
+	 * a claim on this dataset. A dataset has claims whenever
 	 * a task that is going to run depends on it.
 	 */
-	private final int claims;
+	private final List<String> claims;
 	
 	public PersistedDataset(String path, Double sizeInMB, DatasetState state,
-			Date lastUpdatedDate, int version, int claims) {
+			Date lastUpdatedDate, int version, List<String> claims) {
 		super(path, sizeInMB);
 		Preconditions.checkNotNull(state);
 		Preconditions.checkNotNull(lastUpdatedDate);
@@ -45,7 +46,7 @@ public class PersistedDataset extends Dataset {
 		this.claims = claims;
 	}
 	
-	public int getClaims() {
+	public List<String> getClaims() {
 		return this.claims;
 	}
 	
