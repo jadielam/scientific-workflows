@@ -12,11 +12,14 @@ import io.biblia.workflows.definition.Action;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
 import io.biblia.workflows.definition.parser.v1.ActionParser;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.bson.json.JsonParseException;
 import org.bson.types.ObjectId;
 
+
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -255,23 +258,56 @@ public class MongoActionPersistance implements ActionPersistance {
 	@Override
 	public List<String> readyChildActions(String actionId) {
 		//1. Find all the child actions with actionId as parent
-		final FindIterable<Document> documents = this.actions.find(and(
+		List<PersistedAction> childActions = new ArrayList<>();
+		Bson filter = and(
                 eq("state", ActionState.WAITING.name()),
-                and(
-                    eq("state", ActionState.PROCESSING.name()),
-                    gte("lastUpdatedDate", minus)
-                )
-            )
-        );
+                //TODO: CHeck that this is good here with elemMatch
+                elemMatch("parentsActionIds", eq("parentsActionids", actionId))
+            );
+		final FindIterable<Document> documents = this.actions.find(filter);
         
-        
+		MongoCursor<Document> iterator = documents.iterator();
+        try {
+            while (iterator.hasNext()) {
+                Document next = iterator.next();
+                try{
+                    PersistedAction action = parseAction(next);
+                    childActions.add(action);
+                }
+                catch(Exception e) {
+                    //TODO: Add logging here.
+                    continue;
+                }
+            }
+        }
+        finally {
+            iterator.close();
+        }
+        List<String> childIds = new ArrayList<String>();
+        for (PersistedAction action : childActions) {
+        	String childId = action.get_id().toHexString();
+        	childIds.add(childId);
+        }
 		
 		//2. Remove actionId from all the child actions that have it as parent
+        Document update = new Document()
+        		.append("$pull", new Document("parentsActionIds", actionId));
+        this.actions.updateMany(filter, update);
 		
 		//3. Mark as READY all actions that are not ready and that are among 
 		//the actions in list 1, and whose list of parent actions were emptied by
 		//step 2.
-		return null;
+        final Bson readyFilter = and(
+        		eq("state", ActionState.WAITING.name()),
+        		size("parentsActionIds", 0),
+        		in("_id", childIds)
+        	);
+        final Document readyUpdate = new Document().append("$set", new Document("state", ActionState.READY.name()))
+				.append("$currentDate", new Document("lastUpdatedDate", true))
+				.append("$inc", new Document("version", 1));
+        this.actions.updateMany(readyFilter, readyUpdate);
+        return childIds;
+		
 	}
 
 
