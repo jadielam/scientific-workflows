@@ -251,8 +251,12 @@ public class MongoActionPersistance implements ActionPersistance {
 		final Document filter = new Document().append("_id", id);
 		final Document update = new Document();
 		final Document found = this.actions.findOneAndUpdate(filter, update);
-		PersistedAction toReturn = parseAction(found);
-		return toReturn;
+		if (null != found) {
+			PersistedAction toReturn = parseAction(found);
+			return toReturn;
+		}
+		return null;
+		
 	}
 
 	@Override

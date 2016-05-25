@@ -59,6 +59,14 @@ public interface DatasetPersistance {
 	 * @param actionId
 	 */
 	void removeClaimFromDatasets(String actionId);
+	
+	/**
+	 * Retrieves the dataset from the database by the path that is has assigned to it.
+	 * The path of a dataset is its primary key.
+	 * @param outputPath
+	 * @return
+	 */
+	PersistedDataset getDatasetByPath(String outputPath) throws DatasetParseException;
 }
 
 class OutdatedDatasetException extends Exception {

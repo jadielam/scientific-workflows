@@ -88,27 +88,43 @@ public class Callback {
 		decreaseDatasetClaims(actionId);
 		ObjectId id = new ObjectId(actionId);
 		
-		//TODO
 		//2. Remove the output produced by the action
 		//and update the database with the output state accordingly.
-		//IMPORTANT: For the sake of concurrency correctness,
-		//we need to remove the output produced by the action
-		//before updating the state of the action to FAILED.
+		//In order to remove the output, just mark the dataset with
+		//state TO_DELETE, and let the other guys handle it.
+		try{
+			PersistedAction action = this.aPersistance.getActionById(actionId);
+			String outputPath = action.getAction().getOutputPath();
+			PersistedDataset dataset = this.dPersistance.getDatasetByPath(outputPath);
+			this.dPersistance.updateDatasetState(dataset, DatasetState.TO_DELETE);
+		}
+		catch(Exception e) {
+			//Do nothing and log.
+		}
 		
 		//3. Update the action state to FAILED
 		this.aPersistance.forceUpdateActionState(id, ActionState.FAILED);
 	}
 	
 	public void actionKilled(String actionId) {
+		
 		//1. Decrease dataset claims
 		decreaseDatasetClaims(actionId);
 		
-		//TODO
 		//2. Remove the output produced by the action and
 		//update the database with the output state accordingly.
 		//IMPORTANT: For the sake of concurrency correctness,
 		//we need to remove the output produced by the action
 		//before updating the state of the action to KILLED.
+		try {
+			PersistedAction action = this.aPersistance.getActionById(actionId);
+			String outputPath = action.getAction().getOutputPath();
+			PersistedDataset dataset = this.dPersistance.getDatasetByPath(outputPath);
+			this.dPersistance.updateDatasetState(dataset, DatasetState.TO_DELETE);
+		}
+		catch(Exception e) {
+			//Do nothing and log.
+		}
 
 		//3. Update the state of the action.
 		ObjectId id = new ObjectId(actionId);

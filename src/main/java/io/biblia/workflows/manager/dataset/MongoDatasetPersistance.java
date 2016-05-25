@@ -201,5 +201,20 @@ public class MongoDatasetPersistance implements DatasetPersistance {
 		this.datasets.updateMany(filter, update);
 	}
 
+	@Override
+	public PersistedDataset getDatasetByPath(String outputPath) 
+		throws DatasetParseException
+	{
+		final Document filter = new Document().append("path", outputPath);
+		final Document update = new Document();
+		final Document found = this.datasets.findOneAndUpdate(filter, update);
+		if (null != found) {
+			PersistedDataset toReturn = this.parseDataset(found);
+			return toReturn;
+		}
+		return null;
+		
+	}
+
 
 }
