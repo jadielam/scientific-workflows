@@ -173,7 +173,9 @@ public class MongoDatasetPersistance implements DatasetPersistance {
 		throws DatasetParseException
 	{
 		final Document filter = new Document().append("path", datasetPath);
-		final Document update = new Document().append("$addToSet", new Document("claims", actionId));
+		final Document update = new Document().append("$addToSet", new Document("claims", actionId))
+				.append("$currentDate", new Document("lastUpdatedDate", true))
+				.append("$inc", new Document("version", 1));;
 		FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
 		options.returnDocument(ReturnDocument.AFTER);
 		Document newDocument = this.datasets.findOneAndUpdate(filter, update, options);
@@ -186,7 +188,9 @@ public class MongoDatasetPersistance implements DatasetPersistance {
 	{
 		final Document filter = new Document().append("path", datasetPath);
 		final Document update = new Document()
-				.append("$pull", new Document("claims", actionId));
+				.append("$pull", new Document("claims", actionId))
+				.append("$currentDate", new Document("lastUpdatedDate", true))
+				.append("$inc", new Document("version", 1));
 		FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
 		options.returnDocument(ReturnDocument.AFTER);
 		Document newDocument = this.datasets.findOneAndUpdate(filter,  update, options);
