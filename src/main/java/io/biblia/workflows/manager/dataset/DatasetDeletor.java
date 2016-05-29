@@ -52,7 +52,7 @@ public class DatasetDeletor implements Runnable {
 		}
 		catch(IOException ex) {
 			try{
-				this.dataset = this.persistance.updateDatasetState(this.dataset, DatasetState.TO_DELETE);
+				this.dataset = this.persistance.updateDatasetState(this.dataset, DatasetState.STORED_TO_DELETE);
 			}
 			catch(Exception ex1) {
 				//Ignore it. I am going to return. THe system will clean up itself.

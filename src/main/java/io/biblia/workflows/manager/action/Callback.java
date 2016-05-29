@@ -96,7 +96,7 @@ public class Callback {
 			PersistedAction action = this.aPersistance.getActionById(actionId);
 			String outputPath = action.getAction().getOutputPath();
 			PersistedDataset dataset = this.dPersistance.getDatasetByPath(outputPath);
-			this.dPersistance.updateDatasetState(dataset, DatasetState.TO_DELETE);
+			this.dPersistance.updateDatasetState(dataset, DatasetState.STORED_TO_DELETE);
 		}
 		catch(Exception e) {
 			//Do nothing and log.
@@ -120,7 +120,7 @@ public class Callback {
 			PersistedAction action = this.aPersistance.getActionById(actionId);
 			String outputPath = action.getAction().getOutputPath();
 			PersistedDataset dataset = this.dPersistance.getDatasetByPath(outputPath);
-			this.dPersistance.updateDatasetState(dataset, DatasetState.TO_DELETE);
+			this.dPersistance.updateDatasetState(dataset, DatasetState.STORED_TO_DELETE);
 		}
 		catch(Exception e) {
 			//Do nothing and log.
