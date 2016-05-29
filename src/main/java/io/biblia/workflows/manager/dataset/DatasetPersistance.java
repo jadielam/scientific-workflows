@@ -43,7 +43,7 @@ public interface DatasetPersistance {
 	 * @param actionId
 	 * @return the updated dataset
 	 */
-	PersistedDataset addClaimToDataset(String datasetPath, String actionId) throws DatasetParseException;
+	PersistedDataset addClaimToDataset(PersistedDataset dataset, String actionId) throws DatasetParseException, OutdatedDatasetException;
 	
 	/**
 	 * Removes the action id from the list of actions that depend on a dataset.
@@ -52,7 +52,7 @@ public interface DatasetPersistance {
 	 * @param actionId
 	 * @return
 	 */
-	PersistedDataset removeClaimFromDataset(String datasetPath, String actionId) throws DatasetParseException;
+	PersistedDataset removeClaimFromDataset(PersistedDataset dataset, String actionId) throws DatasetParseException, OutdatedDatasetException;
 	
 	/**
 	 * Removes all the claims that this action has over datasets.

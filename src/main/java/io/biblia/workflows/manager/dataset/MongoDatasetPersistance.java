@@ -169,24 +169,32 @@ public class MongoDatasetPersistance implements DatasetPersistance {
 	}
 
 	@Override
-	public PersistedDataset addClaimToDataset(String datasetPath, String actionId) 
-		throws DatasetParseException
-	{
-		final Document filter = new Document().append("path", datasetPath);
+	public PersistedDataset addClaimToDataset(PersistedDataset dataset, String actionId) 
+		throws DatasetParseException, OutdatedDatasetException
+	{	
+		String datasetPath = dataset.getPath();
+		final Document filter = new Document().append("path", datasetPath)
+				.append("version", dataset.getVersion());
 		final Document update = new Document().append("$addToSet", new Document("claims", actionId))
 				.append("$currentDate", new Document("lastUpdatedDate", true))
 				.append("$inc", new Document("version", 1));;
 		FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
 		options.returnDocument(ReturnDocument.AFTER);
 		Document newDocument = this.datasets.findOneAndUpdate(filter, update, options);
-		return parseDataset(newDocument);
+		if (null == newDocument) {
+			throw new OutdatedDatasetException();
+		}
+		
+		return parseDataset(newDocument);	
 	}
 
 	@Override
-	public PersistedDataset removeClaimFromDataset(String datasetPath, String actionId) 
-		throws DatasetParseException
+	public PersistedDataset removeClaimFromDataset(PersistedDataset dataset, String actionId) 
+		throws DatasetParseException, OutdatedDatasetException
 	{
-		final Document filter = new Document().append("path", datasetPath);
+		String datasetPath = dataset.getPath();
+		final Document filter = new Document().append("path", datasetPath)
+				.append("version", dataset.getVersion());
 		final Document update = new Document()
 				.append("$pull", new Document("claims", actionId))
 				.append("$currentDate", new Document("lastUpdatedDate", true))
@@ -194,6 +202,10 @@ public class MongoDatasetPersistance implements DatasetPersistance {
 		FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
 		options.returnDocument(ReturnDocument.AFTER);
 		Document newDocument = this.datasets.findOneAndUpdate(filter,  update, options);
+		if (null == newDocument) {
+			throw new OutdatedDatasetException();
+		}
+		
 		return parseDataset(newDocument);
 	}
 
