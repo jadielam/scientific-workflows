@@ -42,7 +42,7 @@ public class Workflow {
 	private final int endActionId;
 	
 	/**
-	 * Contains all the actions of the workflow, keyed by the action name.
+	 * Contains all the actions of the workflow, keyed by the action id.
 	 */
 	private final Map<Integer, Action> actions = new HashMap<>();
 	
@@ -158,6 +158,12 @@ public class Workflow {
 	 * 
 	 * 2. It also checks that the startActionName is not a descendant of any other
 	 * action in the workflow.
+	 * 
+	 * TODO:
+	 * 3. If an action is forceComputation, it will make all its descendants also forceComputation
+	 * 4. If an action is manageYourself, it will make all its descendants that are not manageYourself
+	 * to be forceComputation.
+	 * 
 	 * @throws InvalidWorkflowException if any of the constraints specified above are not
 	 * met.
 	 * 
@@ -256,8 +262,8 @@ public class Workflow {
 	 * @param name
 	 * @return
 	 */
-	public Action getAction(String name) {
-		return this.actions.get(name);
+	public Action getAction(Integer id) {
+		return this.actions.get(id);
 	}
 	
 	public Collection<Action> getActions() {
@@ -269,5 +275,21 @@ public class Workflow {
 	 */
 	public String getWorkflowName() {
 		return this.workflowName;
+	}
+	
+	/**
+	 * Returns the child actions for a given actionId.
+	 * Returns null if the action id is invalid.
+	 * @param actionId
+	 * @return
+	 */
+	public Collection<Action> getChildActions(Integer actionId) {
+		Action action = this.actions.get(actionId);
+		if (null != action) {
+			return this.actionsDependency.get(action);
+		}
+		else {
+			return null;
+		}
 	}
 }

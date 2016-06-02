@@ -71,12 +71,28 @@ public class Callback {
 			String outputPath = action.getAction().getOutputPath();
 			Double sizeInMB = HdfsUtil.getSizeInMB(outputPath);
 			if (null != sizeInMB) {
-				PersistedDataset newDataset = new PersistedDataset(outputPath,
-						sizeInMB, DatasetState.STORED, new Date(), 1, childActionIds);
-				this.dPersistance.insertDataset(newDataset);
+				PersistedDataset actionDataset = this.dPersistance.getDatasetByPath(outputPath);
+				if (null == actionDataset) {
+					PersistedDataset newDataset = new PersistedDataset(outputPath,
+							sizeInMB, DatasetState.STORED, new Date(), 1, childActionIds);
+					this.dPersistance.insertDataset(newDataset);
+				}
+				else {
+					DatasetState state = actionDataset.getState();
+					if (state.equals(DatasetState.TO_STORE)) {
+						actionDataset = this.dPersistance.updateDatasetState(actionDataset, DatasetState.STORED);
+						this.dPersistance.updateDatasetSizeInMB(actionDataset, sizeInMB);
+					}
+					else if (state.equals(DatasetState.TO_DELETE)){
+						actionDataset = this.dPersistance.updateDatasetState(actionDataset, DatasetState.STORED_TO_DELETE);
+						this.dPersistance.updateDatasetSizeInMB(actionDataset, sizeInMB);
+					}
+				}
+				
 			}
 		}
 		catch(Exception e) {
+			//TODO: Log exception here.
 			//Do nothing.
 		}
 		

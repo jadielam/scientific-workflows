@@ -131,6 +131,13 @@ public class MongoDatasetPersistance implements DatasetPersistance {
 		return this.updateDatasetFields(dataset, fields);
 	}
 	
+	public PersistedDataset updateDatasetSizeInMB(PersistedDataset dataset, Double sizeInMB) 
+		throws OutdatedDatasetException, DatasetParseException {
+		final Map<String, Object> fields = new HashMap<>();
+		fields.put("sizeInMB", sizeInMB);
+		return this.updateDatasetFields(dataset, fields);
+	}
+	
 	private PersistedDataset parseDataset(Document document) throws DatasetParseException {
 		
 		Date date = (Date) document.getDate("lastUpdatedDate");

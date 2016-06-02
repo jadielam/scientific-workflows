@@ -27,6 +27,17 @@ public interface DatasetPersistance {
 			DatasetState newState) throws OutdatedDatasetException, DatasetParseException;
 	
 	/**
+	 * Updates the size of the dataset and returns the new updated dataset.
+	 * @param dataset
+	 * @param sizeInMB
+	 * @return
+	 * @throws OutdatedDatasetException
+	 * @throws DatasetParseException
+	 */
+	PersistedDataset updateDatasetSizeInMB(PersistedDataset dataset,
+			Double sizeInMB) throws OutdatedDatasetException, DatasetParseException;
+	
+	/**
 	 * Inserts the dataset into MongoDB. If the dataset already exists, it
 	 * replaces by a new one with version and lastUpdatedDate initialized new.
 	 * @param dataset
