@@ -32,51 +32,40 @@ public class SimpleWorkflowManager implements WorkflowManager {
 	public String submitWorkflow(Workflow workflow) {
 
 		//1. Determine which actions do not need to be computed.
-		Queue<Integer> actionsQueue = new ArrayDeque<>();
-		Set<Action> alreadyComputed = new HashSet<>();
-		actionsQueue.addAll(this.getActionsWithNoParents(workflow));
-		while (!actionsQueue.isEmpty()) {
-			Integer nextActionId = actionsQueue.poll();
-			Action action = workflow.getAction(nextActionId);
-			Collection<Action> childActions = workflow.getChildActions(nextActionId);
-			List<Integer> childActionsIds = new ArrayList<Integer>();
-			for (Action childAction : childActions) {
-				childActionsIds.add(childAction.getActionId());
-			}
-			actionsQueue.addAll(childActionsIds);
-			String outputPath = action.getOutputPath();
-			try {
-				PersistedDataset dataset = this.dPersistance.getDatasetByPath(outputPath);
-				DatasetState state = dataset.getState();
-				if (state.equals(DatasetState.STORED)) {
-					
-				}
-			} catch (DatasetParseException e) {
-				e.printStackTrace();
-				continue;
-			}
-			
-		}
+		//1.1 Create a queue Q that will have actions to be processed.
+		//1.2 Create a map M from actionWorkflowId to objectId that will 
+		//hold all the new actions that need to be computed.
+		//1.3 Find all the leaves of the workflow and add them to Q.
+		//1.4 While queue is not empty:
+		//1.4.1. Get the next action in the queue.
+		//1.4.2. If the action is not MANAGE_YOURSELF or FORCE_COMPUTATION
+		//get its corresponding dataset. 
 		
-		//1. For each intermediate action, determine if the datasets
-		//will be deleted.
+		//1.4.2.1 If the dataset exists and is in state STORED or LEAF:
+		//1.4.2.1.1 If you are a LEAF and dataset state is STORED, change-force the 
+		//dataset state to be LEAF.
+		//1.4.2.1.2 For all your children who were added to the map of newly added
+		//actions that need to be computed, add a claim to that dataset from each
+		//of those children.  If the claim fails because the dataset was updated
+		//previously, then keep adding the claim until you succeed, unless
+		//the dataset state has been changed to TO_DELETE or PROCESSING or DELETING
+		//or DELETED, in which case we do the logic of 1.4.2.2
 		
-		//2. Determine which actions do not need to be computed.		
-		//3. Add claims to datasets for all the actions that will use
-		//them as input
+		//1.4.2.2 If the dataset does not exist, or it is in state TO_DELETE,
+		//PROCESSING, DELETING or DELETED, 
+		//1.4.2.2.1 Submit the action to MongoDB to get its objectID. The 
+		//state of the action is WAITING.
+		//1.4.2.2.2 Add this action to the map of actions to be computed.
+		//1.4.2.2.3 For each of the children of the action that are on the map
+		//of actions to be computed, add the id of this action as a parent to 
+		//the child action in the database.
+		//1.4.2.2.4 Add all the parents of the currently added action to the queue
+		//if those parents have not already being processed and sent to the queue.
 		
-		//Steps 2 and 3 need to be performed together, synchronizing the
-		//database access to those datasets by changing them to an intermediate
-		//state. That is, I can only determine that an action does not
-		//need to be computed after I have changed the state of a dataset
-		//to LOCKED (or any other state) with success. After I have been able
-		//to successfully change the state of the dataset, then I will
-		//decide to place a claim on it by an action.
-		//I will need to store in the action all the datasets on which I have
-		//a claim, so that when I do a callback, I reduce the claim counter
-		//on those datasets.
+		//2. For each intermediate action, determine if the datasets
+		//will be deleted using the decision algorithm for it.
+				
 		
-		//4. 
 		return null;
 	}
 	
