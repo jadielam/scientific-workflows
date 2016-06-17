@@ -133,6 +133,7 @@ public class MongoActionPersistance implements ActionPersistance {
 		return toInsert.getObjectId("_id").toHexString();
 	}
 	
+	
     /**
      * Updates action state and updates the version of the document. 
      * Returns the updated document.
