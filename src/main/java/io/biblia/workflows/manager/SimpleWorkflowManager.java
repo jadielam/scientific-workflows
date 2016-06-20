@@ -72,10 +72,13 @@ public class SimpleWorkflowManager implements WorkflowManager {
 				String actionFolder = next.getActionFolder();
 				try{
 					PersistedDataset dataset = this.dPersistance.getDatasetByPath(actionFolder);
+					//1.4.2.1.1 If the dataset exists, and it is in state STORED_TO_DELETE,
+					//PROCESSING, DELETING, DELETED; or if dataset does not exists.
 					if (null == dataset || dataset.getState().equals(DatasetState.DELETED)
 							|| dataset.getState().equals(DatasetState.DELETING)
 							|| dataset.getState().equals(DatasetState.PROCESSING)
-							|| dataset.getState().equals(DatasetState.TO_DELETE)) {
+							|| dataset.getState().equals(DatasetState.TO_DELETE)
+							|| dataset.getState().equals(DatasetState.STORED_TO_DELETE)) {
 					
 						prepareForComputation(next, actionsToCompute, processedActions, Q, workflow);
 					}
@@ -83,15 +86,23 @@ public class SimpleWorkflowManager implements WorkflowManager {
 					
 					else {
 						
-						//1.4.2.1 If the dataset exists and is in state STORED or LEAF:
-						//1.4.2.1.1 If you are a LEAF and dataset state is STORED, change-force the 
+						//1.4.2.1.2 If the dataset exists and is in state STORED or LEAF:
+						//1.4.2.1.2.1 If you are a LEAF and dataset state is STORED, change-force the 
 						//dataset state to be LEAF.
-						//1.4.2.1.2 For all your children who were added to the map of newly added
+						//1.4.2.1.2.2 For all your children who were added to the map of newly added
 						//actions that need to be computed, add a claim to that dataset from each
 						//of those children.  If the claim fails because the dataset was updated
 						//previously, then keep adding the claim until you succeed, unless
 						//the dataset state has been changed to TO_DELETE or PROCESSING or DELETING
 						//or DELETED, in which case we do the logic of 1.4.2.2
+						
+						//1.4.2.1.3 If the dataset exists and is in state TO_STORE, TO_LEAF,
+						//then find the action id that is responsible of creating this dataset,
+						//and make all the children of the current action to be depending on 
+						//the action that is currently computing that dataset. Place a lock on 
+						//that dataset so that no one can change it until you are finished updating
+						//children dependencies. Also add a claim to that dataset from all those children.
+						
 					}
 				}
 				catch(DatasetParseException e) {
@@ -137,9 +148,9 @@ public class SimpleWorkflowManager implements WorkflowManager {
 			for (Action child : childs) {
 				Integer childId = child.getActionId();
 				if (actionsToCompute.containsKey(childId)) {
-					//TODO: Add piece method that allows to add pending parents to a
-					//WAITING action.
-					this.aPersistance.addParentIdToAction(childId, databaseId);
+					
+					String childDatabaseId = actionsToCompute.get(childId);
+					this.aPersistance.addParentIdToAction(childDatabaseId, databaseId);
 				}
 			}
 		}
@@ -157,15 +168,6 @@ public class SimpleWorkflowManager implements WorkflowManager {
 		}
 		
 	}
-	
-	private List<Integer> getActionsWithNoParents(Workflow workflow) {
-		List<Integer> toReturn = new ArrayList<>();
-		for (Action action : workflow.getActions()) {
-			if (action.getParentIds().size() == 0) {
-				toReturn.add(action.getActionId());
-			}
-		}
-		return toReturn;
-	}
+
 
 }

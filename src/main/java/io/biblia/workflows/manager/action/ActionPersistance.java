@@ -106,6 +106,18 @@ public interface ActionPersistance {
 	 */
 	public List<String> readyChildActions(String actionId);
 	
+	/**
+	 * Adds dependecy to action represented by childDatabaseId on action represented by
+	 * parentDatabaseId.  Dependency means that child action needs to wait for parent action
+	 * before it can start with its own computation.
+	 * 
+	 * If the child action does not exist, throw exception
+	 * If the parent action does not exist, throw exception
+	 * @param childId
+	 * @param databaseId
+	 */
+	public void addParentIdToAction(String childDatabaseId, String parentDatabaseId);
+	
 }
 
 class OutdatedActionException extends Exception {
