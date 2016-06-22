@@ -319,6 +319,13 @@ public class MongoActionPersistance implements ActionPersistance {
 	public void addParentIdToAction(String childDatabaseId, String parentDatabaseId) {
 		
 		// TODO Auto-generated method stub
+		final Document filter = new Document().append("_id", new ObjectId(childDatabaseId));
+        
+		final Document update = new Document().append("$push", new Document("parentsActionIds", parentDatabaseId));
+        
+        FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
+        options.returnDocument(ReturnDocument.AFTER);
+        Document newDocument = this.actions.findOneAndUpdate(filter, update, options);
 		
 	}
 
