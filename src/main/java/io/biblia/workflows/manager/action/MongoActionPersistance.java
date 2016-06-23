@@ -325,8 +325,7 @@ public class MongoActionPersistance implements ActionPersistance {
         
         FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
         options.returnDocument(ReturnDocument.AFTER);
-        Document newDocument = this.actions.findOneAndUpdate(filter, update, options);
-		
+        this.actions.findOneAndUpdate(filter, update, options);
 	}
 
 

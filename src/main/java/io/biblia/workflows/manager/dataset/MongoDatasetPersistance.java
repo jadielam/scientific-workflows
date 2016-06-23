@@ -56,8 +56,7 @@ public class MongoDatasetPersistance implements DatasetPersistance {
 		final FindIterable<Document> documents = this.datasets.find(or(
 				and(
 					eq("state", DatasetState.STORED_TO_DELETE.name()),
-					//TODO: Check that this is right.
-					eq("claims", Collections.<String>emptyList())
+					size("claims", 0)
 				),
 				and(
 					or(

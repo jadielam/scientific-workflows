@@ -79,12 +79,3 @@ public interface DatasetPersistance {
 	 */
 	PersistedDataset getDatasetByPath(String outputPath) throws DatasetParseException;
 }
-
-class OutdatedDatasetException extends Exception {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -2531448080808892124L;
-	
-}

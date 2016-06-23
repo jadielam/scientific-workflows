@@ -1,10 +1,7 @@
 package io.biblia.workflows.manager;
 
-import java.util.ArrayDeque;
-
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Deque;
@@ -13,8 +10,6 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.HashSet;
 
-import org.bson.types.ObjectId;
-
 import io.biblia.workflows.definition.Action;
 import io.biblia.workflows.definition.Workflow;
 import io.biblia.workflows.definition.parser.DatasetParseException;
@@ -22,6 +17,7 @@ import io.biblia.workflows.manager.action.ActionPersistance;
 import io.biblia.workflows.manager.dataset.DatasetPersistance;
 import io.biblia.workflows.manager.dataset.DatasetState;
 import io.biblia.workflows.manager.dataset.PersistedDataset;
+import io.biblia.workflows.manager.dataset.OutdatedDatasetException;
 
 public class SimpleWorkflowManager implements WorkflowManager {
 
@@ -51,8 +47,7 @@ public class SimpleWorkflowManager implements WorkflowManager {
 		//1.3 Find all the leaves of the workflow and add them to Q.
 		Collection<Action> actions = workflow.getActions();
 		for (Action action : actions) {
-			List<Integer> parents = action.getParentIds();
-			if (null == parents || parents.size() == 0) {
+			if (isLeaf(action, workflow)) {
 				Q.addLast(action);
 				processedActions.add(action.getActionId());
 			}
@@ -87,22 +82,78 @@ public class SimpleWorkflowManager implements WorkflowManager {
 					else {
 						
 						//1.4.2.1.2 If the dataset exists and is in state STORED or LEAF:
-						//1.4.2.1.2.1 If you are a LEAF and dataset state is STORED, change-force the 
-						//dataset state to be LEAF.
-						//1.4.2.1.2.2 For all your children who were added to the map of newly added
-						//actions that need to be computed, add a claim to that dataset from each
-						//of those children.  If the claim fails because the dataset was updated
-						//previously, then keep adding the claim until you succeed, unless
-						//the dataset state has been changed to TO_DELETE or PROCESSING or DELETING
-						//or DELETED, in which case we do the logic of 1.4.2.2
+						if (dataset.getState().equals(DatasetState.STORED)
+								|| dataset.getState().equals(DatasetState.LEAF)) {
+							
+							//1.4.2.1.2.1 If you are a LEAF and dataset state is STORED, change-force the 
+							//dataset state to be LEAF.
+							if (isLeaf(next, workflow) && dataset.getState().equals(DatasetState.STORED)) {
+								
+								while (true) {
+									try{
+										dataset = this.dPersistance.updateDatasetState(dataset, DatasetState.LEAF);
+										break;
+									}
+									catch(OutdatedDatasetException e) {
+										dataset = this.dPersistance.getDatasetByPath(actionFolder);
+										if (null == dataset 
+											|| !dataset.getState().equals(DatasetState.LEAF)
+											|| !dataset.getState().equals(DatasetState.STORED)) {
+										
+											//The dataset has changed in a way I cannot handle.
+											//so I most compute
+											prepareForComputation(next, actionsToCompute, processedActions, Q, workflow);
+										}
+									}
+								}
+							}
+							
+							
+							//1.4.2.1.2.2 For all your children who were added to the map of newly added
+							//actions that need to be computed, add a claim to that dataset from each
+							//of those children.  If the claim fails because the dataset was updated
+							//previously, then keep adding the claim until you succeed, unless
+							//the dataset state has been changed to TO_DELETE or PROCESSING or DELETING
+							//or DELETED, in which case we do the logic of 1.4.2.2
+							Collection<Action> childActions = workflow.getChildActions(next.getActionId());
+							for (Action action : childActions) {
+								Integer actionWorkflowId = action.getActionId();
+								if (actionsToCompute.containsKey(actionWorkflowId)) {
+									String databaseId = actionsToCompute.get(actionWorkflowId);
+									
+									while (true) {
+										try {
+											dataset = this.dPersistance.addClaimToDataset(dataset, databaseId);
+											break;
+										}
+										catch(OutdatedDatasetException ex) {
+											dataset = this.dPersistance.getDatasetByPath(actionFolder);
+											if (null == dataset
+												|| !dataset.getState().equals(DatasetState.LEAF)
+												|| !dataset.getState().equals(DatasetState.STORED)) {
+												
+												prepareForComputation(next, actionsToCompute, processedActions, Q, workflow);
+											}
+										}
+										
+									}
+									
+								}
+							}
+							
+						}
 						
-						//1.4.2.1.3 If the dataset exists and is in state TO_STORE, TO_LEAF,
+						//TODO: 1.4.2.1.3 If the dataset exists and is in state TO_STORE, TO_LEAF,
 						//then find the action id that is responsible of creating this dataset,
 						//and make all the children of the current action to be depending on 
 						//the action that is currently computing that dataset. Place a lock on 
 						//that dataset so that no one can change it until you are finished updating
 						//children dependencies. Also add a claim to that dataset from all those children.
-						
+						else if (DatasetState.TO_STORE.equals(dataset.getState())
+								 || DatasetState.TO_LEAF.equals(dataset.getState())) {
+							//For now, in order to limit complexity, I will just recompute the dataset.
+							prepareForComputation(next, actionsToCompute, processedActions, Q, workflow);
+						}
 					}
 				}
 				catch(DatasetParseException e) {
@@ -122,11 +173,23 @@ public class SimpleWorkflowManager implements WorkflowManager {
 		}
 			
 		//2. For each intermediate action, determine if the datasets
-		//will be deleted using the decision algorithm for it.
+		//will be deleted using the decision algorithm for it and create the
+		//datasets accordingly.
+		
+		//3. For each action in the map of actions to be computed, if the 
+		//action does not have parent actions on which it depends
 				
 		return null;
 	}
 	
+	private boolean isLeaf(Action action, Workflow workflow) {
+		Integer actionId = action.getActionId();
+		Collection<Action> childs = workflow.getChildActions(actionId);
+		if (null == childs || childs.size() == 0) {
+			return true;
+		}
+		return false;
+	}
 
 	private void prepareForComputation(Action action, Map<Integer, String> actionsToCompute,
 			Set<Integer> processedActions, Deque<Action> Q, Workflow workflow) {
@@ -168,6 +231,4 @@ public class SimpleWorkflowManager implements WorkflowManager {
 		}
 		
 	}
-
-
 }

@@ -83,6 +83,10 @@ public class Callback {
 						actionDataset = this.dPersistance.updateDatasetState(actionDataset, DatasetState.STORED);
 						this.dPersistance.updateDatasetSizeInMB(actionDataset, sizeInMB);
 					}
+					else if (DatasetState.TO_LEAF.equals(state)) {
+						actionDataset = this.dPersistance.updateDatasetState(actionDataset, DatasetState.LEAF);
+						this.dPersistance.updateDatasetSizeInMB(actionDataset, sizeInMB);
+					}
 					else if (state.equals(DatasetState.TO_DELETE)){
 						actionDataset = this.dPersistance.updateDatasetState(actionDataset, DatasetState.STORED_TO_DELETE);
 						this.dPersistance.updateDatasetSizeInMB(actionDataset, sizeInMB);
