@@ -261,6 +261,21 @@ public class MongoActionPersistance implements ActionPersistance {
 	}
 
 	@Override
+	public void readyAction(String databaseId) {
+		ObjectId actionId = new ObjectId(databaseId);
+		final Bson readyFilter = and(
+        		eq("state", ActionState.WAITING.name()),
+        		size("parentsActionIds", 0),
+        		eq("_id", actionId)
+        	);
+        final Document readyUpdate = new Document().append("$set", new Document("state", ActionState.READY.name()))
+				.append("$currentDate", new Document("lastUpdatedDate", true))
+				.append("$inc", new Document("version", 1));
+        this.actions.updateOne(readyFilter, readyUpdate);
+		
+	}
+	
+	@Override
 	public List<String> readyChildActions(String actionId) {
 		//1. Find all the child actions with actionId as parent
 		List<PersistedAction> childActions = new ArrayList<>();
@@ -327,6 +342,8 @@ public class MongoActionPersistance implements ActionPersistance {
         options.returnDocument(ReturnDocument.AFTER);
         this.actions.findOneAndUpdate(filter, update, options);
 	}
+
+
 
 
 

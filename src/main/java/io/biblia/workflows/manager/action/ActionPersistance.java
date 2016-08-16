@@ -107,6 +107,13 @@ public interface ActionPersistance {
 	public List<String> readyChildActions(String actionId);
 	
 	/**
+	 * If the action state is WAITING, and if it has no parents,
+	 * for which it is waiting, it changes its state to READY.
+	 * @param actionId
+	 */
+	public void readyAction(String actionId);
+	
+	/**
 	 * Adds dependecy to action represented by childDatabaseId on action represented by
 	 * parentDatabaseId.  Dependency means that child action needs to wait for parent action
 	 * before it can start with its own computation.

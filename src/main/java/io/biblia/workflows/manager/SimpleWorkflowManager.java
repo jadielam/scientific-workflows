@@ -103,6 +103,7 @@ public class SimpleWorkflowManager implements WorkflowManager {
 											//The dataset has changed in a way I cannot handle.
 											//so I most compute
 											prepareForComputation(next, actionsToCompute, processedActions, Q, workflow);
+											break;
 										}
 									}
 								}
@@ -115,6 +116,14 @@ public class SimpleWorkflowManager implements WorkflowManager {
 							//previously, then keep adding the claim until you succeed, unless
 							//the dataset state has been changed to TO_DELETE or PROCESSING or DELETING
 							//or DELETED, in which case we do the logic of 1.4.2.2
+							
+							//The execution of this code here is interesting.  Suppose that in the previous step the
+							//dataset was sent to prepareForComputation. That means that the dataset is no longer
+							//available (it was marked for deletion or is in the process of being deleted).
+							//Here I am placing a claim to that dataset. The claim will go without effect, because
+							//the purpose of a claim is to stop a dataset from being deleted.  So, I will
+							//leave this code as it is.  TODO: If I want to change something here, then I have to
+							//stop this from happening if I call prepare for computation above.
 							Collection<Action> childActions = workflow.getChildActions(next.getActionId());
 							for (Action action : childActions) {
 								Integer actionWorkflowId = action.getActionId();
@@ -133,6 +142,7 @@ public class SimpleWorkflowManager implements WorkflowManager {
 												|| !dataset.getState().equals(DatasetState.STORED)) {
 												
 												prepareForComputation(next, actionsToCompute, processedActions, Q, workflow);
+												break;
 											}
 										}
 										
@@ -153,6 +163,11 @@ public class SimpleWorkflowManager implements WorkflowManager {
 								 || DatasetState.TO_LEAF.equals(dataset.getState())) {
 							//For now, in order to limit complexity, I will just recompute the dataset.
 							prepareForComputation(next, actionsToCompute, processedActions, Q, workflow);
+							//TODO: The current solution is not lacking troubles too. Suppose the following
+							//situation: By the time we finish this computation, the dataset already exists
+							//in state STORED.  If we overwrite it? How does that affect people
+							//reading from that data at the moment?
+							//Need to figure out what Hadoop would do.
 						}
 					}
 				}
@@ -163,21 +178,40 @@ public class SimpleWorkflowManager implements WorkflowManager {
 				
 			}
 			
+			//1.4.3
 			//If the action is MANAGE_YOURSELF or FORCE_COMPUTATION
 			else {
 				prepareForComputation(next, actionsToCompute, processedActions, Q, workflow);
 			}
-			
-			
 		
 		}
 			
-		//2. For each intermediate action, determine if the datasets
-		//will be deleted using the decision algorithm for it and create the
-		//datasets accordingly.
+		//TODO: Implement an algorithm that stores workflows on MongoDB as they are received 
+		//and that takes care of implementing the main API calls that the algorithm will do
+		//in order to make decisions. The algorithm will produce two sets of decisions:
+		
+		//1. For all the actions TO BE COMPUTED in the current submitted workflow, determine if the
+		//the dataset will be kept or deleted.  Remeber to take into account if the action is
+		//leaf or not.  Once the decision is made, a new dataset should be inserted (or updated if
+		//it already exists). There is no differentiation on the state we should set the dataset
+		//in the database for actions that already existed vs. actions that did not exist, since
+		//if I mark an action that already existed as TO_DELETE, the callback will take
+		//care of handling the case.
+		
+		//2. For all the datasets currently stored in the system that (including datasets pertaining to the
+		//current workflow and that do not need to be computed), determine if the dataset
+		//has to be deleted or not.
+		
+		//TODO: QUestion to answer: How am I adding claims to datasets already/previously existing in the 
+		//system, and hence not being computed by me?
 		
 		//3. For each action in the map of actions to be computed, if the 
-		//action does not have parent actions on which it depends
+		//action does not have parent actions on which it depends, 
+		//change it from a WAITING action to a READY action.
+		Collection<String> databaseIds = actionsToCompute.values();
+		for (String databaseId : databaseIds) {
+			this.aPersistance.readyAction(databaseId);
+		}
 				
 		return null;
 	}
