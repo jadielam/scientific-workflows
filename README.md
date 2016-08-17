@@ -95,7 +95,7 @@ If one of the constraints is not satisfied, the server will throw an error at wo
 
 Notice how action names do not need to be unique.  An action name is just a mnemonic resource to understand what the action does.
 
-Currently we support three kinds of actions: Command-line actions, MapReduce v1.0 actions and MapReduce v2.0 actions.
+Currently we support three kinds of actions: **Command-line actions**, **MapReduce v1.0 actions** and **MapReduce v2.0 actions**.
 
 ### Command Line Action
 
@@ -137,7 +137,14 @@ An action can be in one of the following states: **WAITING**, **READY**, **PROCE
 
 > **KILLED**: The user killed the action after it started executing.
 
-Actions can be in one of multiple states 
+### The Action Scraper
+Every certain amount of time, the action scraper will query the database to find available actions and add them to the queue. Available actions are actions that are in the **READY** state, or actions that have been in the **PROCESSING** state for a long time.  The reason why we add actions that have been in the **PROCESSING** state for a long time is that potentially another ActionManager in another server started processing those actions, but that server died before finishing processing them.  
+
+Before adding the action to the queue, the action scraper attempts to update the state of the action in the database to **PROCESSING**.  If the update fails because the action entity has changed in the database after it was queried by the scraper, then the scraper drops the action and does not add it to the Action Manager queue.  Otherwise, if the update is successful, the action is added to the Action Manager queue.  To illustrate how this synchronization technique is valid, consider the following example with ActionScrapers **A** and **B** and their corresponding action managers. Both scrapers **A** and **B** query the database for ready actions and both find action **a1** to be in the **READY** state.  Without loss of generality, assume that **A** is the first scraper to update the state of action **a1** to **PROCESSING**.  When **B** also attempts to update the state of action **a1**, it will realize that action **a1** has already been changed by someone else, and it will immediately drop it.
+
+> The synchronization technique described and exemplified in the above paragraph will be used multiple times by different components of the system.  In general, that synchronization pattern can be applied whenever multiple processes can potentially move an object **o** from state **S1** to **S3** (in the previous example **S1** would be equivalent to **READY** and **S3** to **SUBMITTED**) but only one of the process should be allowed to do it.  In order to solve the problem we create an intermediate state **S2** (**PROCESSING** in our case), and we let all the processes compete to be the first to change the state of **o** to **S2**.  All the loosing processes drop object **o** and the winning one carries on.
+
+That synchronization technique will be used by other components of the framework u
 
 ## The Dataset Manager 
 ## The Workflow Manager
