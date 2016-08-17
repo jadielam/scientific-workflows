@@ -119,23 +119,23 @@ The ActionManager works as follows:
 ### Action States
 In order to support a cluster of servers working as action managers and to avoid the need to add a dependency to a distributed coordination server such as Apache Zookeper we have implemented synchronization using the database as our shared resource and defining a synchronization oriented semantic for each of the different states an action can have.
 
-An action can be in one of the following states: WAITING, READY, PROCESSING, SUBMITTED, RUNNING, FINISHED, FAILED, and KILLED.
+An action can be in one of the following states: **WAITING**, **READY**, **PROCESSING**, **SUBMITTED**, **RUNNING**, **FINISHED**, **FAILED**, and **KILLED**.
 
-WAITING: It means that the action has been submitted as part of a workflow and is waiting for parent actions to finish before it can be submitted to Hadoop.
+> **WAITING**: It means that the action has been submitted as part of a workflow and is waiting for parent actions to finish before it can be submitted to Hadoop.
 
-READY: The action is ready to be submitted to Hadoop because it either does not depend on any other action, or because all the actions on which it depends have finished their computations.
+> **READY**: The action is ready to be submitted to Hadoop because it either does not depend on any other action, or because all the actions on which it depends have finished their computations.
 
-PROCESSING: The ActionScraper found a READY action in the database and has placed it in the actions queue of the actions to be submitted.
+> **PROCESSING**: The ActionScraper found a READY action in the database and has placed it in the actions queue of the actions to be submitted.
 
-SUBMITTED: The action has been taken from the queue and has been submitted to Hadoop.
+> **SUBMITTED**: The action has been taken from the queue and has been submitted to Hadoop.
 
-RUNNING: Hadoop is running the computations that correspond to the action.
+> **RUNNING**: Hadoop is running the computations that correspond to the action.
 
-FINISHED: Hadoop has finished executing the action successfully.
+> **FINISHED**: Hadoop has finished executing the action successfully.
 
-FAILED: A run time error has occurred and the action did not finish executing.
+> **FAILED**: A run time error has occurred and the action did not finish executing.
 
-KILLED: The user killed the action after it started executing.
+> **KILLED**: The user killed the action after it started executing.
 
 Actions can be in one of multiple states 
 
