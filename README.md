@@ -41,3 +41,20 @@ lifespan of the datasets of the data pool.
 # Description of the System
 
 ## The workflow definition language
+We have chosen the JSON format for the definition of workflows because its expressiveness is sufficient for what
+we need, and it is also very pleasant to the eye.  A workflow is made of a `name`, an `startActionId`, 
+an `endActionId` and a list of actions.  See the example below:
+
+	{
+		"name": "Example Worfklow",
+		"startActionId": 1,
+		"endActionId": 2,
+		"actions": [
+			{
+				...
+			},
+			{
+				...
+			}
+		]
+	}
