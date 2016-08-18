@@ -41,7 +41,7 @@ lifespan of the datasets of the data pool.
 # Description of the System
 In the following sections we will describe how the system works. We first start by introducing the workflow definition
 language.  That will help us understand what is a workflow and what are the constraints and functionalities of the system.
-Once we understand what is a workflow, then we are ready to discuss how the system handles the submission of a workflow by a user.  That functionality is implemented by three different pieces of software that in conjunction produce the magic of the optimization of workflow computations.  Those three pieces are the *Action Manager*, the *Dataset Manager* and the *Workflow Manager*.  They don't share any state in memory among them, which is a stepping stone looking into a future when the system will not be a standalone server, but a cluster of servers performing the functionalities in parallel.  The *Workflow Manager* will be the last component to be explained, since it is the most complex of the three.
+Once we understand the concept of a workflow, then we are ready to discuss how the system handles the submission of a workflow by a user.  That functionality is implemented by three different pieces of software that in conjunction produce the magic of the optimization of workflow computations.  Those three pieces are the *Action Manager*, the *Dataset Manager* and the *Workflow Manager*.  They don't share any state in memory among them, which is a stepping stone looking into a future when the system will not be a standalone server, but a cluster of servers performing the functionalities in parallel.  The core functionality of the system is carried by the *Workflow Manager*, but before jumping into it, it will be helpful to explain the functionality of the **Action Manager** first.
 
 ## The Workflow Definition Language
 We have chosen the JSON format for the definition of workflows because its expressiveness is sufficient for what
@@ -142,11 +142,24 @@ Every certain amount of time, the action scraper will query the database to find
 
 Before adding the action to the queue, the action scraper attempts to update the state of the action in the database to **PROCESSING**.  If the update fails because the action entity has changed in the database after it was queried by the scraper, then the scraper drops the action and does not add it to the Action Manager queue.  Otherwise, if the update is successful, the action is added to the Action Manager queue.  To illustrate how this synchronization technique is valid, consider the following example with ActionScrapers **A** and **B** and their corresponding action managers. Both scrapers **A** and **B** query the database for ready actions and both find action **a1** to be in the **READY** state.  Without loss of generality, assume that **A** is the first scraper to update the state of action **a1** to **PROCESSING**.  When **B** also attempts to update the state of action **a1**, it will realize that action **a1** has already been changed by someone else, and it will immediately drop it.
 
-> The synchronization technique described and exemplified in the above paragraph will be used multiple times by different components of the system.  In general, that synchronization pattern can be applied whenever multiple processes can potentially move an object **o** from state **S1** to **S3** (in the previous example **S1** would be equivalent to **READY** and **S3** to **SUBMITTED**) but only one of the process should be allowed to do it.  In order to solve the problem we create an intermediate state **S2** (**PROCESSING** in our case), and we let all the processes compete to be the first to change the state of **o** to **S2**.  All the loosing processes drop object **o** and the winning one carries on.
+> The synchronization technique described and exemplified in the above paragraph will be used multiple times by different components of the system.  In general, that synchronization pattern can be applied whenever multiple processes can potentially move an object **o** from state **S1** to **S3** (in the previous example **S1** would be equivalent to **READY** and **S3** to **SUBMITTED**) but only one of the process should be allowed to do it.  In order to solve the problem we create an intermediate state **S2** (**PROCESSING** in our case), and we let all the processes compete to be the first to change the state of **o** to **S2**.  All the loosing processes drop object **o** and the winning process carries on.
 
-That synchronization technique will be used by other components of the framework u
+### The Action Submitter
+The Action Manager is constantly taking new elements from the queue and passing them to the Action Submitter threads that take care of submitting the actions to Hadoop.  The decision of including in the queue actions that have been in the **PROCESSING** state for a long time makes the design of the Action Submitter more careful.  The submitter first attempts to update the state of the action to **SUBMITTED** in the database. If it succeeds, then it actually submits the action to Hadoop.  If there is an error while submitting the action, then it changes the state of the action back to **READY**, which gives that action the opportunity to be picked again by an Action Scraper at some point later on.  As an area of future improvement, a ceiling should be imposed over the number of times an action fails when submitted to the cluster, otherwise, the system will keep trying to submit the action forever.  
+ 
+## The Workflow Manager
+Now that we have explained the Action Manager, we are in a better shape to understand the workings of the workflow manager.  All the workflow manager does is to create new actions and insert them into the database.  Those newly created actions can be in one of two states: **WAITING** or **READY**. If they are in a **READY** state, any active Action Manager will pick them up and submit them to the cluster for computation.  If they are in a **WAITING** state they will eventually be submitted for execution once their parents finish executing.  The process of how actions in the **WAITING** state are notified that their parents finish executing will be discussed later when we discuss the **Callback System**
 
-## The Dataset Manager 
+## The Callback System
+Once an action is submitted, three callbacks are provided to the Hadoop cluster so that it can notify back to the **Pingo** system of any relevant event regarding the execution of the action by the cluster.  All callbacks are designed in such a way that the state of the action is always the same after multiple calls to the same callback.
+ 
+### The Success Callback
+The first thing the success callback does is to change to **READY** the state of any child actions of the currently finished action that are not waiting for any other parent action to finish.  It also changes the state of the currently finished action to **FINISHED**.
+
+### The Action-Failed Callback
+
+
+### The Action-Killed Callback
 ## The Workflow Manager
 The purpose of the workflow manager is to, if possible, reduce the workflow submitted by an user by identifying 
 the actions that do not need to be computed because their outputs have already being computed previously and are still
