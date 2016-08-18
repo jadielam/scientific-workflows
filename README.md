@@ -179,8 +179,6 @@ The workflow manager begins all the actions of the submitted workflow, starting 
 
 > `prepareForComputation` procedure:  TODO (Keep working here tomorrow)
 
-If the action is not managed by the system, or if its `forceComputation` flag is set, the action is prepared for computation
-
 ## The Callback System
 Once an action is submitted, three callbacks are provided to the Hadoop cluster so that it can notify back to the **Pingo** system of any relevant event regarding the execution of the action by the cluster.  All callbacks are designed in such a way that the state of the action is always the same after multiple calls to the same callback.
  
