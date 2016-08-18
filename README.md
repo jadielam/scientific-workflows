@@ -99,10 +99,13 @@ If the attribute `isManaged` is set to `True`, it means that the path where the 
 Notice also how action names do not need to be unique.  An action name is just a mnemonic resource to understand what the action does.  Also depending on the action `type`, there might be other required attributes too. We currently support three kinds of actions: **Command-line actions**, **MapReduce v1.0 actions** and **MapReduce v2.0 actions**, and in the future we are planning to add support for **Spark actions** and **Sqoop actions**
 
 ### Command Line Action
+TODO (Keep working here tomorrow)
 
 ### MapReduce v1.0 Action
+TODO (Keep working here tomorrow)
 
 ### MapReduce v2.0 Action
+TODO (Keep working here tomorrow)
 
 ## The Action Manager
 The Action Manager's purpose is to submit individual actions to the Hadoop cluster for computation.  In our current implementation it uses *Apache Oozie* as an intermediary, but there is no restriction in our system to do away with *Apache Oozie* in the future.  
@@ -174,7 +177,7 @@ The workflow manager makes its decision on whether an action needs to be compute
 
 The workflow manager begins all the actions of the submitted workflow, starting from the leaf actions.  If by analyzing the action it determines that the action needs to be computed, it calls the `prepareForComputation` procedure on that action.
 
-> `prepareForComputation` procedure:  
+> `prepareForComputation` procedure:  TODO (Keep working here tomorrow)
 
 If the action is not managed by the system, or if its `forceComputation` flag is set, the action is prepared for computation
 
@@ -182,13 +185,10 @@ If the action is not managed by the system, or if its `forceComputation` flag is
 Once an action is submitted, three callbacks are provided to the Hadoop cluster so that it can notify back to the **Pingo** system of any relevant event regarding the execution of the action by the cluster.  All callbacks are designed in such a way that the state of the action is always the same after multiple calls to the same callback.
  
 ### The Success Callback
-The first thing the success callback does is to change to **READY** the state of any child actions of the currently finished action that are not waiting for any other parent action to finish.  It also changes the state of the currently finished action to **FINISHED**.
+The first thing the success callback does is to change to **READY** the state of any child actions of the currently finished action that are not waiting for any other parent action to finish.  It also changes the state of the currently finished action to **FINISHED**.  TODO (Keep working here tomorrow)
 
 ### The Action-Failed Callback
-
+TODO (Keep working here tomorrow)
 
 ### The Action-Killed Callback
-## The Workflow Manager
-The purpose of the workflow manager is to, if possible, reduce the workflow submitted by an user by identifying 
-the actions that do not need to be computed because their outputs have already being computed previously and are still
-present in the system.
+TODO (Keep working here tomorrow)
