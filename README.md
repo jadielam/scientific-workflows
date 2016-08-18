@@ -1,7 +1,7 @@
 # Pingo
-*Pingo* is a workflow scheduler to manage Hadoop jobs that takes away the burden of managing the storage
+*Pingo* is a smart workflow scheduler to manage Hadoop jobs. *Pingo* takes away the burden of managing the storage
 of intermediate output of computations from the humans.  Specifically, when storage space is constrained, 
-Pingo decides what intermediate storage to keep and which one to delete depending on the optimization objective 
+*Pingo* decides what intermediate storage to keep and which one to delete depending on the optimization objective 
 of the decision algorithm being used.  But Pingo is more than a test bed for optimization algorithms that attempt to
 find optimal solutions to the data reuse problem under storage constraints.  It also provides the following 
 functionality and contributions: 
@@ -78,8 +78,7 @@ an `endActionId` and a list of actions.  See the example below:
 	}
 
 The workflow definition above consists of two actions whose ids are `1` and `2` where action with id `2` must be
-executed after action with id `id` finishes.  This is expressed by making action `1` a parent of action `2`. Actions must
-have `id`, `name` and `type` attributes, and also depending on the action `type`, there might be other required attributes too. Among the constraints that are imposed by the system we have the following:
+executed after action with id `id` finishes.  This is expressed by making action `1` a parent of action `2`.  Among the constraints that are imposed by the system we have the following:
 
 1. A workflow most have at least one action.
 
@@ -93,9 +92,11 @@ have `id`, `name` and `type` attributes, and also depending on the action `type`
 
 If one of the constraints is not satisfied, the server will throw an error at workflow submission time.  A documentation of the errors thrown is provided in the REST API documentation.
 
-Notice how action names do not need to be unique.  An action name is just a mnemonic resource to understand what the action does.
+Actions must have `id`, `name` and `type` attributes.  They have two optional boolean attributes: `forceComputation` and `isManaged`.  If `forceComputation` is set to `True`, it means that the action will be forced to compute its output regardless of if it already exists and is available or not. If it is set to `False`, it means that the system determines if the action will be computed or not.  The default is `False`.
 
-Currently we support three kinds of actions: **Command-line actions**, **MapReduce v1.0 actions** and **MapReduce v2.0 actions**.
+If the attribute `isManaged` is set to `True`, it means that the path where the output of this action will be stored is determined and managed by the system.  If `isManaged` is set to `False`, it means that the path where the output of this action will be stored is not determined or managed by the system, and that path must be provided by the user.  The user needs to have Read/Write permissions to any path it provides, otherwise, the execution of the action will fail at the end.  The default value for `isManaged` is `True`.
+
+Notice also how action names do not need to be unique.  An action name is just a mnemonic resource to understand what the action does.  Also depending on the action `type`, there might be other required attributes too. We currently support three kinds of actions: **Command-line actions**, **MapReduce v1.0 actions** and **MapReduce v2.0 actions**, and in the future we are planning to add support for **Spark actions** and **Sqoop actions**
 
 ### Command Line Action
 
@@ -142,13 +143,40 @@ Every certain amount of time, the action scraper will query the database to find
 
 Before adding the action to the queue, the action scraper attempts to update the state of the action in the database to **PROCESSING**.  If the update fails because the action entity has changed in the database after it was queried by the scraper, then the scraper drops the action and does not add it to the Action Manager queue.  Otherwise, if the update is successful, the action is added to the Action Manager queue.  To illustrate how this synchronization technique is valid, consider the following example with ActionScrapers **A** and **B** and their corresponding action managers. Both scrapers **A** and **B** query the database for ready actions and both find action **a1** to be in the **READY** state.  Without loss of generality, assume that **A** is the first scraper to update the state of action **a1** to **PROCESSING**.  When **B** also attempts to update the state of action **a1**, it will realize that action **a1** has already been changed by someone else, and it will immediately drop it.
 
-> The synchronization technique described and exemplified in the above paragraph will be used multiple times by different components of the system.  In general, that synchronization pattern can be applied whenever multiple processes can potentially move an object **o** from state **S1** to **S3** (in the previous example **S1** would be equivalent to **READY** and **S3** to **SUBMITTED**) but only one of the process should be allowed to do it.  In order to solve the problem we create an intermediate state **S2** (**PROCESSING** in our case), and we let all the processes compete to be the first to change the state of **o** to **S2**.  All the loosing processes drop object **o** and the winning process carries on.
+> The synchronization technique described and exemplified in the above paragraph will be used multiple times by different components of the system.  In general, that synchronization pattern can be applied in situations where multiple processes can potentially move an object **o** from state **S1** to state **S3** (in the previous example **S1** would be equivalent to our  **READY** state, and **S3** to our **SUBMITTED** state) but only one of the process should be allowed to do it.  In order to solve the problem we create an intermediate state **S2** (**PROCESSING** in our case), and we let all the processes compete to be the first to change the state of **o** to **S2**.  All the loosing processes drop the processing of object **o**, and the winning process carries on.
 
 ### The Action Submitter
 The Action Manager is constantly taking new elements from the queue and passing them to the Action Submitter threads that take care of submitting the actions to Hadoop.  The decision of including in the queue actions that have been in the **PROCESSING** state for a long time makes the design of the Action Submitter more careful.  The submitter first attempts to update the state of the action to **SUBMITTED** in the database. If it succeeds, then it actually submits the action to Hadoop.  If there is an error while submitting the action, then it changes the state of the action back to **READY**, which gives that action the opportunity to be picked again by an Action Scraper at some point later on.  As an area of future improvement, a ceiling should be imposed over the number of times an action fails when submitted to the cluster, otherwise, the system will keep trying to submit the action forever.  
  
 ## The Workflow Manager
-Now that we have explained the Action Manager, we are in a better shape to understand the workings of the workflow manager.  All the workflow manager does is to create new actions and insert them into the database.  Those newly created actions can be in one of two states: **WAITING** or **READY**. If they are in a **READY** state, any active Action Manager will pick them up and submit them to the cluster for computation.  If they are in a **WAITING** state they will eventually be submitted for execution once their parents finish executing.  The process of how actions in the **WAITING** state are notified that their parents finish executing will be discussed later when we discuss the **Callback System**
+Now that we have explained the Action Manager, we are in a better shape to understand the workings of the workflow manager.  The workflow manager receives the workflows submitted to the system and determines which of the actions from the workflow need to actually be submitted to Hadoop for computation. Those actions are inserted into the database and can initially be in one of two states: **WAITING** or **READY**. If they are in a **READY** state, any active **Action Manager** will pick them up and submit them to the cluster for computation.  If they are in a **WAITING** state they will eventually be submitted for execution once their parents finish executing.  The process of how actions in the **WAITING** state are notified that their parents finish executing will be discussed later when we discuss the **Callback System**.
+
+### Datasets
+The workflow manager makes its decision on whether an action needs to be computed or not by exploring the state of the datasets that are the outputs of the action.  A **dataset** is another important entity in our model.  A **dataset entity** is an entry of a dataset information in the database; its **dataset file** is the physical file in the distributed file system.  A dataset entry is always linked in the database to its corresponding action definition. Dataset entities can be in one of the following states at any given time: **TO_DELETE**, **TO_STORE**, **TO_LEAF**, **STORED**, **LEAF**, **STORED_TO_DELETE**, **PROCESSING**, **DELETING** and **DELETED**.
+
+> **TO_DELETE**: The dataset file does not exist in the file system, but once it does, its dataset entry will be transitioned to state **STORED_TO_DELETE**.
+
+> **TO_STORE**: The dataset file does not exist in the file system, but once it does, its dataset entry state will be transitioned to **STORED**.
+
+> **TO_LEAF**: The dataset file does not exist yet in the file system, but once it does, its dataset entry state will be transitioned to the **LEAF** state.
+
+> **STORED**: The dataset file is stored in the filesystem and it corresponds to an intermediate action.  The dataset file will be stored in the file system until the decision algorithm determines in the future that is not optimal for the system to keep storing it anymore.
+
+> **LEAF**: The dataset file is stored in the filesystem and it corresponds to a leaf action. Datasets of leaf actions are never removed by the system.  They can be manually removed by the users.
+
+> **STORED_TO_DELETE**: The dataset file is stored temporarily until all other actions that have claims to it as a dependency finish computing.  Once all those actions finish computing, the dataset will be removed.
+
+> **PROCESSING**: The dataset entry is being processed with the purpose of deleting its dataset file.  This is a synchronization state.
+
+> **DELETING**: The dataset file is being deleted.  This is another synchronization state.
+
+> **DELETED**: The dataset file has been deleted. 
+
+The workflow manager begins all the actions of the submitted workflow, starting from the leaf actions.  If by analyzing the action it determines that the action needs to be computed, it calls the `prepareForComputation` procedure on that action.
+
+> `prepareForComputation` procedure:  
+
+If the action is not managed by the system, or if its `forceComputation` flag is set, the action is prepared for computation
 
 ## The Callback System
 Once an action is submitted, three callbacks are provided to the Hadoop cluster so that it can notify back to the **Pingo** system of any relevant event regarding the execution of the action by the cluster.  All callbacks are designed in such a way that the state of the action is always the same after multiple calls to the same callback.

@@ -61,7 +61,7 @@ public class SimpleWorkflowManager implements WorkflowManager {
 			
 			//1.4.2. If the action is not MANAGE_YOURSELF or FORCE_COMPUTATION
 			//get its corresponding dataset.
-			if (!next.isManaged() && !next.forceComputation()) {
+			if (next.isManaged() && !next.forceComputation()) {
 				
 				//1.4.2.1 Get dataset corresponding to this action
 				String actionFolder = next.getActionFolder();
@@ -228,8 +228,6 @@ public class SimpleWorkflowManager implements WorkflowManager {
 	private void prepareForComputation(Action action, Map<Integer, String> actionsToCompute,
 			Set<Integer> processedActions, Deque<Action> Q, Workflow workflow) {
 		
-		//1.4.2.2 If the dataset does not exist, or it is in state TO_DELETE,
-		//PROCESSING, DELETING or DELETED, 
 		//1.4.2.2.1 Submit the action to MongoDB to get its objectID. The 
 		//state of the action is WAITING.
 		String databaseId = this.aPersistance.insertWaitingAction(action, Collections.<String>emptyList());
