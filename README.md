@@ -175,9 +175,21 @@ The workflow manager makes its decision on whether an action needs to be compute
 
 > **DELETED**: The dataset file has been deleted. 
 
-The workflow manager begins all the actions of the submitted workflow, starting from the leaf actions.  If by analyzing the action it determines that the action needs to be computed, it calls the `prepareForComputation` procedure on that action.
+The workflow manager processes all the actions of the submitted workflow, starting from the leaf actions in a Breadth-First-Search (BFS) manner  If by analyzing the action it determines that the action needs to be computed, it calls the `prepareForComputation` procedure on that action.
 
-> `prepareForComputation` procedure:  TODO (Keep working here tomorrow)
+> `prepareForComputation` procedure:  The procedure first creates an action object P in the **WAITING** state and inserts it to the database.  Also, for each children C of action P that also needs to be computed, the system marks C as depending on P on the database, so that P will need to wait for P results before being ready to be computed.  At last, the procedure adds all the parents of the action P to the queue if they have not already being added.
+
+The *Workflow Manager* makes the determination if an action needs to be computed in the following way (pseudo code below):
+```
+	A = Queue.nextAction()
+	if (A is not to be managed by system) OR (A's forceComputation flag is active):
+		prepare A for computation:
+	
+	else:
+		pass
+```
+
+
 
 ## The Callback System
 Once an action is submitted, three callbacks are provided to the Hadoop cluster so that it can notify back to the **Pingo** system of any relevant event regarding the execution of the action by the cluster.  All callbacks are designed in such a way that the state of the action is always the same after multiple calls to the same callback.
