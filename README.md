@@ -98,6 +98,8 @@ If the attribute `isManaged` is set to `True`, it means that the path where the 
 
 Notice also how action names do not need to be unique.  An action name is just a mnemonic resource to understand what the action does.  Also depending on the action `type`, there might be other required attributes too. We currently support three kinds of actions: **Command-line actions**, **MapReduce v1.0 actions** and **MapReduce v2.0 actions**, and in the future we are planning to add support for **Spark actions** and **Sqoop actions**
 
+TODO (Explain how an action's dataset name is determined)
+
 ### Command Line Action
 TODO (Keep working here tomorrow)
 
@@ -177,7 +179,7 @@ The workflow manager makes its decision on whether an action needs to be compute
 
 The workflow manager processes all the actions of the submitted workflow, starting from the leaf actions in a Breadth-First-Search (BFS) manner  If by analyzing the action it determines that the action needs to be computed, it calls the `prepareForComputation` procedure on that action.
 
-> `prepareForComputation` procedure:  The procedure first creates an action object P in the **WAITING** state and inserts it to the database.  Also, for each children C of action P that also needs to be computed, the system marks C as depending on P on the database, so that P will need to wait for P results before being ready to be computed.  At last, the procedure adds all the parents of the action P to the queue if they have not already being added.
+> `prepareForComputation` procedure:  The procedure first creates an action object P in the **WAITING** state and inserts it to the database.  Also, for each children C of action P that also needs to be computed, the system marks on the database that C is depending on P, so that P will need to wait for P results before being ready to be computed.  At last, the procedure adds all the parents of the action P to the queue if they have not already being added.
 
 The *Workflow Manager* makes the determination if an action needs to be computed in the following way (pseudo code below):
 ```
@@ -186,27 +188,33 @@ The *Workflow Manager* makes the determination if an action needs to be computed
 		prepare A for computation
 	
 	else:
-		if A's dataset D does not exist, or is in any of the following states (DELETED, DELETING, PROCESSING,
-			TO_DELETE, STORED_TO_DELETE:
-			
-			prepare A for computation
+		if A's dataset D does not exist, or is in any of the following states (DELETED, DELETING, 
+			PROCESSING, TO_DELETE, STORED_TO_DELETE:
+			PREPARE ACTION A FOR COMPUTATION
 		else:
 			if A's dataset D is in STORED or LEAF state:
 				if A is a LEAF in this workflow, but A's dataset is in STORED state:
-					change A's dataset to LEAF state
+					CHANGE ACTION A'S DATASET TO LEAF STATE
 					(in this way the dataset cannot now be marked to be deleted
 					by the decision algorithm)
 				
 				for each child C of action A:
 					if C was marked for computation when it was processed:
-						**add a claim from C to dataset D**
+						ADD CLAIM FROM CHILD C TO DATASET D
+						
 						if adding a claim to dataset D fails because D's state has changed:
-							**prepare A for computation**
-							
-							
-				
+							PREPARE ACTION A FOR COMPUTATION
+			
+			else if A's dataset D is in TO_STORE or TO_LEAF state:
+				PREPARE ACTION A FOR COMPUTATION
+
 ```
 
+I want to call the attention to three different behaviors of the algorithms described above.  First, on the `prepareForComputation` procedure, the system marks on the database that an action C is depending on an action P.  This is needed so that the Callback mechanism (which will be described later) can find which are the actions depending on action P when action P finishes computing.
+
+Secondly, on the Workflow Manager algorithm, notice how there is a command described as ADD CLAIM FROM CHILD C TO DATASET D.  What this does is to add a claim from child C to the dataset entity D in the database, so that the Dataset Deletor system (to be described later) do not delete a dataset D while there is an action that depends on it that has not been computed yet.
+
+Thirdly, for the sake of **correctness** of the overall state of the system, we have introduced **an inefficiency** in the Workflow Manager's algorithm.  Notice that if a dataset D is in **TO_STORE** or **TO_LEAF** state, we still prepare action A for computation.  A dataset D is in **TO_STORE** or **TO_LEAF** state if its corresponding action is currently computing given dataset.  This means that some othe workflow submitted to the system is currently computing dataset D. To make the system more efficient, instead of asking the system to recompute action A, we could make all the children actions of A to depend on A' (the sibling action of A from another workflow), and add a claim from the child actions of A to dataset D.  The problem with this approach is that both action A' and dataset D could be having their states changed to something contrary to the current situation at the same time we are planning to change the state of the childrens of action A with outdated information on the states of A' and D.  Trying to handle that situation would mean that we need to introduce more complex synchronization mechanisms across multiple components of the system.  For now we think that the benefits of simplicity will outweight the performance gains of trying to improve a situation that we consider will happen rarely.
 
 
 ## The Callback System
