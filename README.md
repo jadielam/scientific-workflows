@@ -183,10 +183,28 @@ The *Workflow Manager* makes the determination if an action needs to be computed
 ```
 	A = Queue.nextAction()
 	if (A is not to be managed by system) OR (A's forceComputation flag is active):
-		prepare A for computation:
+		prepare A for computation
 	
 	else:
-		pass
+		if A's dataset D does not exist, or is in any of the following states (DELETED, DELETING, PROCESSING,
+			TO_DELETE, STORED_TO_DELETE:
+			
+			prepare A for computation
+		else:
+			if A's dataset D is in STORED or LEAF state:
+				if A is a LEAF in this workflow, but A's dataset is in STORED state:
+					change A's dataset to LEAF state
+					(in this way the dataset cannot now be marked to be deleted
+					by the decision algorithm)
+				
+				for each child C of action A:
+					if C was marked for computation when it was processed:
+						**add a claim from C to dataset D**
+						if adding a claim to dataset D fails because D's state has changed:
+							**prepare A for computation**
+							
+							
+				
 ```
 
 
