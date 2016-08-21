@@ -144,14 +144,14 @@ An action can be in one of the following states: **WAITING**, **READY**, **PROCE
 > **KILLED**: The user killed the action after it started executing.
 
 ### The Action Scraper
-Every certain amount of time, the action scraper will query the database to find available actions and add them to the queue. Available actions are actions that are in the **READY** state, or actions that have been in the **PROCESSING** state for a long time.  The reason why we add actions that have been in the **PROCESSING** state for a long time is that potentially another ActionManager in another server started processing those actions, but that server died before finishing processing them.  
+Every certain amount of time, the action scraper will query the database to find available actions and add them to the queue. Available actions are actions that are in the **READY** state, or actions that have been in the **PROCESSING** state for a long time.  The reason why we add actions that have been in the **PROCESSING** state for a long time is to account for the rare case where another ActionManager in another process started processing those actions, but the process died before finish processing them.  
 
 Before adding the action to the queue, the action scraper attempts to update the state of the action in the database to **PROCESSING**.  If the update fails because the action entity has changed in the database after it was queried by the scraper, then the scraper drops the action and does not add it to the Action Manager queue.  Otherwise, if the update is successful, the action is added to the Action Manager queue.  To illustrate how this synchronization technique is valid, consider the following example with ActionScrapers **A** and **B** and their corresponding action managers. Both scrapers **A** and **B** query the database for ready actions and both find action **a1** to be in the **READY** state.  Without loss of generality, assume that **A** is the first scraper to update the state of action **a1** to **PROCESSING**.  When **B** also attempts to update the state of action **a1**, it will realize that action **a1** has already been changed by someone else, and it will immediately drop it.
 
 > The synchronization technique described and exemplified in the above paragraph will be used multiple times by different components of the system.  In general, that synchronization pattern can be applied in situations where multiple processes can potentially move an object **o** from state **S1** to state **S3** (in the previous example **S1** would be equivalent to our  **READY** state, and **S3** to our **SUBMITTED** state) but only one of the process should be allowed to do it.  In order to solve the problem we create an intermediate state **S2** (**PROCESSING** in our case), and we let all the processes compete to be the first to change the state of **o** to **S2**.  All the loosing processes drop the processing of object **o**, and the winning process carries on.
 
 ### The Action Submitter
-The Action Manager is constantly taking new elements from the queue and passing them to the Action Submitter threads that take care of submitting the actions to Hadoop.  The decision of including in the queue actions that have been in the **PROCESSING** state for a long time makes the design of the Action Submitter more careful.  The submitter first attempts to update the state of the action to **SUBMITTED** in the database. If it succeeds, then it actually submits the action to Hadoop.  If there is an error while submitting the action, then it changes the state of the action back to **READY**, which gives that action the opportunity to be picked again by an Action Scraper at some point later on.  As an area of future improvement, a ceiling should be imposed over the number of times an action fails when submitted to the cluster, otherwise, the system will keep trying to submit the action forever.  
+The Action Manager is constantly taking new elements from the queue and passing them to the Action Submitter threads that take care of submitting the actions to Hadoop.  The decision to include in the queue actions that have been in the **PROCESSING** state for a long time makes the design of the Action Submitter more careful.  The submitter first attempts to update the state of the action to **SUBMITTED** in the database. If it succeeds, then it actually submits the action to Hadoop.  If there is an error while submitting the action, then it changes the state of the action back to **READY**, which gives that action the opportunity to be picked again by an Action Scraper at some point later on.  As an area of future improvement, a ceiling should be imposed over the number of times an action fails when submitted to the cluster, otherwise, the system will keep trying to submit the action forever.  
  
 ## The Workflow Manager
 Now that we have explained the Action Manager, we are in a better shape to understand the workings of the workflow manager.  The workflow manager receives the workflows submitted to the system and determines which of the actions from the workflow need to actually be submitted to Hadoop for computation. Those actions are inserted into the database and can initially be in one of two states: **WAITING** or **READY**. If they are in a **READY** state, any active **Action Manager** will pick them up and submit them to the cluster for computation.  If they are in a **WAITING** state they will eventually be submitted for execution once their parents finish executing.  The process of how actions in the **WAITING** state are notified that their parents finish executing will be discussed later when we discuss the **Callback System**.
@@ -221,16 +221,33 @@ Thirdly, for the sake of correctness of the overall state of the system, we have
 Once an action is submitted, three callbacks are provided to the Hadoop cluster so that it can notify back to the **Pingo** system of any relevant event regarding the execution of the action by the cluster.  All callbacks are designed in such a way that the state of the action is always the same after multiple calls to the same callback.
  
 ### The Success Callback
-The first thing the success callback does is to change to **READY** the state of any child actions of the currently finished action that are not waiting for any other parent action to finish.  It also changes the state of the currently finished action to **FINISHED**.  TODO (Keep working here tomorrow)
+The first thing the success callback does is to change from **WAITING** to **READY** the state of any child actions of the currently finished action that are not waiting for any other parent action to finish.  It also changes the state of the currently finished action to **FINISHED**. The callback also removes any claims the currently finished action may have had over datasets.  The callback finally updates the state and metadata of the dataset outputted by the currently finished action: dataset state is changed from **TO_STORE**, **TO_LEAF** or **TO_DELETE** to **STORED**, **LEAF** or **STORED_TO_DELETE** accordingly.  Also, the size the dataset occupies in the filesystem is also updated on its entry in the database.  That size is an important factor used by the optimization algorithm.
+
 
 ### The Action-Failed Callback
-TODO (Keep working here tomorrow)
+The action failed callback is simpler than the success callback.  It removes any claims that the failed action may have had over any datasets.  If the action that failed produced any output or partial output, its state is changed to **STORED_TO_DELETE** regardless of the previous state of the dataset.  Also, the state of the action itself is changed to **FAILED**.
 
 ### The Action-Killed Callback
-TODO (Keep working here tomorrow)
+The action killed callback removes any claims that the killed action may have had over any datasets.  If the action that was killed produced any output or partial output, its state is changed to **STORED_TO_DELETE** regardless of the previous state of the dataset.  Also, the state of the action itself is changed to **KILLED**.
+
 
 ## The Dataset Manager
-TODO (Keep working here tomorrow)
+The dataset manager takes care of handling the deletion of datasets from the file system.  Its archicture is similar to the architecture of the Action Manager:
+
+1. The Dataset Manager maintains a synchronized queue Q with the datasets that need to be deleted from the cluster.  The queue is capacity bounded and supports operations that wait for the queue to become non-empty when retrieving an element, and wait for space to become available in the queue when storing an element.  All operations are thread save.
+
+2. The queue is filled by a DatasetScraper entity that queries the database for datasets ready to be deleted.
+
+3. The Dataset Manager takes dataset entries inserted to the queue and hands them to a pool of DatasetDeletor threads that will take care of removing the datasets from the cluster and updating the state of those datasets in the database.
+
+### The Dataset Scraper
+Every certain time, the dataset scraper will query the database to find available datasets to be deleted and add them to the queue.  Datasets to delete are such that are in the **STORED_TO_DELETE** state, or datasets that have been in the **DELETING** or **PROCESSING** state for a long time.  The reason why we add datasets that have been in the **DELETING** or **PROCESSING** state for a long time is to account for the rare case where another DatasetManager in another process could have began processing those actions, but that process died before finish processing them.
+
+Before adding the dataset to the queue, the dataset scraper attempts to update the state of the dataset in the database to **PROCESSING**.  If the update fails because the dataset entity has changed in the database after it was queried by the scraper, then the scraper drops the dataset and does not add it to the Dataset Manager queue.  Otherwise, if the update is successful, the action is added to the Dataset Manager queue.
+
+### The Dataset Deletor
+The Dataset Manager is constantly taking new elements from the queue and passing them to the Dataset Deletor threads that take care of removing the datasets from the file system.  The deletor first attempts to update the state of the dataset to **DELETING**.  If it succeeds, then it actually deletes the dataset from the file system and updates its state to **DELETED**.  If it does not succeed, or if some other error occurs while deleting so that it cannot delete, it changes the state of the dataset back to **STORED_TO_DELETE** and stops processing it.
 
 ## The Optimization Engine
 TODO (Not yet implemented)
+

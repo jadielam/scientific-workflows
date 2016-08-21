@@ -81,16 +81,17 @@ public class Callback {
 					DatasetState state = actionDataset.getState();
 					if (state.equals(DatasetState.TO_STORE)) {
 						actionDataset = this.dPersistance.updateDatasetState(actionDataset, DatasetState.STORED);
-						this.dPersistance.updateDatasetSizeInMB(actionDataset, sizeInMB);
+						
 					}
 					else if (DatasetState.TO_LEAF.equals(state)) {
 						actionDataset = this.dPersistance.updateDatasetState(actionDataset, DatasetState.LEAF);
-						this.dPersistance.updateDatasetSizeInMB(actionDataset, sizeInMB);
+						
 					}
 					else if (state.equals(DatasetState.TO_DELETE)){
 						actionDataset = this.dPersistance.updateDatasetState(actionDataset, DatasetState.STORED_TO_DELETE);
-						this.dPersistance.updateDatasetSizeInMB(actionDataset, sizeInMB);
+						
 					}
+					this.dPersistance.updateDatasetSizeInMB(actionDataset, sizeInMB);
 				}
 				
 			}
@@ -116,6 +117,9 @@ public class Callback {
 			PersistedAction action = this.aPersistance.getActionById(actionId);
 			String outputPath = action.getAction().getOutputPath();
 			PersistedDataset dataset = this.dPersistance.getDatasetByPath(outputPath);
+			//TODO: There might be a bug here. Analyze later: If the dataset is not deleted immediately here
+			//then it could be that actions with claims on it might use it even when it is in an inconsistent state.
+			
 			this.dPersistance.updateDatasetState(dataset, DatasetState.STORED_TO_DELETE);
 		}
 		catch(Exception e) {
