@@ -92,6 +92,10 @@ public class Callback {
 						
 					}
 					this.dPersistance.updateDatasetSizeInMB(actionDataset, sizeInMB);
+					for (String childActionId : childActionIds) {
+						this.dPersistance.addClaimToDataset(actionDataset, childActionId);
+					}
+					
 				}
 				
 			}
@@ -119,7 +123,11 @@ public class Callback {
 			PersistedDataset dataset = this.dPersistance.getDatasetByPath(outputPath);
 			//TODO: There might be a bug here. Analyze later: If the dataset is not deleted immediately here
 			//then it could be that actions with claims on it might use it even when it is in an inconsistent state.
-			
+			//No, it is not possible.  Actions get only notified of this dataset if
+			//the action succeeded.  No actions can possibly have a claim on this
+			//dataset unless they are having it through the action, because this
+			//dataset did not exist, and no action places a clain on a non-existent 
+			//dataset.
 			this.dPersistance.updateDatasetState(dataset, DatasetState.STORED_TO_DELETE);
 		}
 		catch(Exception e) {

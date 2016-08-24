@@ -35,6 +35,16 @@ public class PersistedDataset extends Dataset {
 	 */
 	private final List<String> claims;
 	
+	public PersistedDataset(String path, DatasetState state,
+			Date lastUpdatedDate, int version, List<String> claims) {
+		super(path, null);
+		Preconditions.checkNotNull(state);
+		Preconditions.checkNotNull(lastUpdatedDate);
+		this.state = state;
+		this.lastUpdatedDate = lastUpdatedDate;
+		this.version = version;
+		this.claims = claims;
+	}
 	public PersistedDataset(String path, Double sizeInMB, DatasetState state,
 			Date lastUpdatedDate, int version, List<String> claims) {
 		super(path, sizeInMB);

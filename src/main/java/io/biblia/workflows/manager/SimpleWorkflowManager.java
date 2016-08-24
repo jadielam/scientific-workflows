@@ -1,12 +1,14 @@
 package io.biblia.workflows.manager;
 
 import java.util.LinkedList;
+import java.util.Map.Entry;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Deque;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -138,8 +140,8 @@ public class SimpleWorkflowManager implements WorkflowManager {
 										catch(OutdatedDatasetException ex) {
 											dataset = this.dPersistance.getDatasetByPath(actionFolder);
 											if (null == dataset
-												|| !dataset.getState().equals(DatasetState.LEAF)
-												|| !dataset.getState().equals(DatasetState.STORED)) {
+												|| (!dataset.getState().equals(DatasetState.LEAF)
+												&& !dataset.getState().equals(DatasetState.STORED))) {
 												
 												prepareForComputation(next, actionsToCompute, processedActions, Q, workflow);
 												break;
@@ -190,26 +192,37 @@ public class SimpleWorkflowManager implements WorkflowManager {
 		//and that takes care of implementing the main API calls that the algorithm will do
 		//in order to make decisions. The algorithm will produce two sets of decisions:
 		
-		//1. For all the actions TO BE COMPUTED in the current submitted workflow, determine if the
-		//the dataset will be kept or deleted.  Remeber to take into account if the action is
-		//leaf or not.  Once the decision is made, a new dataset should be inserted (or updated if
-		//it already exists). There is no differentiation on the state we should set the dataset
-		//in the database for actions that already existed vs. actions that did not exist, since
-		//if I mark an action that already existed as TO_DELETE, the callback will take
-		//care of handling the case.
-		
-		//2. For all the datasets currently stored in the system that (including datasets pertaining to the
-		//current workflow and that do not need to be computed), determine if the dataset
-		//has to be deleted or not.
-		
 		//TODO: QUestion to answer: How am I adding claims to datasets already/previously existing in the 
-		//system, and hence not being computed by me?
+				//system, and hence not being computed by me?
+		
+		//1. For all the actions TO BE COMPUTED in the current submitted workflow, create
+		//a new dataset in the database with state of either TO_LEAF or TO_STORE
+		Set<Entry<Integer, String>> entrySet = actionsToCompute.entrySet();
+		for (Entry<Integer, String> entry : entrySet) {
+			Integer actionWorkflowId = entry.getKey();
+			Action action = workflow.getAction(actionWorkflowId);
+			String datasetPath = action.getOutputPath();
+			
+			DatasetState state = null;
+			if (isLeaf(action, workflow)) {
+				state = DatasetState.TO_LEAF;
+			}
+			else {
+				state = DatasetState.TO_STORE;
+			}
+			PersistedDataset newDataset = new PersistedDataset(datasetPath,
+					state, new Date(), 1, Collections.<String>emptyList());
+			this.dPersistance.insertDataset(newDataset);
+		}
+		
+		
 		
 		//3. For each action in the map of actions to be computed, if the 
 		//action does not have parent actions on which it depends, 
 		//change it from a WAITING action to a READY action.
 		Collection<String> databaseIds = actionsToCompute.values();
 		for (String databaseId : databaseIds) {
+		
 			this.aPersistance.readyAction(databaseId);
 		}
 				
