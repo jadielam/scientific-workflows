@@ -11,6 +11,7 @@ import com.mongodb.client.model.ReturnDocument;
 import io.biblia.workflows.definition.Action;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
 import io.biblia.workflows.definition.parser.v1.ActionParser;
+import io.biblia.workflows.manager.DatabaseConstants;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.json.JsonParseException;
@@ -19,7 +20,6 @@ import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -42,16 +42,11 @@ import static com.mongodb.client.model.Filters.*;
  *     ...//
  * }
  */
-public class MongoActionPersistance implements ActionPersistance {
+public class MongoActionPersistance implements ActionPersistance, DatabaseConstants {
     
-    public static final String ACTIONS_COLLECTION = "actions_cl";
-    public static final String WORKFLOWS_DATABASE = "workflows_db";
 
-    /**
-     * The number of seconds for an action in PROCESSING state to be
-     * considered obsolete.
-     */
-    public static final int OUTDATED_SECONDS = 400;
+
+
     private final MongoClient mongo;
     private final MongoDatabase workflows;
     private final MongoCollection<Document> actions;

@@ -188,10 +188,6 @@ public class SimpleWorkflowManager implements WorkflowManager {
 		
 		}
 			
-		//TODO: Implement an algorithm that stores workflows on MongoDB as they are received 
-		//and that takes care of implementing the main API calls that the algorithm will do
-		//in order to make decisions. The algorithm will produce two sets of decisions:
-		
 		//TODO: QUestion to answer: How am I adding claims to datasets already/previously existing in the 
 				//system, and hence not being computed by me?
 		
@@ -214,8 +210,6 @@ public class SimpleWorkflowManager implements WorkflowManager {
 					state, new Date(), 1, Collections.<String>emptyList());
 			this.dPersistance.insertDataset(newDataset);
 		}
-		
-		
 		
 		//3. For each action in the map of actions to be computed, if the 
 		//action does not have parent actions on which it depends, 

@@ -24,18 +24,15 @@ import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 
 import io.biblia.workflows.definition.parser.v1.DatasetParser;
+import io.biblia.workflows.manager.DatabaseConstants;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import static com.mongodb.client.model.Filters.*;
 
-public class MongoDatasetPersistance implements DatasetPersistance {
+public class MongoDatasetPersistance implements DatasetPersistance, DatabaseConstants {
 
-	public static final String DATASETS_COLLECTION = "datasets_cl";
-	public static final String WORKFLOWS_DATABASE = "workflows_db";
-	
-	public static final int OUTDATED_SECONDS = 400;
 	private final MongoClient mongo;
 	private final MongoDatabase workflows;
 	private final MongoCollection<Document> datasets;
