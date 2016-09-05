@@ -20,7 +20,7 @@ public interface DatasetLogDao {
 	 * @param datasetSize The current size of the dataset
 	 * @return The id entry of the log.
 	 */
-	String insertLogEntry(String datasetPath, DatasetState previousState,
+	public String insertLogEntry(String datasetPath, DatasetState previousState,
 			DatasetState newState, Long datasetSize);
 	
 	/**
@@ -28,5 +28,5 @@ public interface DatasetLogDao {
 	 * used by datasets in the file system. 
 	 * @return the space used in megabytes.
 	 */
-	long currentlyUsedSpace();
+	public long currentlyUsedSpace();
 }

@@ -65,7 +65,8 @@ public interface ActionPersistance {
 	 * @param endTime
 	 * @return
 	 */
-	public PersistedAction addStartAndEndTime(PersistedAction action, Date startTime, Date endTime) throws OutdatedActionException, NullPointerException, JsonParseException, WorkflowParseException;
+	public PersistedAction addStartAndEndTimeAndSize(PersistedAction action, Date startTime, Date endTime,
+			Double sizeInMB) throws OutdatedActionException, NullPointerException, JsonParseException, WorkflowParseException;
 	
 	/**
 	 * Inserts a new action to the persistance that is in READY state
@@ -93,6 +94,27 @@ public interface ActionPersistance {
 	 * @param state
 	 */
 	public void forceUpdateActionState(ObjectId id, ActionState state);
+	
+	/**
+	 * FOrce updates the action state to FINISHED, as well as it adds
+	 * a counter value to it.
+	 * @param id the database id of the action
+	 */
+	public void actionFinished(ObjectId id);
+	
+	/**
+	 * Force updates the action state to FAILED, as well as it adds a counter
+	 * value to it
+	 * @param id the database id of the action.
+	 */
+	public void actionFailed(ObjectId id);
+	
+	/**
+	 * Forces update the action state to KILLED, as well as it adds a counter
+	 * value to it.
+	 * @param id
+	 */
+	public void actionKilled(ObjectId id);
 	
 	/**
 	 * The implementation of this function is interesting:

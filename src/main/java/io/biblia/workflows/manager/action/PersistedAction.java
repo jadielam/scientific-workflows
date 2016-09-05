@@ -4,6 +4,11 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 
 import io.biblia.workflows.definition.Action;
+import io.biblia.workflows.definition.parser.WorkflowParseException;
+import io.biblia.workflows.definition.parser.v1.ActionParser;
+
+import org.bson.Document;
+import org.bson.json.JsonParseException;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
@@ -56,11 +61,18 @@ public class PersistedAction {
      */
     private Date endTime = null;
     
+    private Double sizeInMB;
+    
+    private Long marker;
+    
     private List<String> parentsActionIds;
+    
+    private static final io.biblia.workflows.definition.parser.ActionParser PARSER = new ActionParser();
 
     public PersistedAction(Action action, ObjectId _id,
                            ActionState state, Date lastUpdatedDate, 
-                           int version, List<String> parentsActionIds) {
+                           int version, List<String> parentsActionIds,
+                           Double sizeInMB, Long marker) {
         Preconditions.checkNotNull(action);
         Preconditions.checkNotNull(_id);
         Preconditions.checkNotNull(state);
@@ -72,11 +84,14 @@ public class PersistedAction {
         this.version = version;
         this.submissionId = null;
         this.parentsActionIds = parentsActionIds;
+        this.sizeInMB = sizeInMB;
+        this.marker = marker;
     }
     
     public PersistedAction(Action action, ObjectId _id,
             ActionState state, Date lastUpdatedDate, 
-            int version, String submissionId, List<String> parentsActionIds) {
+            int version, String submissionId, List<String> parentsActionIds,
+            Double sizeInMB, Long marker) {
     	Preconditions.checkNotNull(action);
     	Preconditions.checkNotNull(_id);
     	Preconditions.checkNotNull(state);
@@ -88,12 +103,15 @@ public class PersistedAction {
     	this.version = version;
     	this.submissionId = submissionId;
     	this.parentsActionIds = parentsActionIds;
+    	this.sizeInMB = sizeInMB;
+    	this.marker = marker;
     }
     
     public PersistedAction(Action action, ObjectId _id,
             ActionState state, Date lastUpdatedDate, 
             int version, String submissionId,
-            Date startTime, Date endTime, List<String> parentsActionIds) {
+            Date startTime, Date endTime, List<String> parentsActionIds,
+            Double sizeInMB, Long marker) {
     	Preconditions.checkNotNull(action);
     	Preconditions.checkNotNull(_id);
     	Preconditions.checkNotNull(state);
@@ -107,6 +125,8 @@ public class PersistedAction {
     	this.startTime = startTime;
     	this.endTime = endTime;
     	this.parentsActionIds = parentsActionIds;
+    	this.sizeInMB = sizeInMB;
+    	this.marker = marker;
     } 
     
     public Action getAction() {
@@ -144,4 +164,33 @@ public class PersistedAction {
 	public List<String> getParentActionIds() {
 		return this.parentsActionIds;
 	}
+	
+	public Long getMarker() {
+		return this.marker;
+	}
+	
+	public Double getSizeInMB() {
+		return this.sizeInMB;
+	}
+	
+	public static PersistedAction parseAction(Document document) throws
+    WorkflowParseException, NullPointerException, JsonParseException {
+
+ObjectId id = document.getObjectId("_id");
+Date date = (Date) document.getDate("lastUpdatedDate");
+String stateString = document.getString("state");
+ActionState state = ActionState.valueOf(stateString);
+String submissionId = document.getString("submissionId");
+Date startTime = document.getDate("startTime");
+Date endTime = document.getDate("endTime");
+Double sizeInMB = document.getDouble("sizeInMB");
+Long marker = document.getLong("marker");
+Document actionDoc = (Document) document.get("action");
+Action action = PARSER.parseAction(actionDoc);
+int version = document.getInteger("version");
+List<String> parentsActionIds = (List<String>) document.get("parentsActionIds", List.class);
+
+return new PersistedAction(action, id, state, date, version, submissionId,
+		startTime, endTime, parentsActionIds, sizeInMB, marker);
+}
 }

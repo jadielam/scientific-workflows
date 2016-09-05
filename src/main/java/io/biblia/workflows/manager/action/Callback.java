@@ -54,7 +54,7 @@ public class Callback {
 		
 		//3. Update action state
 		ObjectId id = new ObjectId(actionId); 
-		this.aPersistance.forceUpdateActionState(id, ActionState.FINISHED);
+		this.aPersistance.actionFinished(id);
 		
 		//4.1 Updating start and end time of the action.
 		//4.2 Insert a record of the output of the action into the database
@@ -65,11 +65,13 @@ public class Callback {
 			List<Date> times = OozieClientUtil.getStartAndEndTime(oozieId);
 			Date startTime = times.get(0);
 			Date endTime = times.get(1);
-			this.aPersistance.addStartAndEndTime(action, startTime, endTime);
-			
 			//2. Inserting a record of the output action into the database.
 			String outputPath = action.getAction().getOutputPath();
 			Double sizeInMB = HdfsUtil.getSizeInMB(outputPath);
+			
+			this.aPersistance.addStartAndEndTimeAndSize(action, startTime, endTime, sizeInMB);
+			
+			
 			if (null != sizeInMB) {
 				PersistedDataset actionDataset = this.dPersistance.getDatasetByPath(outputPath);
 				if (null == actionDataset) {
@@ -135,7 +137,7 @@ public class Callback {
 		}
 		
 		//3. Update the action state to FAILED
-		this.aPersistance.forceUpdateActionState(id, ActionState.FAILED);
+		this.aPersistance.actionFailed(id);
 	}
 	
 	public void actionKilled(String actionId) {
@@ -160,7 +162,7 @@ public class Callback {
 
 		//3. Update the state of the action.
 		ObjectId id = new ObjectId(actionId);
-		this.aPersistance.forceUpdateActionState(id, ActionState.KILLED);
+		this.aPersistance.actionKilled(id);
 	}
 	
 	/**

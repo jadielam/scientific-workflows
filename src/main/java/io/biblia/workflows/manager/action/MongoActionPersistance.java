@@ -1,5 +1,6 @@
 package io.biblia.workflows.manager.action;
 
+import com.google.common.base.Preconditions;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -10,7 +11,6 @@ import com.mongodb.client.model.ReturnDocument;
 
 import io.biblia.workflows.definition.Action;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
-import io.biblia.workflows.definition.parser.v1.ActionParser;
 import io.biblia.workflows.manager.DatabaseConstants;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -44,19 +44,19 @@ import static com.mongodb.client.model.Filters.*;
  */
 public class MongoActionPersistance implements ActionPersistance, DatabaseConstants {
     
-
-
-
     private final MongoClient mongo;
     private final MongoDatabase workflows;
     private final MongoCollection<Document> actions;
-    private final io.biblia.workflows.definition.parser.ActionParser parser;
+    private final MongoCollection<Document> counters;
+    
+ 
     
     public MongoActionPersistance(MongoClient mongo) {
         this.mongo = mongo;
         this.workflows = this.mongo.getDatabase(WORKFLOWS_DATABASE);
         this.actions = this.workflows.getCollection(ACTIONS_COLLECTION);
-        this.parser = new ActionParser();
+        this.counters = this.workflows.getCollection(COUNTERS_COLLECTION);
+     
     }
     
     @Override
@@ -86,7 +86,7 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
             while (iterator.hasNext()) {
                 Document next = iterator.next();
                 try{
-                    PersistedAction action = parseAction(next);
+                    PersistedAction action = PersistedAction.parseAction(next);
                     toReturn.add(action);
                 }
                 catch(Exception e) {
@@ -154,7 +154,7 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
         	throw new OutdatedActionException();
         }
         else {
-        	return parseAction(newDocument);
+        	return PersistedAction.parseAction(newDocument);
         }
     }
     
@@ -182,17 +182,23 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
 			throw new OutdatedActionException();
 		}
 		else {
-			return parseAction(newDocument);
+			return PersistedAction.parseAction(newDocument);
 		}
 	}
 	
 	@Override
-	public PersistedAction addStartAndEndTime(PersistedAction action, Date startTime, Date endTime)
+	public PersistedAction addStartAndEndTimeAndSize(PersistedAction action, Date startTime, Date endTime,
+			Double sizeInMB)
 			throws OutdatedActionException, NullPointerException, JsonParseException, WorkflowParseException{
+		
+		Preconditions.checkNotNull(action);
+		Preconditions.checkNotNull(startTime);
+		Preconditions.checkNotNull(endTime);
 		final Document filter = new Document().append("_id", action.getId())
 				.append("version", action.getVersion());
 		final Document update = new Document().append("$set", new Document("startTime", startTime))
 				.append("$set", new Document("endTime", endTime))
+				.append("$set", new Document("sizeInMB", sizeInMB))
 				.append("$currentDate", new Document("lastUpdatedDate", true))
 				.append("$inc", new Document("version", 1));
 		
@@ -203,31 +209,9 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
 			throw new OutdatedActionException();
 		}
 		else {
-			return parseAction(newDocument);
+			return PersistedAction.parseAction(newDocument);
 		}
 	}
-
-	
-
-
-    private PersistedAction parseAction(Document document) throws
-            WorkflowParseException, NullPointerException, JsonParseException {
-
-        ObjectId id = document.getObjectId("_id");
-        Date date = (Date) document.getDate("lastUpdatedDate");
-        String stateString = document.getString("state");
-        ActionState state = ActionState.valueOf(stateString);
-        String submissionId = document.getString("submissionId");
-        Date startTime = document.getDate("startTime");
-        Date endTime = document.getDate("endTime");
-        Document actionDoc = (Document) document.get("action");
-        Action action = this.parser.parseAction(actionDoc);
-        int version = document.getInteger("version");
-        List<String> parentsActionIds = (List<String>) document.get("parentsActionIds", List.class);
-
-        return new PersistedAction(action, id, state, date, version, submissionId,
-        		startTime, endTime, parentsActionIds);
-    }
 
 	@Override
 	public void forceUpdateActionState(ObjectId id, ActionState state) {
@@ -248,7 +232,7 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
 		final Document update = new Document();
 		final Document found = this.actions.findOneAndUpdate(filter, update);
 		if (null != found) {
-			PersistedAction toReturn = parseAction(found);
+			PersistedAction toReturn = PersistedAction.parseAction(found);
 			return toReturn;
 		}
 		return null;
@@ -286,7 +270,7 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
             while (iterator.hasNext()) {
                 Document next = iterator.next();
                 try{
-                    PersistedAction action = parseAction(next);
+                    PersistedAction action = PersistedAction.parseAction(next);
                     childActions.add(action);
                 }
                 catch(Exception e) {
@@ -338,6 +322,46 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
         this.actions.findOneAndUpdate(filter, update, options);
 	}
 
+	@Override
+	public void actionFinished(ObjectId id) {
+		final Document filter = new Document().append("_id", id);
+		final Document update = new Document().append("$set", new Document("state", ActionState.FINISHED))
+				.append("$set", new Document("marker", getNextLogSequence()))
+				.append("$currentDate", new Document("lastUpdatedDate", true))
+				.append("$inc", new Document("version", 1));
+		this.actions.updateOne(filter, update);
+	}
+
+	@Override
+	public void actionFailed(ObjectId id) {
+		final Document filter = new Document().append("_id", id);
+		final Document update = new Document().append("$set", new Document("state", ActionState.FAILED))
+				.append("$set", new Document("marker", getNextLogSequence()))
+				.append("$currentDate", new Document("lastUpdatedDate", true))
+				.append("$inc", new Document("version", 1));
+		this.actions.updateOne(filter, update);
+	}
+
+	@Override
+	public void actionKilled(ObjectId id) {
+		final Document filter = new Document().append("_id", id);
+		final Document update = new Document().append("$set", new Document("state", ActionState.KILLED))
+				.append("$set", new Document("marker", getNextLogSequence()))
+				.append("$currentDate", new Document("lastUpdatedDate", true))
+				.append("$inc", new Document("version", 1));
+		this.actions.updateOne(filter, update);
+	}
+
+	private Long getNextLogSequence() {
+		final Document filter = new Document().append("_id", "actions");
+		final Document update = new Document().append("$inc", new Document("seq", 1));
+		FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
+		options.returnDocument(ReturnDocument.AFTER);
+		options.upsert(true);
+		Document newDocument = this.counters.findOneAndUpdate(filter,  update, options);
+		Long toReturn = newDocument.getLong("seq");
+		return toReturn;
+	}
 
 
 
