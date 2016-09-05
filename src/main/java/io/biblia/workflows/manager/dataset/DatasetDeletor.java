@@ -4,17 +4,22 @@ import java.io.IOException;
 
 import com.google.common.base.Preconditions;
 import io.biblia.workflows.hdfs.HdfsUtil;
+import io.biblia.workflows.manager.decision.DatasetLogDao;
 
 public class DatasetDeletor implements Runnable {
 
 	private PersistedDataset dataset;
 	private final DatasetPersistance persistance;
+	private final DatasetLogDao datasetLogDao;
 	
-	public DatasetDeletor(PersistedDataset dataset, DatasetPersistance persistance) {
+	public DatasetDeletor(PersistedDataset dataset, DatasetPersistance persistance,
+			DatasetLogDao datasetLogDao) {
 		Preconditions.checkNotNull(dataset);
 		Preconditions.checkNotNull(persistance);
+		Preconditions.checkNotNull(datasetLogDao);
 		this.dataset = dataset;
 		this.persistance = persistance;
+		this.datasetLogDao = datasetLogDao;
 	}
 
 	@Override
@@ -62,6 +67,7 @@ public class DatasetDeletor implements Runnable {
 		
 		try {
 			this.dataset = this.persistance.updateDatasetState(this.dataset, DatasetState.DELETED);
+			this.datasetLogDao.insertLogEntry(this.dataset.getPath(), DatasetState.DELETING, DatasetState.DELETED, this.dataset.getSizeInMB());
 		}
 		catch (Exception e) {
 			return;

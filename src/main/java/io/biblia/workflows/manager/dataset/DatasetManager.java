@@ -4,6 +4,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import io.biblia.workflows.manager.decision.DatasetLogDao;
 import com.google.common.base.Preconditions;
 
 import java.util.concurrent.BlockingQueue;
@@ -31,6 +32,8 @@ public class DatasetManager {
 	
 	private DatasetPersistance datasetPersistance;
 	
+	private DatasetLogDao datasetLogDao;
+	
 	static {
 		
 		//1. Create the concurrent queue
@@ -49,7 +52,7 @@ public class DatasetManager {
 			while (!Thread.currentThread().isInterrupted()) {
 				try{
 					PersistedDataset dataset = datasetsQueue.take();
-					datasetDeletorsExecutor.execute(new DatasetDeletor(dataset, datasetPersistance));
+					datasetDeletorsExecutor.execute(new DatasetDeletor(dataset, datasetPersistance, datasetLogDao));
 					Thread.sleep(100);
 				}
 				catch (InterruptedException ex) {
@@ -62,10 +65,11 @@ public class DatasetManager {
 		}
 	}
 	
-	private DatasetManager(DatasetPersistance datasetPersistance) {
+	private DatasetManager(DatasetPersistance datasetPersistance, DatasetLogDao datasetLogDao) {
 		
 		Preconditions.checkNotNull(datasetPersistance);
 		this.datasetPersistance = datasetPersistance;
+		this.datasetLogDao = datasetLogDao;
 		
 		DatasetScraper.start(datasetsQueue, datasetPersistance);
 		
@@ -73,9 +77,9 @@ public class DatasetManager {
 		t.start();
 	}
 	
-	public static void start(DatasetPersistance persistance) {
+	public static void start(DatasetPersistance persistance, DatasetLogDao datasetLogDao) {
 		if (null == instance) {
-			instance = new DatasetManager(persistance);
+			instance = new DatasetManager(persistance, datasetLogDao);
 		}
 	}
 	

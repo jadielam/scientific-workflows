@@ -21,7 +21,7 @@ public interface DatasetLogDao {
 	 * @return The id entry of the log.
 	 */
 	public String insertLogEntry(String datasetPath, DatasetState previousState,
-			DatasetState newState, Long datasetSize);
+			DatasetState newState, Double datasetSize);
 	
 	/**
 	 * Queries the log database and calculates how much space has been 

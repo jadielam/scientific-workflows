@@ -41,7 +41,7 @@ public class MongoDatasetLogDao implements DatasetLogDao, DatabaseConstants {
 	
 	@Override
 	public String insertLogEntry(String datasetPath, DatasetState previousState, 
-			DatasetState newState, Long sizeInMB) {
+			DatasetState newState, Double sizeInMB) {
 		Preconditions.checkNotNull(datasetPath,
 				"datasetPath cannot be null");
 		Preconditions.checkNotNull(previousState,

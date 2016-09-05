@@ -11,6 +11,7 @@ import io.biblia.workflows.manager.dataset.DatasetPersistance;
 import io.biblia.workflows.manager.dataset.PersistedDataset;
 import io.biblia.workflows.oozie.OozieClientUtil;
 import io.biblia.workflows.manager.dataset.DatasetState;
+import io.biblia.workflows.manager.decision.DatasetLogDao;
 
 import com.google.common.base.Preconditions;
 
@@ -27,13 +28,17 @@ public class Callback {
 
 	private final ActionPersistance aPersistance;
 	private final DatasetPersistance dPersistance;
+	private final DatasetLogDao dLogDao;
 	
 	public Callback(ActionPersistance aPersistance,
-			DatasetPersistance dPersistance) {
+			DatasetPersistance dPersistance,
+			DatasetLogDao datasetLogDao) {
 		Preconditions.checkNotNull(aPersistance);
 		Preconditions.checkNotNull(dPersistance);
+		Preconditions.checkNotNull(datasetLogDao);
 		this.aPersistance = aPersistance;
 		this.dPersistance = dPersistance;
+		this.dLogDao = datasetLogDao;
 	}
 	
 	/**
@@ -78,20 +83,21 @@ public class Callback {
 					PersistedDataset newDataset = new PersistedDataset(outputPath,
 							sizeInMB, DatasetState.STORED, new Date(), 1, childActionIds);
 					this.dPersistance.insertDataset(newDataset);
+					this.dLogDao.insertLogEntry(outputPath, DatasetState.PROCESSING, DatasetState.STORED, sizeInMB);
 				}
 				else {
 					DatasetState state = actionDataset.getState();
 					if (state.equals(DatasetState.TO_STORE)) {
 						actionDataset = this.dPersistance.updateDatasetState(actionDataset, DatasetState.STORED);
-						
+						this.dLogDao.insertLogEntry(outputPath, DatasetState.TO_STORE, DatasetState.STORED, sizeInMB);
 					}
 					else if (DatasetState.TO_LEAF.equals(state)) {
 						actionDataset = this.dPersistance.updateDatasetState(actionDataset, DatasetState.LEAF);
-						
+						this.dLogDao.insertLogEntry(outputPath, DatasetState.TO_LEAF, DatasetState.LEAF, sizeInMB);
 					}
 					else if (state.equals(DatasetState.TO_DELETE)){
 						actionDataset = this.dPersistance.updateDatasetState(actionDataset, DatasetState.STORED_TO_DELETE);
-						
+						this.dLogDao.insertLogEntry(outputPath, DatasetState.TO_DELETE, DatasetState.STORED_TO_DELETE, sizeInMB);
 					}
 					this.dPersistance.updateDatasetSizeInMB(actionDataset, sizeInMB);
 					for (String childActionId : childActionIds) {
