@@ -6,6 +6,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.FsStatus;
 
 import com.google.common.base.Preconditions;
 
@@ -77,5 +78,24 @@ public class HdfsUtil {
 		else {
 			return null;
 		}
+		
+	}
+	
+	public static Long getFileSystemCapacityInMB() throws IOException {
+		FsStatus status = fs.getStatus();
+		long capacity = status.getCapacity();
+		return new Long(capacity / 1000000);
+	}
+	
+	public static Long getFileSystemUsedSpaceInMB() throws IOException {
+		FsStatus status = fs.getStatus();
+		long usedSpace = status.getUsed();
+		return new Long(usedSpace / 1000000);
+	}
+	
+	public static Long getFileSystemRemainingSpaceInMB() throws IOException {
+		FsStatus status = fs.getStatus();
+		long remainingSpace = status.getRemaining();
+		return new Long(remainingSpace / 1000000);
 	}
 }

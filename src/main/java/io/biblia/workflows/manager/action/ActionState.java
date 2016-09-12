@@ -22,9 +22,12 @@ package io.biblia.workflows.manager.action;
  * executing after starting to execute.
  * 
  * KILLED: Means that the user killed the action after it started executing.
+ * 
+ * COMPUTED: Means that this action has been submitted in previous workflows and
+ * has already been computed, and the result of the computation is available.
  */
 public enum ActionState {
 
 	WAITING, READY, PROCESSING, SUBMITTED, RUNNING, FINISHED,
-	FAILED, KILLED;
+	FAILED, KILLED, COMPUTED;
 }

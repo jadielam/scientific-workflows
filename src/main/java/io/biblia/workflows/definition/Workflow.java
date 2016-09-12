@@ -52,6 +52,11 @@ public class Workflow {
 	private final Map<Action, Set<Action>> actionsDependency = new HashMap<>();
 	
 	/**
+	 * Map from action to actions on which it depends
+	 */
+	private final Map<Action, Set<Action>> inverseActionsDependency = new HashMap<>();
+	
+	/**
 	 * Constructs a workflow object.  It first validates the workflow
 	 * @param startAction
 	 * @param endAction
@@ -133,6 +138,20 @@ public class Workflow {
 				
 				//2. set the input parameters of the action
 				action.setInputParameters(parentsOutput); 		
+			}
+		}
+		
+		//4. Create inverse dependency graph
+		Set<Entry<Action, Set<Action>>> entrySet = this.actionsDependency.entrySet();
+		for (Entry<Action, Set<Action>> e : entrySet) {
+			Action parent = e.getKey();
+			Set<Action> children = e.getValue();
+			for (Action child : children) {
+				
+				if (!this.inverseActionsDependency.containsKey(child)) {
+					this.inverseActionsDependency.put(child, new HashSet<>());
+				}
+				this.inverseActionsDependency.get(child).add(parent);
 			}
 		}
 		
@@ -269,6 +288,7 @@ public class Workflow {
 	public Collection<Action> getActions() {
 		return Collections.unmodifiableCollection(this.actions.values());
 	}
+	
 	/**
 	 * Returns the name of the workflow.
 	 * @return
@@ -287,6 +307,22 @@ public class Workflow {
 		Action action = this.actions.get(actionId);
 		if (null != action) {
 			return this.actionsDependency.get(action);
+		}
+		else {
+			return null;
+		}
+	}
+	
+	/**
+	 * Returns the parent actions for a given action Id.
+	 * Returns null if the action id is invalid.
+	 * @param actionId
+	 * @return
+	 */
+	public Collection<Action> getParentActions(Integer actionId) {
+		Action action = this.actions.get(actionId);
+		if (null != action) {
+			return this.inverseActionsDependency.get(action);
 		}
 		else {
 			return null;

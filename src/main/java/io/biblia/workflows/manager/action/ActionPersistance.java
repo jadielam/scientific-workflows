@@ -76,7 +76,7 @@ public interface ActionPersistance {
 	 * to the system
 	 * @return
 	 */
-	public String insertReadyAction(Action action, List<String> parentsActionIds);
+	public String insertReadyAction(Action action, Long workflowId, List<String> parentsActionIds, List<String> parentActionOutputs);
 	
 	/**
 	 * Inserts a new action to the persistance that is in WAITING state.
@@ -86,7 +86,19 @@ public interface ActionPersistance {
 	 * MongoDB
 	 * @return
 	 */
-	public String insertWaitingAction(Action action, List<String> parentsActionIds);
+	public String insertWaitingAction(Action action, Long workflowId, List<String> parentsActionIds, List<String> parentActionOutputs);
+	
+	/**
+	 * Inserts a new action to the persistance that is in the COMPUTED state. 
+	 * That means that the action was computed in a previous workflow submission
+	 * and does not need to be computed now.  This is inserted mainly to keep good
+	 * accounting of actions.
+	 * @param action
+	 * @param workflowId
+	 * @param parentsActionIds
+	 * @return
+	 */
+	public String insertComputedAction(Action action, Long workflowId, List<String> parentsActionIds, List<String> parentActionOutputs);
 	
 	/**
 	 * Updates the state of an action ignoring the version of the action.
@@ -146,6 +158,14 @@ public interface ActionPersistance {
 	 * @param databaseId
 	 */
 	public void addParentIdToAction(String childDatabaseId, String parentDatabaseId);
+	
+	/**
+	 * Returns the next id that a workflow submitted to the system should have.
+	 * It uses mongodb internal counters to determine the id.
+	 * @return
+	 */
+	public Long getNextWorkflowSequence();
+	
 	
 }
 

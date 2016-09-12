@@ -7,8 +7,6 @@ import com.google.common.base.Preconditions;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.FindOneAndUpdateOptions;
-import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import org.bson.Document;
@@ -57,7 +55,8 @@ public class ActionRollingWindow implements DatabaseConstants {
 				or(
 					eq("state", ActionState.FINISHED),
 					eq("state", ActionState.FAILED),
-					eq("state", ActionState.KILLED)
+					eq("state", ActionState.KILLED),
+					eq("state", ActionState.COMPUTED)
 				)
 			).skip((int)Math.max(0, (this.actions.count() - QUEUE_LIMIT)));
 			//TODO: I should file a bug report here, since it is 
@@ -70,7 +69,8 @@ public class ActionRollingWindow implements DatabaseConstants {
 					or(
 						eq("state", ActionState.FINISHED),
 						eq("state", ActionState.FAILED),
-						eq("state", ActionState.KILLED)
+						eq("state", ActionState.KILLED),
+						eq("state", ActionState.COMPUTED)
 					),
 					gt("marker", this.marker)
 				)

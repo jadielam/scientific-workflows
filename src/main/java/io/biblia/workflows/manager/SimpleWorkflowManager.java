@@ -6,10 +6,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Deque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.HashSet;
 
 import io.biblia.workflows.definition.Action;
@@ -34,7 +36,10 @@ public class SimpleWorkflowManager implements WorkflowManager {
 	}
 	
 	@Override
-	public String submitWorkflow(Workflow workflow) {
+	public Long submitWorkflow(Workflow workflow) {
+		
+		//0. Workflow id
+		Long workflowId = this.aPersistance.getNextWorkflowSequence();
 
 		//1. Determine which actions do not need to be computed.
 		//1.1 Create a queue Q that will have actions to be processed.	
@@ -77,7 +82,7 @@ public class SimpleWorkflowManager implements WorkflowManager {
 							|| dataset.getState().equals(DatasetState.TO_DELETE)
 							|| dataset.getState().equals(DatasetState.STORED_TO_DELETE)) {
 					
-						prepareForComputation(next, actionsToCompute, processedActions, Q, workflow);
+						prepareForComputation(next, actionsToCompute, processedActions, Q, workflow, workflowId);
 					}
 					
 					
@@ -104,7 +109,7 @@ public class SimpleWorkflowManager implements WorkflowManager {
 										
 											//The dataset has changed in a way I cannot handle.
 											//so I most compute
-											prepareForComputation(next, actionsToCompute, processedActions, Q, workflow);
+											prepareForComputation(next, actionsToCompute, processedActions, Q, workflow, workflowId);
 											break;
 										}
 									}
@@ -143,7 +148,7 @@ public class SimpleWorkflowManager implements WorkflowManager {
 												|| (!dataset.getState().equals(DatasetState.LEAF)
 												&& !dataset.getState().equals(DatasetState.STORED))) {
 												
-												prepareForComputation(next, actionsToCompute, processedActions, Q, workflow);
+												prepareForComputation(next, actionsToCompute, processedActions, Q, workflow, workflowId);
 												break;
 											}
 										}
@@ -164,7 +169,7 @@ public class SimpleWorkflowManager implements WorkflowManager {
 						else if (DatasetState.TO_STORE.equals(dataset.getState())
 								 || DatasetState.TO_LEAF.equals(dataset.getState())) {
 							//For now, in order to limit complexity, I will just recompute the dataset.
-							prepareForComputation(next, actionsToCompute, processedActions, Q, workflow);
+							prepareForComputation(next, actionsToCompute, processedActions, Q, workflow, workflowId);
 							//TODO: The current solution is not lacking troubles too. Suppose the following
 							//situation: By the time we finish this computation, the dataset already exists
 							//in state STORED.  If we overwrite it? How does that affect people
@@ -174,7 +179,7 @@ public class SimpleWorkflowManager implements WorkflowManager {
 					}
 				}
 				catch(DatasetParseException e) {
-					prepareForComputation(next, actionsToCompute, processedActions, Q, workflow);
+					prepareForComputation(next, actionsToCompute, processedActions, Q, workflow, workflowId);
 				}
 				
 				
@@ -183,7 +188,7 @@ public class SimpleWorkflowManager implements WorkflowManager {
 			//1.4.3
 			//If the action is MANAGE_YOURSELF or FORCE_COMPUTATION
 			else {
-				prepareForComputation(next, actionsToCompute, processedActions, Q, workflow);
+				prepareForComputation(next, actionsToCompute, processedActions, Q, workflow, workflowId);
 			}
 		
 		}
@@ -214,13 +219,28 @@ public class SimpleWorkflowManager implements WorkflowManager {
 		//3. For each action in the map of actions to be computed, if the 
 		//action does not have parent actions on which it depends, 
 		//change it from a WAITING action to a READY action.
-		Collection<String> databaseIds = actionsToCompute.values();
-		for (String databaseId : databaseIds) {
+		Set<String> computedActionsDatabaseIds = new HashSet<>(actionsToCompute.values());
+		for (String databaseId : computedActionsDatabaseIds) {
 		
 			this.aPersistance.readyAction(databaseId);
 		}
+		
+		//4. For each action not to be computed, add an entry in the collection of
+		//actions saying that this was a NON_COMPUTED_ACTION
+		Set<Integer> notToComputeActions = new HashSet<Integer>(processedActions);
+		notToComputeActions.removeAll(actionsToCompute.keySet());
+		
+		Set<Integer> insertedComputedActions = new HashSet<Integer>();
+		for (Integer actionIdInWorkflow : notToComputeActions) {
+			Action action = workflow.getAction(actionIdInWorkflow);
+			List<String> parentActionOutputs = workflow.getParentActions(actionIdInWorkflow).stream().
+														map(Action::getOutputPath).
+														collect(Collectors.toCollection(ArrayList::new));
+			this.aPersistance.insertComputedAction(action, workflowId, Collections.<String>emptyList(), parentActionOutputs);
+			insertedComputedActions.add(actionIdInWorkflow);
+		}
 				
-		return null;
+		return workflowId;
 	}
 	
 	private boolean isLeaf(Action action, Workflow workflow) {
@@ -233,11 +253,17 @@ public class SimpleWorkflowManager implements WorkflowManager {
 	}
 
 	private void prepareForComputation(Action action, Map<Integer, String> actionsToCompute,
-			Set<Integer> processedActions, Deque<Action> Q, Workflow workflow) {
+			Set<Integer> processedActions, Deque<Action> Q, Workflow workflow, Long workflowId) {
 		
 		//1.4.2.2.1 Submit the action to MongoDB to get its objectID. The 
 		//state of the action is WAITING.
-		String databaseId = this.aPersistance.insertWaitingAction(action, Collections.<String>emptyList());
+		List<String> parentActionOutputs = workflow.getChildActions(action.getActionId()).
+													stream().map(Action::getOutputPath).
+													collect(Collectors.toCollection(ArrayList::new));
+		
+		String databaseId = this.aPersistance.insertWaitingAction(action, workflowId, Collections.<String>emptyList(),
+				parentActionOutputs);
+		
 		
 		//1.4.2.2.2 Add this action to the map of actions to be computed.
 		actionsToCompute.put(action.getActionId(), databaseId);

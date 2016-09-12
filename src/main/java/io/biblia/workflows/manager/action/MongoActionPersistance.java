@@ -103,29 +103,49 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
 
 
 	@Override
-	public String insertReadyAction(Action action, List<String> parentsActionIds) {
+	public String insertReadyAction(Action action, Long workflowId, List<String> parentsActionIds, List<String> parentActionOutputs) {
 		Document actionDoc = action.toBson();
 		Document toInsert = new Document();
 		toInsert.append("version", 1);
 		toInsert.append("lastUpdatedDate", new Date());
 		toInsert.append("state", ActionState.READY);
+		toInsert.append("workflowId", workflowId);
 		toInsert.append("action", actionDoc);
 		toInsert.append("parentsActionIds", parentsActionIds);
+		toInsert.append("parentActionOutputs", parentActionOutputs);
 		this.actions.insertOne(toInsert);
 		return toInsert.getObjectId("_id").toHexString();
 	}
 	
 	@Override
-	public String insertWaitingAction(Action action, List<String> parentsActionIds) {
+	public String insertWaitingAction(Action action, Long workflowId, List<String> parentsActionIds, List<String> parentActionOutputs) {
 		Document actionDoc = action.toBson();
 		Document toInsert = new Document();
 		toInsert.append("version", 1);
 		toInsert.append("lastUpdatedDate", new Date());
+		toInsert.append("workflowId", workflowId);
 		toInsert.append("state", ActionState.WAITING);
 		toInsert.append("action", actionDoc);
 		toInsert.append("parentsActionIds", parentsActionIds);
+		toInsert.append("parentActionOutputs", parentActionOutputs);
 		this.actions.insertOne(toInsert);
 		return toInsert.getObjectId("_id").toHexString();
+	}
+	
+	@Override
+	public String insertComputedAction(Action action, Long workflowId, List<String> parentsActionIds, List<String> parentActionOutputs) {
+		Document actionDoc = action.toBson();
+		Document toInsert = new Document();
+		toInsert.append("version", 1);
+		toInsert.append("lastUpdatedDate", new Date());
+		toInsert.append("workflowId", workflowId);
+		toInsert.append("state", ActionState.COMPUTED);
+		toInsert.append("action", actionDoc);
+		toInsert.append("parentsActionIds", parentsActionIds);
+		toInsert.append("parentActionOutputs", parentActionOutputs);
+		this.actions.insertOne(toInsert);
+		return toInsert.getObjectId("_id").toHexString();
+
 	}
 	
 	
@@ -359,6 +379,18 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
 		options.returnDocument(ReturnDocument.AFTER);
 		options.upsert(true);
 		Document newDocument = this.counters.findOneAndUpdate(filter,  update, options);
+		Long toReturn = newDocument.getLong("seq");
+		return toReturn;
+	}
+	
+	@Override
+	public Long getNextWorkflowSequence() {
+		final Document filter = new Document().append("_id", "workflows");
+		final Document update = new Document().append("$inc", new Document("seq", 1));
+		FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
+		options.returnDocument(ReturnDocument.AFTER);
+		options.upsert(true);
+		Document newDocument = this.counters.findOneAndUpdate(filter, update, options);
 		Long toReturn = newDocument.getLong("seq");
 		return toReturn;
 	}

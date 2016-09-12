@@ -9,5 +9,5 @@ public interface WorkflowManager {
 	 * @param workflow
 	 * @return Returns the id of the workflow submitted.
 	 */
-	public String submitWorkflow(Workflow workflow);
+	public Long submitWorkflow(Workflow workflow);
 }
