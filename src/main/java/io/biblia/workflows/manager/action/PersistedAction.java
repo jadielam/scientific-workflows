@@ -197,6 +197,14 @@ public class PersistedAction {
 		return this.sizeInMB;
 	}
 	
+	public Date getStartTime() {
+		return startTime;
+	}
+	
+	public Date getEndTime() {
+		return endTime;
+	}
+
 	public static PersistedAction parseAction(Document document) throws
     	WorkflowParseException, NullPointerException, JsonParseException {
 
