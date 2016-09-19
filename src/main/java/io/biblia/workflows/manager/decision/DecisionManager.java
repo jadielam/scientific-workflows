@@ -1,6 +1,9 @@
 package io.biblia.workflows.manager.decision;
 
 import java.util.List;
+
+import com.google.common.base.Preconditions;
+
 import java.util.Date;
 import java.io.IOException;
 
@@ -24,6 +27,20 @@ public class DecisionManager {
 	private DatasetPersistance dPersistance;
 	
 	private DecisionAlgorithm decisionAlgorithm = new MostCommonlyUsedDecisionAlgorithm();
+	
+	private DecisionManager(DatasetPersistance dPersistance,
+			DecisionAlgorithm decisionAlgorithm,
+			ActionRollingWindow actionRollingWindow) {
+		Preconditions.checkNotNull(dPersistance);
+		Preconditions.checkNotNull(actionRollingWindow);
+		Preconditions.checkNotNull(decisionAlgorithm);
+		this.dPersistance = dPersistance;
+		this.decisionAlgorithm = decisionAlgorithm;
+		this.actionRollingWindow = actionRollingWindow;
+		
+		t = new Thread(new DecisionManagerRunner(), "DecisionManager thread");
+		t.start();
+	}
 	
 	private class DecisionManagerRunner implements Runnable, ConfigurationKeys {
 		
@@ -89,6 +106,21 @@ public class DecisionManager {
 					Thread.currentThread().interrupt();
 				}
 			}
+		}
+	}
+	
+	public static void stop() {
+		t.interrupt();
+	}
+	
+	public static void start(DatasetPersistance persistance,
+			DecisionAlgorithm decisionAlgorithm,
+			ActionRollingWindow actionRollingWindow
+			) {
+		if (null == instance) {
+			instance = new DecisionManager(persistance, 
+					decisionAlgorithm, 
+					actionRollingWindow);
 		}
 	}
 	

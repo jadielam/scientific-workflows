@@ -68,6 +68,7 @@ public class DatasetManager {
 	private DatasetManager(DatasetPersistance datasetPersistance, DatasetLogDao datasetLogDao) {
 		
 		Preconditions.checkNotNull(datasetPersistance);
+		Preconditions.checkNotNull(datasetLogDao);
 		this.datasetPersistance = datasetPersistance;
 		this.datasetLogDao = datasetLogDao;
 		
