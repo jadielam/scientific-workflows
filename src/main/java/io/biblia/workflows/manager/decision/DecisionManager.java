@@ -9,7 +9,9 @@ import io.biblia.workflows.hdfs.HdfsUtil;
 import io.biblia.workflows.manager.action.PersistedAction;
 import io.biblia.workflows.Configuration;
 import io.biblia.workflows.ConfigurationKeys;
-import io.biblia.workflows.hdfs.HdfsUtil;
+import io.biblia.workflows.manager.dataset.DatasetPersistance;
+import io.biblia.workflows.manager.dataset.DatasetState;
+import io.biblia.workflows.manager.dataset.PersistedDataset;
 
 public class DecisionManager {
 
@@ -19,7 +21,7 @@ public class DecisionManager {
 	
 	private ActionRollingWindow actionRollingWindow;
 	
-	private DatasetLogDao datasetLogDao;
+	private DatasetPersistance dPersistance;
 	
 	private DecisionAlgorithm decisionAlgorithm = new MostCommonlyUsedDecisionAlgorithm();
 	
@@ -60,7 +62,21 @@ public class DecisionManager {
 							//5. Get the list of datasets to mark TO_DELETE
 							List<String> toDelete = decisionAlgorithm.toDelete(sWorkflow, spaceToDelete);
 							
-							//6. Mark those datasets TO_DELETE.
+							//6. Mark those datasets STORED_TO_DELETE.
+							for (String actionOutput : toDelete) {
+								try {
+									PersistedDataset dataset = dPersistance.getDatasetByPath(actionOutput);
+									if (null != dataset) {
+										dPersistance.updateDatasetState(dataset, DatasetState.STORED_TO_DELETE);
+									}
+								}
+								catch(Exception e) {
+									//TODO: FInd a better way to handle this in the future.
+									continue;
+								}
+								
+								
+							}
 						}
 					}
 					catch (IOException ex) {
