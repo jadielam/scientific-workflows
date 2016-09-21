@@ -248,6 +248,24 @@ Before adding the dataset to the queue, the dataset scraper attempts to update t
 ### The Dataset Deletor
 The Dataset Manager is constantly taking new elements from the queue and passing them to the Dataset Deletor threads that take care of removing the datasets from the file system.  The deletor first attempts to update the state of the dataset to **DELETING**.  If it succeeds, then it actually deletes the dataset from the file system and updates its state to **DELETED**.  If it does not succeed, or if some other error occurs while deleting so that it cannot delete, it changes the state of the dataset back to **STORED_TO_DELETE** and stops processing it.
 
-## The Optimization Engine
-TODO (Not yet implemented)
+## The Decision Manager
+The **Decision Manager** is the piece of the system that determines which of the datasets currently stored in the system should be deleted.  The manager has three main components that work together: A **file system utility** that determines how much space is available at the time, an **Action Rolling Window** system and a **Decision Algorithm**. The **Decision Manager** is implemented in such a way that the decision algorithm is a plug and play piece that can be substituted, with different algorithms optimizing for different evaluation metrics.
+
+The first thing that happens is that the Decision Manager queries the file system utility to obtain the amount of space currently in use by the datasets managed by the system.  If the space exceeds a certain threshold, then the decision engine fires up its process: 
+
+1. First it obtains a list of the last N submitted actions to the system from the **Action Rolling Window**.  Using this list of actions, it then rebuilds the graph 
+of the workflows to which this actions belonged too in a special datastructure that we call **simplified workflow history**.  
+
+2. We pass the **simplified workflow history** that comprises the last N submitted actions to the decision algorithm, together with the amount of space that we need to free, and the decision algorithm returns a list of datasets that need to be deleted. The sum of the storage space of the returned datasets will be at least the amount of space that needs to be freed.  
+
+3. The **Decision Manager** changes the state of the datasets returned by the decision algorithm to **STORED_TO_DELETE**, leaving in the hands of the **Dataset Manager** the actual execution of the deletion of the datasets.
+
+## The Decision Algorithms
+### Most Commonly Used Decision Algorithm
+This is a simple algorithm that marks for removal the least commonly used datasets within the actions window. 
+
+ 
+
+
+
 
