@@ -4,13 +4,11 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 import java.util.HashMap;
 
-import io.biblia.workflows.definition.Dataset;
 import io.biblia.workflows.definition.parser.DatasetParseException;
 
 import com.mongodb.MongoClient;
@@ -23,11 +21,9 @@ import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 
-import io.biblia.workflows.definition.parser.v1.DatasetParser;
 import io.biblia.workflows.manager.DatabaseConstants;
 
 import org.bson.Document;
-import org.bson.types.ObjectId;
 
 import static com.mongodb.client.model.Filters.*;
 

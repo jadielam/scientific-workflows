@@ -1,7 +1,6 @@
 package io.biblia.workflows.manager.dataset;
 
 import java.util.List;
-import io.biblia.workflows.definition.Dataset;
 import io.biblia.workflows.definition.parser.DatasetParseException;
 
 public interface DatasetPersistance {

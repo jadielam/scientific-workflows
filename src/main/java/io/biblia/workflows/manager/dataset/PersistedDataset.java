@@ -1,7 +1,6 @@
 package io.biblia.workflows.manager.dataset;
 
 import io.biblia.workflows.definition.Dataset;
-import org.bson.types.ObjectId;
 import java.util.List;
 
 import com.google.common.base.Preconditions;

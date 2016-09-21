@@ -2,7 +2,6 @@ package io.biblia.workflows.manager.action;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Collections;
 
 import org.bson.types.ObjectId;
 

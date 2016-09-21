@@ -1,8 +1,5 @@
 package io.biblia.workflows.statistics;
 
-import org.bson.types.ObjectId;
-
-import io.biblia.workflows.EnvironmentVariables;
 import io.biblia.workflows.definition.Action;
 import io.biblia.workflows.definition.Dataset;
 import io.biblia.workflows.definition.Workflow;
