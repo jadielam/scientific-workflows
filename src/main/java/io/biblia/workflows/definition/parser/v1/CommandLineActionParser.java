@@ -31,13 +31,22 @@ implements ActionAttributesConstants  {
 	 * Configuration parameters: The value of configuration parameters cannot
 	 * have spaces. 2.1.6 Name of the class of the action.
 	 * 
-	 * Example provided below: { type: "command-line", name: "testing3",
-	 * mainClassName: "testing.java", jobTracker: "urlTOJobTracker", nameNode:
-	 * "urlToNameNode", forceComputation: true, parentActions: [ { name:
-	 * "testing1" }, { name: "testing2" } ], additionalInput: [ { value:
-	 * "path/to/file" } ], outputParameters: [ { value: "path/to/file" }
+	 * Example provided below: 
 	 * 
-	 * ], configurationParameters: [ { value: "anything" } ] }
+	 * { 
+	 * 		type: "command-line", 
+	 * 		actionId: 1,
+	 * 		name: "testing3",
+	 * 		mainClassName: "testing.java", 
+	 * 		jobTracker: "urlTOJobTracker", 
+	 * 		nameNode: "urlToNameNode", 
+	 * 		forceComputation: true, 
+	 * 		parentActions: [ { name:
+	 * 			"testing1" }, { name: "testing2" } ], 
+	 * 		additionalInput: [ { value:
+	 * 				"path/to/file" } ], 
+	 * 		outputParameters: [ { value: "path/to/file" }], 
+	 * 		configurationParameters: [ { value: "anything" } ] }
 	 * 
 	 * @throws WorkflowParseException
 	 */
