@@ -1,4 +1,4 @@
-package biblia.io.workflows;
+package io.biblia.workflows;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

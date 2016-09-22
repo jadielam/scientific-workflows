@@ -110,7 +110,20 @@ public class DecisionManager {
 	}
 	
 	public static void stop() {
-		t.interrupt();
+		System.out.println("Shutting down DecisionManager... ");
+		if (null != t) {
+			t.interrupt();
+		}
+		
+	}
+	
+	public static void join() {
+		try {
+			t.join();
+		}
+		catch(InterruptedException ex) {
+			Thread.currentThread().interrupt();
+		}
 	}
 	
 	public static void start(DatasetPersistance persistance,

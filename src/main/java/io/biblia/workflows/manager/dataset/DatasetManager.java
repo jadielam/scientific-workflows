@@ -84,10 +84,23 @@ public class DatasetManager {
 		}
 	}
 	
+	public static void join() {
+		try{
+			t.join();
+		}
+		catch(InterruptedException ex) {
+			Thread.currentThread().interrupt();
+		}
+		
+	}
 	public static void stop() {
+		System.out.println("Shutting down Dataset Manager... ");
 		finishActionScraper();
 		finishDatasetDeletors();
-		t.interrupt();
+		if (null != t) {
+			t.interrupt();
+		}
+		
 	}
 	
 	private static void finishDatasetDeletors() {

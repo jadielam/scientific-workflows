@@ -101,7 +101,10 @@ class ActionScraper {
 	 * Sends the interrupt signal to the thread running the ActionScraperRunner
 	 */
 	public static void stop() {
-		t.interrupt();
+		if (null != t) {
+			t.interrupt();
+		}
+		
 	}
 
 	/**

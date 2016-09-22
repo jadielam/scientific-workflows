@@ -136,10 +136,23 @@ public class ActionManager {
 		}
 	}
 	
+	public static void join() {
+		try {
+			t.join();
+		}
+		catch(InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+	}
+	
 	public static void stop() {
+		System.out.println("Shutting down Action Manager... ");
 		finishActionScraper();
 		finishActionSubmitters();
-		t.interrupt();
+		if (null != t) {
+			t.interrupt();
+		}
+		
 	}
 	
 	private static void finishActionSubmitters() {

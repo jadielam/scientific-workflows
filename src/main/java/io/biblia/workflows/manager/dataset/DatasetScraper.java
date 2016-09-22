@@ -71,7 +71,9 @@ public class DatasetScraper {
 	}
 	
 	public static void stop() {
-		t.interrupt();
+		if (null != t) {
+			t.interrupt();
+		}
 	}
 	
 	public static void start(BlockingQueue<PersistedDataset> datasetsQueue,
