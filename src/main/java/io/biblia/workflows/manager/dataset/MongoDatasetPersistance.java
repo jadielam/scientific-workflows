@@ -223,13 +223,27 @@ public class MongoDatasetPersistance implements DatasetPersistance, DatabaseCons
 	{
 		final Document filter = new Document().append("path", outputPath);
 		final Document update = new Document();
-		final Document found = this.datasets.findOneAndUpdate(filter, update);
-		if (null != found) {
-			PersistedDataset toReturn = this.parseDataset(found);
-			return toReturn;
-		}
-		return null;
+		final FindIterable<Document> documents = this.datasets.find(filter);
 		
+		MongoCursor<Document> iterator = documents.iterator();
+		try {
+			while (iterator.hasNext()) {
+				Document next = iterator.next();
+				try {
+					PersistedDataset dataset = parseDataset(next);
+					iterator.close();
+					return dataset;
+				}
+				catch(Exception e) {
+					continue;
+				}
+			}
+		}
+		finally {
+			iterator.close();
+		}
+		
+		return null;
 	}
 
 

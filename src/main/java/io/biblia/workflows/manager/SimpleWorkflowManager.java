@@ -71,9 +71,9 @@ public class SimpleWorkflowManager implements WorkflowManager {
 			if (next.isManaged() && !next.forceComputation()) {
 				
 				//1.4.2.1 Get dataset corresponding to this action
-				String actionFolder = next.getActionFolder();
+				String actionOutputPath = next.getOutputPath();
 				try{
-					PersistedDataset dataset = this.dPersistance.getDatasetByPath(actionFolder);
+					PersistedDataset dataset = this.dPersistance.getDatasetByPath(actionOutputPath);
 					//1.4.2.1.1 If the dataset exists, and it is in state STORED_TO_DELETE,
 					//PROCESSING, DELETING, DELETED; or if dataset does not exists.
 					if (null == dataset || dataset.getState().equals(DatasetState.DELETED)
@@ -102,7 +102,7 @@ public class SimpleWorkflowManager implements WorkflowManager {
 										break;
 									}
 									catch(OutdatedDatasetException e) {
-										dataset = this.dPersistance.getDatasetByPath(actionFolder);
+										dataset = this.dPersistance.getDatasetByPath(actionOutputPath);
 										if (null == dataset 
 											|| !dataset.getState().equals(DatasetState.LEAF)
 											|| !dataset.getState().equals(DatasetState.STORED)) {
@@ -143,7 +143,7 @@ public class SimpleWorkflowManager implements WorkflowManager {
 											break;
 										}
 										catch(OutdatedDatasetException ex) {
-											dataset = this.dPersistance.getDatasetByPath(actionFolder);
+											dataset = this.dPersistance.getDatasetByPath(actionOutputPath);
 											if (null == dataset
 												|| (!dataset.getState().equals(DatasetState.LEAF)
 												&& !dataset.getState().equals(DatasetState.STORED))) {
