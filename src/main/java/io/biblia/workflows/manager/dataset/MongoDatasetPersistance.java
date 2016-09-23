@@ -157,7 +157,8 @@ public class MongoDatasetPersistance implements DatasetPersistance, DatabaseCons
 		final Document replace = new Document().append("version", 1)
 				.append("lastUpdatedDate", new Date())
 				.append("version", 1)
-				.append("state", DatasetState.STORED)
+				.append("state", dataset.getState())
+				.append("path", dataset.getPath())
 				.append("sizeInMB", dataset.getSizeInMB())
 				.append("claims", dataset.getClaims());
 		UpdateOptions options = new UpdateOptions();
