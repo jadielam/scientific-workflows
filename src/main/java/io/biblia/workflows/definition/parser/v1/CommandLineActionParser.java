@@ -41,8 +41,8 @@ implements ActionAttributesConstants  {
 	 * 		jobTracker: "urlTOJobTracker", 
 	 * 		nameNode: "urlToNameNode", 
 	 * 		forceComputation: true, 
-	 * 		parentActions: [ { name:
-	 * 			"testing1" }, { name: "testing2" } ], 
+	 * 		actionFolder: "/path/to/folder",
+	 * 		parentActions: [ 2 ], { name: "testing2" } ], 
 	 * 		additionalInput: [ { value:
 	 * 				"path/to/file" } ], 
 	 * 		outputParameters: [ { value: "path/to/file" }], 
@@ -114,7 +114,8 @@ implements ActionAttributesConstants  {
 
 	private List<Integer> getParentActionIds(Document actionObject) {
 		@SuppressWarnings("unchecked")
-		List<Integer> parentActions = (List<Integer>) actionObject.get(ACTION_PARENT_ACTIONS);
+		List<Integer> parentActions = (List<Integer>) actionObject.get(ACTION_PARENT_ACTIONS, List.class);
+		
 		if (null == parentActions) {
 			return Collections.unmodifiableList(new ArrayList<>());
 		}

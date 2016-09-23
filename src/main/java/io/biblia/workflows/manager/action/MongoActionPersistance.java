@@ -385,7 +385,7 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
 	@Override
 	public Long getNextWorkflowSequence() {
 		final Document filter = new Document().append("_id", "workflows");
-		final Document update = new Document().append("$inc", new Document("seq", 1));
+		final Document update = new Document().append("$inc", new Document("seq", 1L));
 		FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
 		options.returnDocument(ReturnDocument.AFTER);
 		options.upsert(true);

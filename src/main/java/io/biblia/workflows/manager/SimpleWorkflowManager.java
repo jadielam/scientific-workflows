@@ -257,6 +257,7 @@ public class SimpleWorkflowManager implements WorkflowManager {
 		
 		//1.4.2.2.1 Submit the action to MongoDB to get its objectID. The 
 		//state of the action is WAITING.
+		
 		List<String> parentActionOutputs = workflow.getChildActions(action.getActionId()).
 													stream().map(Action::getOutputPath).
 													collect(Collectors.toCollection(ArrayList::new));

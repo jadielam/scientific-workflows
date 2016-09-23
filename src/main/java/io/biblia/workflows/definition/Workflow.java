@@ -236,7 +236,7 @@ public class Workflow {
 		LinkedList<Action> topologicalSort = new LinkedList<>();
 		if (visited.get(currentAction).equals(Color.WHITE)) {
 			visited.put(currentAction, Color.GRAY);
-			Action action = this.actions.get(currentAction);
+			Action action = this.actions.get(currentAction.getActionId());
 			List<Integer> parentActionsIds = action.getParentIds();
 			actionsQueue.addAll(parentActionsIds);
 			while (!actionsQueue.isEmpty()) {
@@ -306,10 +306,14 @@ public class Workflow {
 	public Collection<Action> getChildActions(Integer actionId) {
 		Action action = this.actions.get(actionId);
 		if (null != action) {
-			return this.actionsDependency.get(action);
+			Set<Action> children = this.actionsDependency.get(action);
+			if (null != children) {
+				return children;
+			}
+			return Collections.<Action>emptyList();
 		}
 		else {
-			return null;
+			return Collections.<Action>emptyList();
 		}
 	}
 	

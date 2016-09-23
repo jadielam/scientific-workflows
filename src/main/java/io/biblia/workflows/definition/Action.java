@@ -251,17 +251,13 @@ public abstract class Action implements ActionAttributesConstants {
 		return toReturn;
 	}
 
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((originalName == null) ? 0 : originalName.hashCode());
-		result = prime * result + ((type == null) ? 0 : type.hashCode());
-		result = prime * result + ((this.getLongName() == null) ? 0 : this.getLongName().hashCode());
+		result = prime * result + ((actionId == null) ? 0 : actionId.hashCode());
 		return result;
 	}
-
 
 	@Override
 	public boolean equals(Object obj) {
@@ -272,24 +268,12 @@ public abstract class Action implements ActionAttributesConstants {
 		if (getClass() != obj.getClass())
 			return false;
 		Action other = (Action) obj;
-		if (originalName == null) {
-			if (other.originalName != null)
+		if (actionId == null) {
+			if (other.actionId != null)
 				return false;
-		} else if (!originalName.equals(other.originalName))
-			return false;
-		if (this.getLongName() == null) {
-			if (other.getLongName() != null) {
-				return false;
-			}
-		}
-		else if (!this.getLongName().equals(other.getLongName())) {
-			return false;
-		}
-		if (type != other.type)
+		} else if (!actionId.equals(other.actionId))
 			return false;
 		return true;
-	}
-
-	
+	}	
 	
 }
