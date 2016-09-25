@@ -13,9 +13,10 @@ import java.util.Map.Entry;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class ActionUtils {
+import io.biblia.workflows.ConfigurationKeys;
 
-	private static final String MAX_FOLDER_SIZE_KEY = "workflows.definition.maxFolderSize";
+public class ActionUtils implements ConfigurationKeys {
+
 	private static final String ROOT_FOLDER = "workflows";
 	private static final String DIVIDER = "/";
 	public static final String ENCRYPT_DIVIDER = "~";
@@ -215,6 +216,7 @@ public class ActionUtils {
 	 */
 	public static String generateOutputPathFromLongName(List<String> longName) {
 		StringBuilder toReturn = new StringBuilder("");
+
 		for (String name : longName) {
 			toReturn.append(DIVIDER);
 			toReturn.append(name);

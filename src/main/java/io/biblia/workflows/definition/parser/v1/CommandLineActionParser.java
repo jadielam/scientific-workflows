@@ -2,15 +2,19 @@ package io.biblia.workflows.definition.parser.v1;
 
 import com.google.common.base.CharMatcher;
 import io.biblia.workflows.definition.Action;
+import io.biblia.workflows.ConfigurationKeys;
+import io.biblia.workflows.Configuration;
 import io.biblia.workflows.definition.ActionAttributesConstants;
 import io.biblia.workflows.definition.CommandLineAction;
+import io.biblia.workflows.hdfs.HdfsUtil;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
 import org.bson.Document;
+import java.net.MalformedURLException;
 
 import java.util.*;
 
 public class CommandLineActionParser extends io.biblia.workflows.definition.parser.ActionParser 
-implements ActionAttributesConstants  {
+implements ActionAttributesConstants, ConfigurationKeys  {
 
 	private static CommandLineActionParser instance;
 
@@ -66,22 +70,46 @@ implements ActionAttributesConstants  {
 		if (null == actionId) {
 			throw new WorkflowParseException("The action does not have an id");
 		}
-		String actionFolder = (String) actionObject.get(ACTION_FOLDER);
-		if (null == actionFolder)
-			throw new WorkflowParseException("The action does not have attribute <actionFolder>");
+		
 		String mainClassName = (String) actionObject.get(COMMANDLINE_MAIN_CLASS_NAME);
 		if (null == mainClassName)
 			throw new WorkflowParseException("The action does not have a mainClassName");
+		
 		String nameNode = (String) actionObject.get(COMMANDLINE_NAME_NODE);
-		if (null == nameNode)
-			throw new WorkflowParseException("The action does not have a nameNode attribute");
+		if (null == nameNode) {
+			nameNode = Configuration.getValue(NAMENODE);
+			if (null == nameNode)
+				throw new WorkflowParseException("The action does not have a nameNode attribute");
+		}
+			
 		String jobTracker = (String) actionObject.get(COMMANDLINE_JOB_TRACKER);
-		if (null == jobTracker)
-			throw new WorkflowParseException("The action does not have a jobTracker attribute");
+		if (null == jobTracker) {
+			jobTracker = Configuration.getValue(JOBTRACKER);
+			if (null == jobTracker)
+				throw new WorkflowParseException("The action does not have a jobTracker attribute");
+		}
+			
+		String actionFolder = (String) actionObject.get(ACTION_FOLDER);
+		if (null == actionFolder)
+			throw new WorkflowParseException("The action does not have attribute <actionFolder>");
+		try{
+			actionFolder = HdfsUtil.combinePath(nameNode, actionFolder);
+		}
+		catch(MalformedURLException e) {
+			throw new WorkflowParseException("Malformed path provided as actionFolder: "+ actionFolder);
+		}
+		
 		Boolean forceComputation = (Boolean) actionObject.get(ACTION_FORCE_COMPUTATION);
 		forceComputation = (forceComputation == null || !forceComputation) ? false : true;
 		String outputFolder = actionObject.getString(ACTION_OUTPUT_PATH);
-
+		if (null != outputFolder) {
+			try{
+				outputFolder = HdfsUtil.combinePath(nameNode, outputFolder);
+			}
+			catch(MalformedURLException e) {
+				throw new WorkflowParseException("Malformed output Folder provided: " + outputFolder);
+			}
+		}
 		List<Integer> parentActionIds = this.getParentActionIds(actionObject);
 		LinkedHashMap<String, String> additionalInput = this.getInputParameters(actionObject);
 		LinkedHashMap<String, String> configurationParameters = this.getConfigurationParameters(actionObject);
@@ -126,7 +154,7 @@ implements ActionAttributesConstants  {
 	private LinkedHashMap<String, String> getInputParameters(Document actionObject) {
 		LinkedHashMap<String, String> toReturn = new LinkedHashMap<>();
 		@SuppressWarnings("unchecked")
-		List<Document> inputParameters = (List<Document>) actionObject.get(ACTION_ADDITIONAL_INPUT);
+		List<Document> inputParameters = (List<Document>) actionObject.get(ACTION_ADDITIONAL_INPUT, List.class);
 		if (null == inputParameters) {
 			return toReturn;
 		}
@@ -161,7 +189,7 @@ implements ActionAttributesConstants  {
 			throws WorkflowParseException {
 		LinkedHashMap<String, String> toReturn = new LinkedHashMap<>();
 		@SuppressWarnings("unchecked")
-		List<Document> configurationParameters = (List<Document>) actionObject.get(ACTION_CONFIGURATION_PARAMETERS);
+		List<Document> configurationParameters = (List<Document>) actionObject.get(ACTION_CONFIGURATION_PARAMETERS, List.class);
 		if (null == configurationParameters) {
 			return toReturn;
 		}

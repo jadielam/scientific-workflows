@@ -9,7 +9,9 @@ import org.bson.Document;
 
 import com.google.common.base.Preconditions;
 
-public abstract class Action implements ActionAttributesConstants {
+import io.biblia.workflows.ConfigurationKeys;
+
+public abstract class Action implements ActionAttributesConstants, ConfigurationKeys {
 
 	/**
 	 * THe name given to the action in the workflow submitted to
