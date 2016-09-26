@@ -9,5 +9,6 @@ public interface ConfigurationKeys {
 	String NAMENODE = "nameNode";
 	String JOBTRACKER = "jobTracker";
 	String MANAGED_FOLDER = "managedFolder";
+	String OOZIE_URL = "oozie.base.url";
 	
 }

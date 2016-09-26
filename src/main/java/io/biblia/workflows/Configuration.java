@@ -17,7 +17,7 @@ public class Configuration implements EnvironmentVariables {
 	static
 	{
 		configuration = new Properties();
-		String confPath = System.getenv(SW_CONFIGURATION_FILE);
+		String confPath = System.getenv("SW_CONFIGURATION_FILE");
 		if (null != confPath) {
 			try{
 				InputStream is = new FileInputStream(confPath);

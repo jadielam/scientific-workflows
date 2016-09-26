@@ -3,10 +3,13 @@ package io.biblia.workflows.oozie;
 import java.util.LinkedList;
 import java.util.List;
 
+import io.biblia.workflows.Configuration;
+import io.biblia.workflows.ConfigurationKeys;
 import io.biblia.workflows.EnvironmentVariables;
 import io.biblia.workflows.utils.XmlBuilder;
 
-public class OozieWorkflowGenerator implements EnvironmentVariables {
+public class OozieWorkflowGenerator implements
+ConfigurationKeys {
 
 	/**
 	 * Workflow version
@@ -18,14 +21,8 @@ public class OozieWorkflowGenerator implements EnvironmentVariables {
 	static final String DEFAULT_NAME_NODE;
 	
 	static {
-		String jobTracker = System.getenv().get(SW_HADOOP_JOBTRACKER);
-		String nameNode = System.getenv().get(SW_HADOOP_NAMENODE);
-		if (null == jobTracker) {
-			jobTracker = "localhost:8032";
-		}
-		if (null == nameNode) {
-			nameNode = "hdfs://localhost:8020";
-		}
+		String jobTracker = Configuration.getValue(JOBTRACKER, "localhost:8032");
+		String nameNode = Configuration.getValue(NAMENODE, "hdfs://localhost:8020");
 		DEFAULT_JOB_TRACKER = jobTracker;
 		DEFAULT_NAME_NODE = nameNode;
 	}

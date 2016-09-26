@@ -22,10 +22,10 @@ import org.apache.oozie.client.OozieClientException;
 
 import com.google.common.base.Preconditions;
 
-import io.biblia.workflows.EnvironmentVariables;
+import io.biblia.workflows.ConfigurationKeys;
 import io.biblia.workflows.definition.Action;
 
-public class OozieClientUtil implements EnvironmentVariables {
+public class OozieClientUtil implements ConfigurationKeys {
 
 	private static final OozieClient client;
 
@@ -34,7 +34,7 @@ public class OozieClientUtil implements EnvironmentVariables {
 	private static final String WORKFLOW_DEFINITION_FILE_NAME = "workflow.xml";
 
 	static {
-		client = new OozieClient(SW_OOZIE_URL);
+		client = new OozieClient(io.biblia.workflows.Configuration.getValue(OOZIE_URL));
 	}
 
 	/**
@@ -79,8 +79,8 @@ public class OozieClientUtil implements EnvironmentVariables {
 			// TODO: I don't see the reason why I need to submit namenode
 			// and job tracker here.
 
-			conf.setProperty("jobTracker", OozieWorkflowGenerator.DEFAULT_JOB_TRACKER);
-			conf.setProperty("nameNode", OozieWorkflowGenerator.DEFAULT_NAME_NODE);
+			conf.setProperty("jobTracker", io.biblia.workflows.Configuration.getValue(JOBTRACKER));
+			conf.setProperty("nameNode", io.biblia.workflows.Configuration.getValue(NAMENODE));
 
 			// TODO: Add a way to specify a callback endpoint in the properties
 			// or in the workflow definition xml.
