@@ -132,10 +132,17 @@ public class OozieClientUtil implements ConfigurationKeys {
 			String output = javaAction.getOutputPath();
 			Map<String, String> configurationParameters = javaAction.getConfiguration();
 			List<String> arguments = new ArrayList<>();
-			arguments.addAll(inputParameters.values());
-			arguments.addAll(additionalInput.values());
+			if (null != inputParameters) {
+				arguments.addAll(inputParameters.values());
+			}
+			if (null != additionalInput) {
+				arguments.addAll(additionalInput.values());
+			}
 			arguments.add(output);
-			arguments.addAll(configurationParameters.values());
+			if (null != configurationParameters) {
+				arguments.addAll(configurationParameters.values());
+			}
+			
 			String nameNode = javaAction.getNameNode();
 			String jobTracker = javaAction.getJobTracker();
 			JavaAction oAction = new JavaAction(actionName, okName, errorName, mainClassName, arguments, jobTracker,

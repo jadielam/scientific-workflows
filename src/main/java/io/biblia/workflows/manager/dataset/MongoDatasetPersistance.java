@@ -40,6 +40,31 @@ public class MongoDatasetPersistance implements DatasetPersistance, DatabaseCons
 	}
 	
 	@Override
+	public List<String> getAllStoredDatasetPaths() {
+		
+		List<String> toReturn = new ArrayList<>();
+		
+		final FindIterable<Document> documents = this.datasets.find(
+				eq("state", DatasetState.STORED.name())
+				);
+		
+		MongoCursor<Document> iterator = documents.iterator();
+		try {
+			while(iterator.hasNext()) {
+				Document next = iterator.next();
+				String path = next.getString("path");
+				toReturn.add(path);
+			}
+		}
+		finally {
+			iterator.close();
+		}
+		
+		return toReturn;
+	}
+	
+	
+	@Override
 	public List<PersistedDataset> getDatasetsToDelete(int n) {
 		List<PersistedDataset> toReturn = new ArrayList<>();
 		Calendar calendar = Calendar.getInstance();
@@ -245,6 +270,8 @@ public class MongoDatasetPersistance implements DatasetPersistance, DatabaseCons
 		
 		return null;
 	}
+
+
 
 
 }

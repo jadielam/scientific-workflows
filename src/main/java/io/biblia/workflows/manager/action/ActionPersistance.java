@@ -23,6 +23,13 @@ public interface ActionPersistance {
 	public List<PersistedAction> getAvailableActions(int n);
 	
 	/**
+	 * Returns all the actions that are in the SUBMITTED state.
+	 * @return
+	 */
+	public List<PersistedAction> getSubmittedActions();
+	
+	
+	/**
 	 * Updates the state of the action to the specified state.
 	 * If the action has been modified by someone else, it throws
 	 * OutdatedActionException

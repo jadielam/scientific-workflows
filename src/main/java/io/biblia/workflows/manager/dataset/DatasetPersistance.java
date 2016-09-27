@@ -16,6 +16,12 @@ public interface DatasetPersistance {
 	public List<PersistedDataset> getDatasetsToDelete(int number);
 	
 	/**
+	 * Returns the path of all the paths that have been stored
+	 * @return
+	 */
+	public List<String> getAllStoredDatasetPaths();
+	
+	/**
 	 * Updates the state of the dataset and returns the new updated dataset.
 	 * @param dataset
 	 * @param newState

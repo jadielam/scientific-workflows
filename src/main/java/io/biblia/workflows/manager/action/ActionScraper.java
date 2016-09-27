@@ -52,6 +52,7 @@ class ActionScraper {
 		public void run() {
 			
 			logger.info("Started ActionScraper");
+			System.out.println("Started ActionManager");
 			while(!Thread.currentThread().isInterrupted()) {
 				//1. Every certain amount of time you find available
 				//actions from the database.
@@ -64,6 +65,8 @@ class ActionScraper {
 				List<PersistedAction> actions = actionDao.getAvailableActions(number);
 				
 				logger.info("Scraped {} available actions from the database", actions.size());
+				System.out.println("Scraped available actions from database");
+				System.out.println(actions.size());
 				//2. For each of the actions, update the entry of the
 				//action in the database, if it is that it has not been
 				//updated by someone else first.  If it has been updated
@@ -74,6 +77,7 @@ class ActionScraper {
 					try{
 						pAction = actionDao.updateActionState(pAction, ActionState.PROCESSING);
 						logger.debug("Changed the state of action {} to PROCESSING", pAction.get_id());
+						System.out.println("Changed the state of action to PROCESSING");
 					}
 					catch(OutdatedActionException ex) {
 						logger.debug("Could not change the state of action {} to PROCESSING because action was outdated", pAction.get_id());

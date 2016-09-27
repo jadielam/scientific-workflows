@@ -5,6 +5,7 @@ import io.biblia.workflows.definition.Action;
 import io.biblia.workflows.ConfigurationKeys;
 import io.biblia.workflows.Configuration;
 import io.biblia.workflows.definition.ActionAttributesConstants;
+import io.biblia.workflows.definition.ActionType;
 import io.biblia.workflows.definition.CommandLineAction;
 import io.biblia.workflows.hdfs.HdfsUtil;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
@@ -60,12 +61,17 @@ implements ActionAttributesConstants, ConfigurationKeys  {
 		String type = (String) actionObject.get("type");
 		if (null == type)
 			throw new WorkflowParseException("The action does not have a type attribute");
-		if (!type.equals(COMMAND_LINE_ACTION)) {
+		if (!type.equals(ActionType.COMMAND_LINE.name())) {
 			throw new WorkflowParseException("The action type: " + type + " cannot be parsed by CommandLineActionParser");
 		}
-		String name = (String) actionObject.get(ACTION_NAME);
-		if (null == name)
-			throw new WorkflowParseException("The action does not have a name");
+		String name = (String) actionObject.get(ACTION_ORIGINAL_NAME);
+		if (null == name) {
+			name = (String) actionObject.get(ACTION_NAME);
+			if (null == name) {
+				throw new WorkflowParseException("The action does not have a name");
+			}
+		}
+			
 		Integer actionId = (Integer) actionObject.getInteger(ACTION_ID);
 		if (null == actionId) {
 			throw new WorkflowParseException("The action does not have an id");

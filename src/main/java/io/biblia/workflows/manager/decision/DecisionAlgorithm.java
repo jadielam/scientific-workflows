@@ -11,6 +11,6 @@ public interface DecisionAlgorithm {
 	 * @param spaceToFree
 	 * @return
 	 */
-	public List<String> toDelete(SimplifiedWorkflowHistory workflow, 
+	public List<String> toDelete(SimplifiedWorkflowHistory workflow, List<String> storedDatasets,
 			Long spaceToFree);
 }

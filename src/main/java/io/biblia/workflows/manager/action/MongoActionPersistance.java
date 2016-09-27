@@ -60,6 +60,35 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
     }
     
     @Override
+    public List<PersistedAction> getSubmittedActions() {
+    	List<PersistedAction> toReturn = new ArrayList<>();
+    	
+    	final FindIterable<Document> documents = this.actions.find(
+    			eq("state", ActionState.SUBMITTED.name())
+    			);
+    	
+    	MongoCursor<Document> iterator = documents.iterator();
+    	try {
+    		while(iterator.hasNext()) {
+    			Document next = iterator.next();
+    			try {
+    				PersistedAction action = PersistedAction.parseAction(next);
+    				toReturn.add(action);
+    			}
+    			catch(Exception e) {
+                    e.printStackTrace();
+                    continue;
+                }
+    		}
+    	}
+    	finally {
+    		iterator.close();
+    	}
+    	
+    	return toReturn;
+    }
+    
+    @Override
     public List<PersistedAction> getAvailableActions(int n) {
     	List<PersistedAction> toReturn = new ArrayList<>();
         Calendar calendar = Calendar.getInstance();
@@ -90,7 +119,8 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
                     toReturn.add(action);
                 }
                 catch(Exception e) {
-                    //TODO: Add logging here.
+                    System.out.println("Error parsing action");
+                    e.printStackTrace();
                     continue;
                 }
             }

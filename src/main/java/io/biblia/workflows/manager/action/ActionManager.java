@@ -94,6 +94,8 @@ public class ActionManager {
 		@Override
 		public void run() {
 			logger.info("Started ActionManager");
+			System.out.println("Started ActionManager");
+			ActionScraper.start(actionsQueue, actionPersistance);
 			while(!Thread.currentThread().isInterrupted()) {
 				
 				try {
@@ -159,7 +161,6 @@ public class ActionManager {
 		if (null != t) {
 			t.interrupt();
 		}
-		
 	}
 	
 	private static void finishActionSubmitters() {

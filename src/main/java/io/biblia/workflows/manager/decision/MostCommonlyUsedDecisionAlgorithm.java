@@ -11,7 +11,8 @@ import java.util.ArrayList;
 public class MostCommonlyUsedDecisionAlgorithm implements DecisionAlgorithm {
 
 	@Override
-	public List<String> toDelete(SimplifiedWorkflowHistory workflowHistory, Long spaceToFree) {
+	public List<String> toDelete(SimplifiedWorkflowHistory workflowHistory, 
+			List<String> storedDatasets, Long spaceToFree) {
 		
 		//1. Get the keys of actions in the window.
 		Collection<String> actions = workflowHistory.getActions();

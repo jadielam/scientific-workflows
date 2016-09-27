@@ -77,7 +77,8 @@ public class DecisionManager {
 							//4. Pass to the algorithm the space to free
 							//and the simplified workflow.
 							//5. Get the list of datasets to mark TO_DELETE
-							List<String> toDelete = decisionAlgorithm.toDelete(sWorkflow, spaceToDelete);
+							List<String> allDatasets = dPersistance.getAllStoredDatasetPaths();
+							List<String> toDelete = decisionAlgorithm.toDelete(sWorkflow, allDatasets, spaceToDelete);
 							
 							//6. Mark those datasets STORED_TO_DELETE.
 							for (String actionOutput : toDelete) {

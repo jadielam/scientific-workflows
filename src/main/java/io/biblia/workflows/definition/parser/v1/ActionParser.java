@@ -1,6 +1,7 @@
 package io.biblia.workflows.definition.parser.v1;
 
 import io.biblia.workflows.definition.Action;
+import io.biblia.workflows.definition.ActionType;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
 import org.bson.Document;
 
@@ -46,7 +47,7 @@ public class ActionParser extends io.biblia.workflows.definition.parser.ActionPa
 	
 	static {
 		ActionParser.registeredParsers = new HashMap<String, io.biblia.workflows.definition.parser.ActionParser>();
-		ActionParser.registeredParsers.put(COMMAND_LINE_ACTION, CommandLineActionParser.getInstance());
+		ActionParser.registeredParsers.put(ActionType.COMMAND_LINE.name(), CommandLineActionParser.getInstance());
 	}
 	
 	
