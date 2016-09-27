@@ -5,9 +5,7 @@ import java.util.Map;
 
 import com.mongodb.MongoClient;
 
-import io.biblia.workflows.EnvironmentVariables;
-
-public class WorkflowsDAOBuilder implements EnvironmentVariables {
+public class WorkflowsDAOBuilder {
 	
 	public static final String MONGODB_TYPE = "mongodb";
 	public static final String DEFAULT_TYPE = MONGODB_TYPE;

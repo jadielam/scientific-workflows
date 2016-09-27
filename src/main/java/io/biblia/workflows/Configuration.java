@@ -10,14 +10,15 @@ import java.io.InputStream;
  * @author dearj019
  *
  */
-public class Configuration implements EnvironmentVariables {
+public class Configuration {
 
 	static private final Properties configuration;
 	
 	static
 	{
 		configuration = new Properties();
-		String confPath = System.getenv("SW_CONFIGURATION_FILE");
+		//String confPath = System.getenv("SW_CONFIGURATION_FILE");
+		String confPath = "/Users/dearj019/Documents/workspace/scientific-workflows-conf/workflows.prop";
 		if (null != confPath) {
 			try{
 				InputStream is = new FileInputStream(confPath);

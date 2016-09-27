@@ -75,15 +75,8 @@ public class OozieClientUtil implements ConfigurationKeys {
 
 			Properties conf = client.createConfiguration();
 			conf.setProperty(OozieClient.APP_PATH, action.getActionFolder());
-
-			// TODO: I don't see the reason why I need to submit namenode
-			// and job tracker here.
-
 			conf.setProperty("jobTracker", io.biblia.workflows.Configuration.getValue(JOBTRACKER));
 			conf.setProperty("nameNode", io.biblia.workflows.Configuration.getValue(NAMENODE));
-
-			// TODO: Add a way to specify a callback endpoint in the properties
-			// or in the workflow definition xml.
 			// 6. Return the job id of the action.
 			String jobId = client.run(conf);
 			return jobId;

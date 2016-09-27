@@ -5,7 +5,6 @@ import java.util.List;
 
 import io.biblia.workflows.Configuration;
 import io.biblia.workflows.ConfigurationKeys;
-import io.biblia.workflows.EnvironmentVariables;
 import io.biblia.workflows.utils.XmlBuilder;
 
 public class OozieWorkflowGenerator implements
