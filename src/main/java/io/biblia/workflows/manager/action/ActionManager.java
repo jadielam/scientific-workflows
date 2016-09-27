@@ -5,6 +5,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 
 /**
@@ -75,6 +78,8 @@ public class ActionManager {
 	
 	private ActionPersistance actionPersistance;
 	
+	final static Logger logger = LoggerFactory.getLogger(ActionManager.class);
+	
 	static {
 		//1. Create the concurrent queue.
 		actionsQueue = new LinkedBlockingQueue<>();
@@ -88,10 +93,12 @@ public class ActionManager {
 
 		@Override
 		public void run() {
+			logger.info("Started ActionManager");
 			while(!Thread.currentThread().isInterrupted()) {
 				
 				try {
 					PersistedAction action = actionsQueue.take();
+					logger.debug("Action {} has been taken from the queue", action.getAction().getOriginalName());
 					actionSubmittersExecutor.execute(new ActionSubmitter(action, actionPersistance));
 					Thread.sleep(100);
 				} catch (InterruptedException e) {

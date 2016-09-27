@@ -5,6 +5,9 @@ import com.google.common.base.Preconditions;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Independent threaded class that runs every certain amount
  * of time (60 seconds) scraping the database to see if
@@ -41,11 +44,14 @@ class ActionScraper {
 	
 	private static final int QUEUE_SOFT_MAX_CAPACITY = 20;
 	
+	final Logger logger = LoggerFactory.getLogger(ActionScraper.class);
+	
 	private class ActionScraperRunner implements Runnable {
 
 		@Override
 		public void run() {
 			
+			logger.info("Started ActionScraper");
 			while(!Thread.currentThread().isInterrupted()) {
 				//1. Every certain amount of time you find available
 				//actions from the database.
@@ -57,6 +63,7 @@ class ActionScraper {
 				int number = Math.max(QUEUE_SOFT_MAX_CAPACITY - queue.size(), 0);
 				List<PersistedAction> actions = actionDao.getAvailableActions(number);
 				
+				logger.info("Scraped {} available actions from the database", actions.size());
 				//2. For each of the actions, update the entry of the
 				//action in the database, if it is that it has not been
 				//updated by someone else first.  If it has been updated
@@ -66,11 +73,14 @@ class ActionScraper {
 					
 					try{
 						pAction = actionDao.updateActionState(pAction, ActionState.PROCESSING);
+						logger.debug("Changed the state of action {} to PROCESSING", pAction.get_id());
 					}
 					catch(OutdatedActionException ex) {
+						logger.debug("Could not change the state of action {} to PROCESSING because action was outdated", pAction.get_id());
 						continue;
 					}
 					catch(Exception e) {
+						logger.debug("Could not change the state of action {} to PROCESSING for unknown reason", pAction.get_id());
 						continue;
 					}
 					queue.add(pAction);
