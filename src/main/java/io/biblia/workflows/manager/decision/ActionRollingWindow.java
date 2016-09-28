@@ -59,9 +59,6 @@ public class ActionRollingWindow implements DatabaseConstants {
 					eq("state", ActionState.COMPUTED)
 				)
 			).skip((int)Math.max(0, (this.actions.count() - QUEUE_LIMIT)));
-			//TODO: I should file a bug report here, since it is 
-			//understandable that I might need a long in some large
-			//collections.
 		}
 		else {
 			documents = this.actions.find(

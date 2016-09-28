@@ -2,6 +2,8 @@ package io.biblia.workflows.manager.dataset;
 
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import com.google.common.base.Preconditions;
 
@@ -25,27 +27,35 @@ public class DatasetScraper {
 	
 	private static final int QUEUE_SOFT_MAX_CAPACITY = 20;
 	
+	private static final Logger logger = Logger.getLogger(DatasetScraper.class.getName());
+	
 	private class DatasetScraperRunner implements Runnable {
 
 		@Override
 		public void run() {
 			
+			logger.info("Started Dataset Scraper");
 			while (!Thread.currentThread().isInterrupted()) {
 				
 				int number = Math.max(QUEUE_SOFT_MAX_CAPACITY - queue.size(), 0);
 				List<PersistedDataset> datasets = datasetDao.getDatasetsToDelete(number);
+				logger.log(Level.FINE, "Obtained {0} datasets to delete from the database", datasets.size());
 				
 				for (PersistedDataset pDataset : datasets) {
 					try {
 						pDataset = datasetDao.updateDatasetState(pDataset, DatasetState.PROCESSING);
+						logger.log(Level.FINE, "Updated state of dataset {0} to PROCESSING", pDataset.getPath());
 					}
 					catch(OutdatedDatasetException ex) {
+						logger.log(Level.WARNING, "Could not update state of dataset {0} to PROCESSING because an OutdatedDatasetException was thrown", pDataset.getPath());
 						continue;
 					}
 					catch(Exception ex) {
+						logger.log(Level.SEVERE, "Could not update state of dataset {0} to PROCESSING because an unknown exception was thrown", ex);
 						continue;
 					}
 					queue.add(pDataset);
+					logger.log(Level.FINE, "Added dataset {0} to queue", pDataset.getPath());
 				}
 				
 				try {
@@ -71,6 +81,7 @@ public class DatasetScraper {
 	}
 	
 	public static void stop() {
+		logger.info("Stopping DatasetScraper...");
 		if (null != t) {
 			t.interrupt();
 		}

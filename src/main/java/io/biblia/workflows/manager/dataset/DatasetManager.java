@@ -3,6 +3,8 @@ package io.biblia.workflows.manager.dataset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import io.biblia.workflows.manager.decision.DatasetLogDao;
 import com.google.common.base.Preconditions;
@@ -30,6 +32,8 @@ public class DatasetManager {
 	
 	private static final int NUMBER_OF_DATASET_DELETORS = 5;
 	
+	private static final Logger logger = Logger.getLogger(DatasetManager.class.getName());
+	
 	private DatasetPersistance datasetPersistance;
 	
 	private DatasetLogDao datasetLogDao;
@@ -49,9 +53,11 @@ public class DatasetManager {
 		@Override
 		public void run() {
 			
+			logger.info("Started DatasetManager");
 			while (!Thread.currentThread().isInterrupted()) {
 				try{
 					PersistedDataset dataset = datasetsQueue.take();
+					logger.log(Level.FINER, "Took dataset {0} to the deletion queue", dataset.getPath());
 					datasetDeletorsExecutor.execute(new DatasetDeletor(dataset, datasetPersistance, datasetLogDao));
 					Thread.sleep(100);
 				}
@@ -94,7 +100,7 @@ public class DatasetManager {
 		
 	}
 	public static void stop() {
-		System.out.println("Shutting down Dataset Manager... ");
+		logger.log(Level.INFO, "Shutting down Dataset Manager");
 		finishActionScraper();
 		finishDatasetDeletors();
 		if (null != t) {

@@ -1,12 +1,13 @@
 package io.biblia.workflows.manager.decision;
 
 import java.util.List;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import com.google.common.base.Preconditions;
 
 import java.util.Date;
 import java.io.IOException;
-
 
 import io.biblia.workflows.hdfs.HdfsUtil;
 import io.biblia.workflows.manager.action.PersistedAction;
@@ -25,6 +26,8 @@ public class DecisionManager {
 	private ActionRollingWindow actionRollingWindow;
 	
 	private DatasetPersistance dPersistance;
+	
+	private static final Logger logger = Logger.getLogger(DecisionManager.class.getName());
 	
 	private DecisionAlgorithm decisionAlgorithm = new MostCommonlyUsedDecisionAlgorithm();
 	
@@ -46,6 +49,7 @@ public class DecisionManager {
 		
 		@Override
 		public void run() {
+			logger.info("Started DecisionManager");
 			while (!Thread.currentThread().isInterrupted()) {
 				try {
 					//1. Get the dataset space used. If dataset space
@@ -53,13 +57,16 @@ public class DecisionManager {
 					//space, keep going:
 					try {
 						Long capacity = HdfsUtil.getFileSystemCapacityInMB();
+						logger.log(Level.FINER, "Current system capacity in MB: {0}", capacity);
 						Long used = HdfsUtil.getFileSystemUsedSpaceInMB();
+						logger.log(Level.FINER, "Current system usagae in MB: {0}", used);
 						float usageRatio = Float.parseFloat(Configuration.getValue(DECISIONMANAGER_USAGERATIO, "0.8"));
 						if (used > capacity * usageRatio) {
 							long spaceToDelete = (long)(used - capacity * usageRatio); 
 							
 							//2. Get the last actions
 							List<PersistedAction> lastActions = actionRollingWindow.getLastActions(200);
+							logger.log(Level.FINER, "Obtained the last {0} actions from the rolling window", lastActions.size());
 							
 							//3. Create a SimplifiedWorkflow
 							SimplifiedWorkflowHistory sWorkflow = new SimplifiedWorkflowHistory();
@@ -78,6 +85,7 @@ public class DecisionManager {
 							//and the simplified workflow.
 							//5. Get the list of datasets to mark TO_DELETE
 							List<String> allDatasets = dPersistance.getAllStoredDatasetPaths();
+							logger.log(Level.FINER, "The number of datasets stored in the system is {0}", allDatasets.size());
 							List<String> toDelete = decisionAlgorithm.toDelete(sWorkflow, allDatasets, spaceToDelete);
 							
 							//6. Mark those datasets STORED_TO_DELETE.
@@ -86,10 +94,11 @@ public class DecisionManager {
 									PersistedDataset dataset = dPersistance.getDatasetByPath(actionOutput);
 									if (null != dataset) {
 										dPersistance.updateDatasetState(dataset, DatasetState.STORED_TO_DELETE);
+										logger.log(Level.INFO, "The state of dataset {0} was changed to STORED_TO_DELETE", dataset.getPath());
 									}
 								}
 								catch(Exception e) {
-									//TODO: FInd a better way to handle this in the future.
+									logger.severe("Unknown exception thrown when updating datasets state: " + e.toString());
 									continue;
 								}
 								
@@ -98,7 +107,7 @@ public class DecisionManager {
 						}
 					}
 					catch (IOException ex) {
-						//TODO: Log error here.
+						logger.severe("IOException thrown when trying to get Hdfs usage info");
 					}
 					
 					Thread.sleep(1000);
@@ -111,7 +120,7 @@ public class DecisionManager {
 	}
 	
 	public static void stop() {
-		System.out.println("Shutting down DecisionManager... ");
+		logger.info("Shutting down DecisionManager... ");
 		if (null != t) {
 			t.interrupt();
 		}

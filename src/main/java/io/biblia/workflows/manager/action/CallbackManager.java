@@ -2,9 +2,8 @@ package io.biblia.workflows.manager.action;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import com.google.common.base.Preconditions;
 
@@ -22,7 +21,7 @@ public class CallbackManager {
 	
 	private ActionPersistance actionPersistance;
 	
-	final static Logger logger = LoggerFactory.getLogger(CallbackManager.class);
+	final static Logger logger = Logger.getLogger(CallbackManager.class.getName());
 	
 	static {
 		queue = new LinkedBlockingQueue<>();
@@ -32,7 +31,7 @@ public class CallbackManager {
 		
 		@Override
 		public void run() {
-			logger.info("Started CallbackManager");
+			logger.info("Started CallbackManager.");
 			SubmittedActionScraper.start(queue, actionPersistance);
 			
 		}
@@ -89,7 +88,7 @@ class SubmittedActionScraper {
 	
 	private static final long SUBMITTED_ACTION_SCRAPER_TIMEOUT = 60000;
 	
-	final Logger logger = LoggerFactory.getLogger(SubmittedActionScraper.class);
+	final Logger logger = Logger.getLogger(SubmittedActionScraper.class.getName());
 	
 	private class ActionScraperRunner implements java.lang.Runnable {
 		
@@ -108,7 +107,7 @@ class SubmittedActionScraper {
 						queue.add(submissionId);
 					}
 					else {
-						logger.error("Could not add action {} to the queue because it had null submissionID", pAction.get_id());
+						logger.log(Level.SEVERE, "Could not add action {0} to the queue because it had null submissionID", pAction.get_id());
 					}
 				}
 				
