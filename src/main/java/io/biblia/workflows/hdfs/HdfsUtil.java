@@ -95,8 +95,9 @@ public class HdfsUtil implements ConfigurationKeys {
 		Preconditions.checkNotNull(basePath);
 		Preconditions.checkNotNull(relativePath);
 		basePath = basePath + "/";
-		URL mergedURL = new URL(new URL(basePath), relativePath);
-		return mergedURL.toString();
+		//URL mergedURL = new URL(new URL(basePath), relativePath);
+		//return mergedURL.toString();
+		return basePath + relativePath;
 	}
 	
 	/**
