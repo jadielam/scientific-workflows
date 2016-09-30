@@ -24,9 +24,12 @@ import com.google.common.base.Preconditions;
 
 import io.biblia.workflows.ConfigurationKeys;
 import io.biblia.workflows.definition.Action;
+import io.biblia.workflows.hdfs.HdfsUtil;
 
 public class OozieClientUtil implements ConfigurationKeys {
 
+	private static FileSystem fs = null;
+	
 	private static final OozieClient client;
 
 	private static final String END_NODE_NAME = "done";
@@ -35,6 +38,15 @@ public class OozieClientUtil implements ConfigurationKeys {
 
 	static {
 		client = new OozieClient(io.biblia.workflows.Configuration.getValue(OOZIE_URL));
+		String NAMENODE_URL = io.biblia.workflows.Configuration.getValue(NAMENODE);
+		Configuration conf = new Configuration();
+		conf.set("fs.defaultFS", NAMENODE_URL);
+		try{
+			fs = FileSystem.get(conf);
+		}
+		catch(IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -155,18 +167,7 @@ public class OozieClientUtil implements ConfigurationKeys {
 	}
 
 	private static void writeWorkflowDefinition(String workflowDefinition, String folderPath) throws IOException {
-
-		// 1. Convert workflowDefintion to input stream
-		InputStream in = new ByteArrayInputStream(workflowDefinition.getBytes(StandardCharsets.UTF_8));
-
-		// 2. Create outputStream with correct path
-		Configuration conf = new Configuration();
-		FileSystem fs = FileSystem.get(URI.create(folderPath), conf);
-		String workflowPath = folderPath + "/" + WORKFLOW_DEFINITION_FILE_NAME;
-		OutputStream out = fs.create(new Path(workflowPath));
-
-		// 3. Write from one to another
-		IOUtils.copyBytes(in, out, 4096, true);
+		HdfsUtil.writeStringToFile(workflowDefinition, folderPath, WORKFLOW_DEFINITION_FILE_NAME);
 	}
 
 	public static void killJob(String jobId) throws OozieClientException {

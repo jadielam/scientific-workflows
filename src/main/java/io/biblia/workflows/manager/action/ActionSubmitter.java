@@ -9,6 +9,7 @@ import org.apache.oozie.client.OozieClientException;
 import com.google.common.base.Preconditions;
 
 import io.biblia.workflows.oozie.OozieClientUtil;
+import io.biblia.workflows.definition.parser.WorkflowParseException;
 
 /**
  * Submits an action to be run. The medium where it will
@@ -63,8 +64,9 @@ public class ActionSubmitter implements Runnable {
 		String submissionId = null;
 		try {
 			submissionId = OozieClientUtil.submitAndStartOozieJob(action.getAction());
-			logger.log(Level.FINE, "Oozie client submitted action {0}", action.get_id());
-		} catch (OozieClientException | IOException ex) {
+			persistance.addActionSubmissionId(action, submissionId);
+			logger.log(Level.INFO, "Oozie client submitted action {0}", action.get_id());
+		} catch (OozieClientException | IOException | WorkflowParseException | OutdatedActionException ex) {
 			ex.printStackTrace();
 			logger.log(Level.FINE, "Oozie client was not able to submit action {0}", action.get_id());
 

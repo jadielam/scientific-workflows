@@ -1,8 +1,15 @@
 package io.biblia.workflows.hdfs;
 
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileUtil;
@@ -30,9 +37,10 @@ public class HdfsUtil implements ConfigurationKeys {
 		try{
 			Configuration conf = new Configuration();
 			conf.set("fs.defaultFS", NAMENODE_URL);
-			fs = FileSystem.get(conf);
+			fs = FileSystem.get(new URI(NAMENODE_URL), conf);
 		}
-		catch(IOException ex) {
+		catch(Exception ex) {
+			ex.printStackTrace();
 			//TODO: Log error here, because this here is crazy.
 		}
 	}
@@ -56,6 +64,21 @@ public class HdfsUtil implements ConfigurationKeys {
 		}
 	}
 	
+	public static void writeStringToFile(String text, String folderPath, String fileName) throws IllegalArgumentException, IOException {
+
+		// 2. Create outputStream with correct path
+		String workflowPath = combinePath(folderPath, fileName);
+		Path file = new Path(workflowPath);
+		if (fs.exists(file)) {
+			fs.delete(file, true);
+		}
+		OutputStream out = fs.create(file);
+		BufferedWriter br = new BufferedWriter(new OutputStreamWriter(out, "UTF-8"));
+		br.write(text);
+		br.close();
+		
+	}
+	
 	/**
 	 * 
 	 * Combines the hdfs paths into one.
@@ -65,6 +88,7 @@ public class HdfsUtil implements ConfigurationKeys {
 	{
 		Preconditions.checkNotNull(basePath);
 		Preconditions.checkNotNull(relativePath);
+		basePath = basePath + "/";
 		URL mergedURL = new URL(new URL(basePath), relativePath);
 		return mergedURL.toString();
 	}

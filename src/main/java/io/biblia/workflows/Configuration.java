@@ -17,16 +17,15 @@ public class Configuration {
 	static
 	{
 		configuration = new Properties();
-		//String confPath = System.getenv("SW_CONFIGURATION_FILE");
-		String confPath = "/Users/dearj019/Documents/workspace/scientific-workflows-conf/workflows.prop";
+		String confPath = System.getenv("SW_CONFIGURATION_FILE");
+		
 		if (null != confPath) {
 			try{
 				InputStream is = new FileInputStream(confPath);
 				configuration.load(is);
 			}
 			catch(Exception e) {
-				//do nothing. We will have to handle default values
-				//in some other way.
+				e.printStackTrace();
 			}	
 		}		
 	}
