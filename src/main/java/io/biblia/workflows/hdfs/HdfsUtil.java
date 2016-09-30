@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.InputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URI;
@@ -15,6 +17,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+
 import org.apache.hadoop.fs.FsStatus;
 import org.apache.hadoop.fs.FsUrlStreamHandlerFactory;
 import java.net.MalformedURLException;
@@ -29,11 +32,15 @@ public class HdfsUtil implements ConfigurationKeys {
 	
 	private static String NAMENODE_URL;
 	
+	final static Logger logger = Logger.getLogger(HdfsUtil.class.getName());
+	
 	static
 	{
+		
 		URL.setURLStreamHandlerFactory(new FsUrlStreamHandlerFactory());
+		logger.log(Level.FINE, "Changed the URL stream handler factory to recognize hdfs");
 		NAMENODE_URL = io.biblia.workflows.Configuration.getValue(NAMENODE);
-		//TODO: Initialize this properly.
+		
 		try{
 			Configuration conf = new Configuration();
 			conf.set("fs.defaultFS", NAMENODE_URL);
@@ -41,7 +48,6 @@ public class HdfsUtil implements ConfigurationKeys {
 		}
 		catch(Exception ex) {
 			ex.printStackTrace();
-			//TODO: Log error here, because this here is crazy.
 		}
 	}
 	/**
