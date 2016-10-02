@@ -98,7 +98,7 @@ public class ActionManager {
 				
 				try {
 					PersistedAction action = actionsQueue.take();	
-					logger.log(Level.FINE, "Action {} has been taken from the queue", action.getAction().getOriginalName());
+					logger.log(Level.FINE, "Action {0} has been taken from the queue", action.getAction().getOriginalName());
 					actionSubmittersExecutor.execute(new ActionSubmitter(action, actionPersistance));
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
