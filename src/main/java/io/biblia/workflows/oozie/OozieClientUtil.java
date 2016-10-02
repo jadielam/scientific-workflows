@@ -120,8 +120,7 @@ public class OozieClientUtil implements ConfigurationKeys {
 			}
 		}
 		catch(OozieClientException ex) {
-			//TODO: Log error here
-			//and do nothing here.
+			ex.printStackTrace();
 		}
 		return toReturn;
 	}

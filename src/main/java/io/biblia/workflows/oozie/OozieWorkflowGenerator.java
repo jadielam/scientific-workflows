@@ -125,6 +125,7 @@ ConfigurationKeys {
 			builder.openElement("java");
 			builder.openCloseTextElement("job-tracker", DEFAULT_JOB_TRACKER);
 			builder.openCloseTextElement("name-node", DEFAULT_NAME_NODE);
+			builder.openCloseElement("main-class", c.getMainClass());
 			List<String> arguments = c.getArguments();
 			for (String arg : arguments) {
 				builder.openCloseTextElement("arg", arg);
