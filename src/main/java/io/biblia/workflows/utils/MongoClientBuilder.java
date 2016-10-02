@@ -20,34 +20,31 @@ import io.biblia.workflows.Configuration;
 
 public class MongoClientBuilder implements ConfigurationKeys {
 	
-	private static MongoClient instance = null;
 	/**
 	 * Creates a MongoClient that supports multithreading.
 	 * @return
 	 */
 	public static MongoClient getMongoClient() {
 		
-		if (null == instance) {
-			String mongo_host = Configuration.getValue(MONGODB_HOST, "192.168.99.100");
-			int mongo_port = Integer.parseInt(Configuration.getValue(MONGODB_PORT, "27017"));
+		MongoClient instance = null;
+		String mongo_host = Configuration.getValue(MONGODB_HOST, "192.168.99.100");
+		int mongo_port = Integer.parseInt(Configuration.getValue(MONGODB_PORT, "27017"));
+		CodecRegistry codecRegistry = CodecRegistries.fromRegistries(
+				CodecRegistries.fromCodecs(new ActionStateCodec(), 
+						new ActionTypeCodec(),
+						new DatasetStateCodec()), 
+				MongoClient.getDefaultCodecRegistry());
 			
-			CodecRegistry codecRegistry = CodecRegistries.fromRegistries(
-					CodecRegistries.fromCodecs(new ActionStateCodec(), 
-							new ActionTypeCodec(),
-							new DatasetStateCodec()), 
-					MongoClient.getDefaultCodecRegistry());
+		MongoClientOptions.Builder builder = new MongoClientOptions.Builder();
+		builder.threadsAllowedToBlockForConnectionMultiplier(5);
+		builder.socketKeepAlive(true);
+		builder.connectionsPerHost(10);
+		builder.connectTimeout(30000);
+		builder.socketTimeout(30000);
+		builder.codecRegistry(codecRegistry);
+		MongoClientOptions options = builder.build();
 			
-			MongoClientOptions.Builder builder = new MongoClientOptions.Builder();
-			builder.threadsAllowedToBlockForConnectionMultiplier(5);
-			builder.socketKeepAlive(true);
-			builder.connectionsPerHost(10);
-			builder.connectTimeout(30000);
-			builder.socketTimeout(30000);
-			builder.codecRegistry(codecRegistry);
-			MongoClientOptions options = builder.build();
-			
-			instance = new MongoClient(new ServerAddress(mongo_host, mongo_port), options);
-		}
+		instance = new MongoClient(new ServerAddress(mongo_host, mongo_port), options);
 		
 		return instance;
 	}
