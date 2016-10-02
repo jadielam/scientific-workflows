@@ -64,9 +64,8 @@ public class ActionSubmitter implements Runnable {
 		String submissionId = null;
 		try {
 			submissionId = OozieClientUtil.submitAndStartOozieJob(action.getAction());
-			persistance.addActionSubmissionId(action, submissionId);
 			logger.log(Level.INFO, "Oozie client submitted action {0}", action.get_id());
-		} catch (OozieClientException | IOException | WorkflowParseException | OutdatedActionException ex) {
+		} catch (OozieClientException | IOException ex) {
 			ex.printStackTrace();
 			logger.log(Level.FINE, "Oozie client was not able to submit action {0}", action.get_id());
 
