@@ -38,10 +38,11 @@ public class MongoClientBuilder implements ConfigurationKeys {
 					MongoClient.getDefaultCodecRegistry());
 			
 			MongoClientOptions.Builder builder = new MongoClientOptions.Builder();
-			builder.threadsAllowedToBlockForConnectionMultiplier(100);
+			builder.threadsAllowedToBlockForConnectionMultiplier(5);
 			builder.socketKeepAlive(true);
 			builder.connectionsPerHost(10);
-			builder.minConnectionsPerHost(1);
+			builder.connectTimeout(30000);
+			builder.socketTimeout(30000);
 			builder.codecRegistry(codecRegistry);
 			MongoClientOptions options = builder.build();
 			
