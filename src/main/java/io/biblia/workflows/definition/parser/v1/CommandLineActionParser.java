@@ -98,12 +98,6 @@ implements ActionAttributesConstants, ConfigurationKeys  {
 		String actionFolder = (String) actionObject.get(ACTION_FOLDER);
 		if (null == actionFolder)
 			throw new WorkflowParseException("The action does not have attribute <actionFolder>");
-		try{
-			actionFolder = HdfsUtil.combinePath(nameNode, actionFolder);
-		}
-		catch(MalformedURLException e) {
-			throw new WorkflowParseException("Malformed path provided as actionFolder: "+ actionFolder);
-		}
 		
 		Boolean forceComputation = (Boolean) actionObject.get(ACTION_FORCE_COMPUTATION);
 		forceComputation = (forceComputation == null || !forceComputation) ? false : true;
