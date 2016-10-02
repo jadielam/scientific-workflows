@@ -43,6 +43,12 @@ public class HdfsUtil implements ConfigurationKeys {
 		
 		try{
 			Configuration conf = new Configuration();
+		    conf.set("fs.hdfs.impl", 
+		            org.apache.hadoop.hdfs.DistributedFileSystem.class.getName()
+		        );
+		    conf.set("fs.file.impl",
+		            org.apache.hadoop.fs.LocalFileSystem.class.getName()
+		        );
 			conf.set("fs.defaultFS", NAMENODE_URL);
 			fs = FileSystem.get(new URI(NAMENODE_URL), conf);
 		}
