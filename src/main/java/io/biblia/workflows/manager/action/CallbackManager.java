@@ -72,19 +72,20 @@ public class CallbackManager {
 		}
 	}
 	
-	private CallbackManager(ActionPersistance aPersistance) {
+	private CallbackManager(ActionPersistance aPersistance, Callback callback) {
 		Preconditions.checkNotNull(aPersistance);
 		
 		this.actionPersistance = aPersistance;
+		this.callback = callback;
 		
 		t = new Thread(new CallbackManagerRunner(), "CallbackManager thread");
 		
 		t.start();
 	}
 	
-	public static void start(ActionPersistance persistance) {
+	public static void start(ActionPersistance persistance, Callback callback) {
 		if (null == instance) {
-			instance = new CallbackManager(persistance);
+			instance = new CallbackManager(persistance, callback);
 		}
 	}
 	
