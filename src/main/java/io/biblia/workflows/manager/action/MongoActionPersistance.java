@@ -422,7 +422,7 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
 		options.returnDocument(ReturnDocument.AFTER);
 		options.upsert(true);
 		Document newDocument = this.counters.findOneAndUpdate(filter,  update, options);
-		Long toReturn = newDocument.getLong("seq");
+		Long toReturn = new Long(newDocument.getInteger("seq"));
 		return toReturn;
 	}
 	
