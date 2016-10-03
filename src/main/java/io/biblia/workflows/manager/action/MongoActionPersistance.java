@@ -288,6 +288,20 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
 		return null;
 		
 	}
+	
+	@Override
+	public PersistedAction getActionBySubmissionId(String submissionId) throws WorkflowParseException,
+		NullPointerException, JsonParseException {
+		
+		final Document filter = new Document().append("submissionId", submissionId);
+		final Document update = new Document();
+		final Document found = this.actions.findOneAndUpdate(filter, update);
+		if (null != found) {
+			PersistedAction toReturn = PersistedAction.parseAction(found);
+			return toReturn;
+		}
+		return null;
+	}
 
 	@Override
 	public void readyAction(String databaseId) {

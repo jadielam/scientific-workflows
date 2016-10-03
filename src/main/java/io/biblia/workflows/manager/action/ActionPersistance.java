@@ -52,6 +52,17 @@ public interface ActionPersistance {
 		NullPointerException, JsonParseException;
 	
 	/**
+	 * Retrieves a persisted action by the id used to submit to Ooze.
+	 * @param submissionId
+	 * @return
+	 * @throws WorkflowParseException
+	 * @throws NullPointerException
+	 * @throws JsonParseException
+	 */
+	public PersistedAction getActionBySubmissionId(String submissionId) throws WorkflowParseException,
+		NullPointerException, JsonParseException;
+	
+	/**
 	 * Adds the Oozie submission id to the action.  If the action has
 	 * been modified by someone else, it throws the OutdatedActionException.
 	 * @param action

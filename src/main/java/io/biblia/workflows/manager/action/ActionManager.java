@@ -128,8 +128,6 @@ public class ActionManager {
 		Preconditions.checkNotNull(actionPersistance);
 		
 		this.actionPersistance = actionPersistance;
-		//2. Start the Database scraper.
-		ActionScraper.start(actionsQueue, actionPersistance);
 		
 		t = new Thread(new ActionManagerRunner(), "ActionManager thread");
 		

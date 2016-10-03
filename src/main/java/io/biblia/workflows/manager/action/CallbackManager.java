@@ -1,11 +1,15 @@
 package io.biblia.workflows.manager.action;
 
+import io.biblia.workflows.oozie.OozieClientUtil;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
 import com.google.common.base.Preconditions;
+import org.apache.oozie.client.OozieClientException;
+import org.apache.oozie.client.WorkflowJob.Status;
+import org.bson.types.ObjectId;
 
 import java.util.List;
 
@@ -17,7 +21,7 @@ public class CallbackManager {
 	
 	private Callback callback;
 	
-	private static final BlockingQueue<String> queue;
+	private static final BlockingQueue<PersistedAction> queue;
 	
 	private ActionPersistance actionPersistance;
 	
@@ -33,6 +37,36 @@ public class CallbackManager {
 		public void run() {
 			logger.info("Started CallbackManager.");
 			SubmittedActionScraper.start(queue, actionPersistance);
+			while(!Thread.currentThread().isInterrupted()) {
+				try {
+					PersistedAction pAction = queue.take();
+					String oozieSubmissionId = pAction.getSubmissionId();
+					
+					try {
+						Status status = OozieClientUtil.getOozieWorkflowStatus(oozieSubmissionId);
+						
+						if (Status.SUCCEEDED.equals(status)) {
+							callback.actionFinished(pAction.get_id().toHexString());
+						}
+						else if (Status.FAILED.equals(status)) {
+							callback.actionFailed(pAction.get_id().toHexString());
+						}
+						else if (Status.KILLED.equals(status)) {
+							callback.actionKilled(pAction.get_id().toHexString());
+						}
+						
+						Thread.sleep(100);
+					}
+					catch (OozieClientException ex) {
+						continue;
+					}
+					
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+			}
+			
 			
 		}
 	}
@@ -41,8 +75,6 @@ public class CallbackManager {
 		Preconditions.checkNotNull(aPersistance);
 		
 		this.actionPersistance = aPersistance;
-		
-		SubmittedActionScraper.start(queue, actionPersistance);
 		
 		t = new Thread(new CallbackManagerRunner(), "CallbackManager thread");
 		
@@ -82,7 +114,7 @@ class SubmittedActionScraper {
 	
 	private static Thread t;
 	
-	private final BlockingQueue<String> queue;
+	private final BlockingQueue<PersistedAction> queue;
 	
 	private final ActionPersistance actionDao;
 	
@@ -102,9 +134,8 @@ class SubmittedActionScraper {
 				
 				//2. Place the action submitted id in the queue
 				for (PersistedAction pAction : actions) {
-					String submissionId = pAction.getSubmissionId();
-					if (null != submissionId) {
-						queue.add(submissionId);
+					if (null != pAction) {
+						queue.add(pAction);
 					}
 					else {
 						logger.log(Level.SEVERE, "Could not add action {0} to the queue because it had null submissionID", pAction.get_id());
@@ -121,7 +152,7 @@ class SubmittedActionScraper {
 		}
 	}
 	
-	private SubmittedActionScraper(BlockingQueue<String> queue, ActionPersistance actionDao) {
+	private SubmittedActionScraper(BlockingQueue<PersistedAction> queue, ActionPersistance actionDao) {
 		Preconditions.checkNotNull(queue);
 		Preconditions.checkNotNull(actionDao);
 		this.queue = queue;
@@ -136,7 +167,7 @@ class SubmittedActionScraper {
 		}
 	}
 	
-	public static void start(BlockingQueue<String> actionsQueue, ActionPersistance actionDao) {
+	public static void start(BlockingQueue<PersistedAction> actionsQueue, ActionPersistance actionDao) {
 		if (null == instance){
 			instance = new SubmittedActionScraper(actionsQueue, actionDao);
 		}

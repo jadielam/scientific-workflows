@@ -18,6 +18,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.oozie.client.OozieClient;
 import org.apache.oozie.client.WorkflowJob;
+import org.apache.oozie.client.WorkflowJob.Status;
 import org.apache.oozie.client.OozieClientException;
 
 import com.google.common.base.Preconditions;
@@ -47,6 +48,17 @@ public class OozieClientUtil implements ConfigurationKeys {
 		catch(IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	/**
+	 * Given a submission id, it returns the status of that job.
+	 * @param submissionId
+	 */
+	public static Status getOozieWorkflowStatus(String submissionId) throws OozieClientException {
+		
+		WorkflowJob job = client.getJobInfo(submissionId);
+		Status status = job.getStatus();			
+		return status;
 	}
 
 	/**
