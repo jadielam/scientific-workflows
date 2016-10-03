@@ -40,11 +40,12 @@ public class CallbackManager {
 			while(!Thread.currentThread().isInterrupted()) {
 				try {
 					PersistedAction pAction = queue.take();
+					logger.log(Level.FINE, "Processing action {0} from the submitted actions queue", pAction.get_id());
 					String oozieSubmissionId = pAction.getSubmissionId();
 					
 					try {
 						Status status = OozieClientUtil.getOozieWorkflowStatus(oozieSubmissionId);
-						
+						logger.log(Level.FINE, "Action " + pAction.get_id() + " has status {0}", status.name());
 						if (Status.SUCCEEDED.equals(status)) {
 							callback.actionFinished(pAction.get_id().toHexString());
 						}
@@ -131,11 +132,13 @@ class SubmittedActionScraper {
 				
 				//1. Get all the submitted actions
 				List<PersistedAction> actions =  actionDao.getSubmittedActions();
+				logger.log(Level.FINE, "Obtained {0} actions from the submitted actions queue", actions.size());;
 				
 				//2. Place the action submitted id in the queue
 				for (PersistedAction pAction : actions) {
 					if (null != pAction) {
 						queue.add(pAction);
+						logger.log(Level.FINE, "Added action {0} to the submitted actions queue", pAction.get_id());
 					}
 					else {
 						logger.log(Level.SEVERE, "Could not add action {0} to the queue because it had null submissionID", pAction.get_id());

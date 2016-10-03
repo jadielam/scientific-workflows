@@ -3,6 +3,8 @@ package io.biblia.workflows.manager.action;
 import java.util.Date;
 import java.util.List;
 
+import java.util.logging.Logger;
+import java.util.logging.Level;
 import org.bson.types.ObjectId;
 
 import io.biblia.workflows.hdfs.HdfsUtil;
@@ -28,6 +30,7 @@ public class Callback {
 	private final ActionPersistance aPersistance;
 	private final DatasetPersistance dPersistance;
 	private final DatasetLogDao dLogDao;
+	final static Logger logger = Logger.getLogger(Callback.class.getName());
 	
 	public Callback(ActionPersistance aPersistance,
 			DatasetPersistance dPersistance,
@@ -48,6 +51,7 @@ public class Callback {
 	 */
 	public void actionFinished(String actionId) {
 		Preconditions.checkNotNull(actionId);
+		logger.log(Level.FINE, "actionFinished called on action {0}", actionId);
 		
 		//1. Decrease dataset claims
 		decreaseDatasetClaims(actionId);
@@ -55,10 +59,12 @@ public class Callback {
 		//2. Change state of child actions to READY if they
 		//are not waiting on any other dependants.
 		List<String> childActionIds = readyChildActions(actionId);
+		logger.log(Level.FINE, "Readied {0} child actions of " + actionId, childActionIds.size());
 		
 		//3. Update action state
 		ObjectId id = new ObjectId(actionId); 
 		this.aPersistance.actionFinished(id);
+		logger.log(Level.FINE, "Changed status of action {0} to FINISHED", actionId);
 		
 		//4.1 Updating start and end time of the action.
 		//4.2 Insert a record of the output of the action into the database
@@ -74,7 +80,7 @@ public class Callback {
 			Double sizeInMB = HdfsUtil.getSizeInMB(outputPath);
 			
 			this.aPersistance.addStartAndEndTimeAndSize(action, startTime, endTime, sizeInMB);
-			
+			logger.log(Level.FINER, "Action {0} startTime: {1}, endTime: {2}, sizeInMB: {3}", new Object[]{ actionId, startTime, endTime, sizeInMB});
 			
 			if (null != sizeInMB) {
 				PersistedDataset actionDataset = this.dPersistance.getDatasetByPath(outputPath);
@@ -82,25 +88,30 @@ public class Callback {
 					PersistedDataset newDataset = new PersistedDataset(outputPath,
 							sizeInMB, DatasetState.STORED, new Date(), 1, childActionIds);
 					this.dPersistance.insertDataset(newDataset);
+					logger.log(Level.FINER, "Inserted new dataset {0} for action {1} with state STORED", new Object[]{outputPath, actionId});
 					this.dLogDao.insertLogEntry(outputPath, DatasetState.PROCESSING, DatasetState.STORED, sizeInMB);
 				}
 				else {
 					DatasetState state = actionDataset.getState();
 					if (state.equals(DatasetState.TO_STORE)) {
 						actionDataset = this.dPersistance.updateDatasetState(actionDataset, DatasetState.STORED);
+						logger.log(Level.FINER, "Updated state of dataset {0} to STORED", outputPath);
 						this.dLogDao.insertLogEntry(outputPath, DatasetState.TO_STORE, DatasetState.STORED, sizeInMB);
 					}
 					else if (DatasetState.TO_LEAF.equals(state)) {
 						actionDataset = this.dPersistance.updateDatasetState(actionDataset, DatasetState.LEAF);
+						logger.log(Level.FINER, "Updated state of dataset {0} to LEAF", outputPath);
 						this.dLogDao.insertLogEntry(outputPath, DatasetState.TO_LEAF, DatasetState.LEAF, sizeInMB);
 					}
 					else if (state.equals(DatasetState.TO_DELETE)){
 						actionDataset = this.dPersistance.updateDatasetState(actionDataset, DatasetState.STORED_TO_DELETE);
+						logger.log(Level.FINER, "Updated state of dataset {0} to STORED_TO_DELETE", outputPath);
 						this.dLogDao.insertLogEntry(outputPath, DatasetState.TO_DELETE, DatasetState.STORED_TO_DELETE, sizeInMB);
 					}
 					this.dPersistance.updateDatasetSizeInMB(actionDataset, sizeInMB);
 					for (String childActionId : childActionIds) {
 						this.dPersistance.addClaimToDataset(actionDataset, childActionId);
+						logger.log(Level.FINER, "Added claim to dataset {0} from child action id {1}", new Object[]{outputPath, childActionId});
 					}
 					
 				}
@@ -108,17 +119,18 @@ public class Callback {
 			}
 		}
 		catch(Exception e) {
-			//TODO: Log exception here.
-			//Do nothing.
+			logger.log(Level.WARNING, "Exception thrown " + e.toString());
 		}
 		
 	}
 	
 	public void actionFailed(String actionId) {
 		
+		logger.log(Level.FINE, "actionFailed called on action {0}", actionId);
 		//1. Decrease dataset claims
 		decreaseDatasetClaims(actionId);
 		ObjectId id = new ObjectId(actionId);
+		
 		
 		//2. Remove the output produced by the action
 		//and update the database with the output state accordingly.
@@ -136,17 +148,20 @@ public class Callback {
 			//dataset did not exist, and no action places a clain on a non-existent 
 			//dataset.
 			this.dPersistance.updateDatasetState(dataset, DatasetState.STORED_TO_DELETE);
+			logger.log(Level.FINE, "Updated state of dataset {0} to STORED_TO_DELETE", dataset.getPath());
 		}
 		catch(Exception e) {
-			//Do nothing and log.
+			logger.log(Level.WARNING, "Exception thrown " + e.toString());
 		}
 		
 		//3. Update the action state to FAILED
 		this.aPersistance.actionFailed(id);
+		logger.log(Level.FINE, "Updated state of action {0} to FAILED", actionId);
 	}
 	
 	public void actionKilled(String actionId) {
 		
+		logger.log(Level.FINE, "actionKilled called on action {0}", actionId);
 		//1. Decrease dataset claims
 		decreaseDatasetClaims(actionId);
 		
@@ -160,14 +175,16 @@ public class Callback {
 			String outputPath = action.getAction().getOutputPath();
 			PersistedDataset dataset = this.dPersistance.getDatasetByPath(outputPath);
 			this.dPersistance.updateDatasetState(dataset, DatasetState.STORED_TO_DELETE);
+			logger.log(Level.FINE, "Updated state of dataset {0} to STORED_TO_DELETE", dataset.getPath());
 		}
 		catch(Exception e) {
-			//Do nothing and log.
+			logger.log(Level.WARNING, "Exception thrown " + e.toString());
 		}
 
 		//3. Update the state of the action.
 		ObjectId id = new ObjectId(actionId);
 		this.aPersistance.actionKilled(id);
+		logger.log(Level.FINE, "Updated state of action {0} to KILLED", actionId);
 	}
 	
 	/**
