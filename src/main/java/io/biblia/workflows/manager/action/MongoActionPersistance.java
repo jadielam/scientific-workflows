@@ -13,6 +13,9 @@ import com.mongodb.client.result.UpdateResult;
 import io.biblia.workflows.definition.Action;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
 import io.biblia.workflows.manager.DatabaseConstants;
+
+import java.util.logging.Logger;
+import java.util.logging.Level;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.json.JsonParseException;
@@ -50,6 +53,7 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
     private final MongoDatabase workflows;
     private final MongoCollection<Document> actions;
     private final MongoCollection<Document> counters;
+    final static Logger logger = Logger.getLogger(MongoActionPersistance.class.getName());
     
  
     
@@ -250,16 +254,30 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
 	public PersistedAction getActionById(String actionId) throws WorkflowParseException,
 		NullPointerException, JsonParseException
 	{
-		ObjectId id = new ObjectId(actionId);
-		final Document filter = new Document().append("_id", id);
-		final Document update = new Document();
-		final Document found = this.actions.findOneAndUpdate(filter, update);
-		if (null != found) {
-			PersistedAction toReturn = PersistedAction.parseAction(found);
-			return toReturn;
-		}
-		return null;
 		
+		final FindIterable<Document> documents = this.actions.find(
+    			eq("_id", new ObjectId(actionId))
+    			);
+    	
+    	MongoCursor<Document> iterator = documents.iterator();
+    	try {
+    		while(iterator.hasNext()) {
+    			Document next = iterator.next();
+    			try {
+    				PersistedAction action = PersistedAction.parseAction(next);
+    				iterator.close();
+    				return action;
+    			}
+    			catch(Exception e) {
+                    e.printStackTrace();
+                }
+    		}
+    	}
+    	finally {
+    		iterator.close();
+    	}
+    	
+    	return null;	
 	}
 	
 	@Override
@@ -295,15 +313,9 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
 	public List<String> readyChildActions(String actionId) {
 		//1. Find all the child actions with actionId as parent
 		List<PersistedAction> childActions = new ArrayList<>();
-		final Document filter1 = new Document().append("state", ActionState.WAITING)
+		final Document filter = new Document().append("state", ActionState.WAITING)
 									.append("parentsActionIds", new Document("$in", Arrays.asList(actionId)));
-		Bson filter = and(
-                eq("state", ActionState.WAITING.name()),
-                //TODO: CHeck that this is good here with elemMatch
-                
-                elemMatch("parentsActionIds", eq("parentsActionIds", actionId))
-            );
-		final FindIterable<Document> documents = this.actions.find(filter1);
+		final FindIterable<Document> documents = this.actions.find(filter);
         
 		MongoCursor<Document> iterator = documents.iterator();
         try {
@@ -327,12 +339,14 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
         for (PersistedAction action : childActions) {
         	String childId = action.get_id().toHexString();
         	childIds.add(childId);
+        	
         }
 		
 		//2. Remove actionId from all the child actions that have it as parent
         Document update = new Document()
         		.append("$pull", new Document("parentsActionIds", actionId));
-        this.actions.updateMany(filter, update);
+        UpdateResult result = this.actions.updateMany(filter, update);
+        
 		
 		//3. Mark as READY all actions that are not ready and that are among 
 		//the actions in list 1, and whose list of parent actions were emptied by
