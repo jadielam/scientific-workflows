@@ -310,11 +310,11 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
 	}
 	
 	@Override
-	public List<String> readyChildActions(String actionId) {
+	public List<ObjectId> readyChildActions(String actionId) {
 		//1. Find all the child actions with actionId as parent
 		List<PersistedAction> childActions = new ArrayList<>();
 		final Document filter = new Document().append("state", ActionState.WAITING)
-									.append("parentsActionIds", new Document("$in", Arrays.asList(actionId)));
+									.append("parentsActionIds", actionId);
 		final FindIterable<Document> documents = this.actions.find(filter);
         
 		MongoCursor<Document> iterator = documents.iterator();
@@ -326,7 +326,6 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
                     childActions.add(action);
                 }
                 catch(Exception e) {
-                    //TODO: Add logging here.
                 	e.printStackTrace();
                     continue;
                 }
@@ -335,11 +334,10 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
         finally {
             iterator.close();
         }
-        List<String> childIds = new ArrayList<String>();
+        List<ObjectId> childIds = new ArrayList<>();
         for (PersistedAction action : childActions) {
         	String childId = action.get_id().toHexString();
-        	childIds.add(childId);
-        	
+        	childIds.add(new ObjectId(childId));
         }
 		
 		//2. Remove actionId from all the child actions that have it as parent
@@ -351,11 +349,9 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
 		//3. Mark as READY all actions that are not ready and that are among 
 		//the actions in list 1, and whose list of parent actions were emptied by
 		//step 2.
-        final Bson readyFilter = and(
-        		eq("state", ActionState.WAITING.name()),
-        		size("parentsActionIds", 0),
-        		in("_id", childIds)
-        	);
+        final Document readyFilter = new Document().append("state", ActionState.WAITING)
+        											.append("parentsActionIds", new Document("$size", 0))
+        											.append("_id", new Document("$in", childIds));
         final Document readyUpdate = new Document().append("$set", new Document("state", ActionState.READY.name()))
 				.append("$currentDate", new Document("lastUpdatedDate", true))
 				.append("$inc", new Document("version", 1));

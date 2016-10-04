@@ -155,7 +155,7 @@ public interface ActionPersistance {
 	 * @param actionId
 	 * @return It returns all the child actions found on step 1.
 	 */
-	public List<String> readyChildActions(String actionId);
+	public List<ObjectId> readyChildActions(String actionId);
 	
 	/**
 	 * If the action state is WAITING, and if it has no parents,

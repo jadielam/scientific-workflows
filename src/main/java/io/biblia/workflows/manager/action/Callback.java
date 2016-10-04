@@ -2,6 +2,7 @@ package io.biblia.workflows.manager.action;
 
 import java.util.Date;
 import java.util.List;
+import java.util.ArrayList;
 
 import java.util.logging.Logger;
 import java.util.logging.Level;
@@ -59,7 +60,11 @@ public class Callback {
 		
 		//2. Change state of child actions to READY if they
 		//are not waiting on any other dependants.
-		List<String> childActionIds = readyChildActions(actionId.toHexString());
+		List<ObjectId> childActionIdsObjects = readyChildActions(actionId.toHexString());
+		List<String> childActionIds = new ArrayList<>();
+		for (ObjectId id : childActionIdsObjects) {
+			childActionIds.add(id.toHexString());
+		}
 		logger.log(Level.FINE, "Readied {0} child actions of " + actionId, childActionIds.size());
 		
 		//4.1 Updating start and end time of the action.
@@ -210,7 +215,7 @@ public class Callback {
 	 * @param actionId
 	 * @return Returns a list with all the child actions ids
 	 */
-	private List<String> readyChildActions(String actionId) {
+	private List<ObjectId> readyChildActions(String actionId) {
 		return this.aPersistance.readyChildActions(actionId);
 	}
 	
