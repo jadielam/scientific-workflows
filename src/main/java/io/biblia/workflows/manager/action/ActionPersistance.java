@@ -28,6 +28,7 @@ public interface ActionPersistance {
 	 */
 	public List<PersistedAction> getSubmittedActions();
 	
+	public void readyAction(String databaseId);
 	
 	/**
 	 * Updates the state of the action to the specified state.
@@ -156,13 +157,6 @@ public interface ActionPersistance {
 	 * @return It returns all the child actions found on step 1.
 	 */
 	public List<ObjectId> readyChildActions(String actionId);
-	
-	/**
-	 * If the action state is WAITING, and if it has no parents,
-	 * for which it is waiting, it changes its state to READY.
-	 * @param actionId
-	 */
-	public void readyAction(String actionId);
 	
 	/**
 	 * Adds dependecy to action represented by childDatabaseId on action represented by

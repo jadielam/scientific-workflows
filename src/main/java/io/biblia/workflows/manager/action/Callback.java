@@ -83,7 +83,7 @@ public class Callback {
 			String outputPath = pAction.getAction().getOutputPath();
 			Double sizeInMB = HdfsUtil.getSizeInMB(outputPath);
 			
-			this.aPersistance.addStartAndEndTimeAndSize(pAction, startTime, endTime, sizeInMB);
+			pAction = this.aPersistance.addStartAndEndTimeAndSize(pAction, startTime, endTime, sizeInMB);
 			logger.log(Level.FINER, "Action {0} startTime: {1}, endTime: {2}, sizeInMB: {3}", new Object[]{ actionId, startTime, endTime, sizeInMB});
 			
 			if (null != sizeInMB) {

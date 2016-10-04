@@ -223,9 +223,8 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
 		Preconditions.checkNotNull(endTime);
 		final Document filter = new Document().append("_id", action.getId())
 				.append("version", action.getVersion());
-		final Document update = new Document().append("$set", new Document("startTime", startTime))
-				.append("$set", new Document("endTime", endTime))
-				.append("$set", new Document("sizeInMB", sizeInMB))
+		final Document update = new Document().append("$set", new Document("startTime", startTime).append("endTime", endTime).append("sizeInMB", sizeInMB))
+				
 				.append("$currentDate", new Document("lastUpdatedDate", true))
 				.append("$inc", new Document("version", 1));
 		
