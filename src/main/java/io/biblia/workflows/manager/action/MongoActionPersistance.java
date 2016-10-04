@@ -20,6 +20,7 @@ import org.bson.types.ObjectId;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -295,7 +296,7 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
 		//1. Find all the child actions with actionId as parent
 		List<PersistedAction> childActions = new ArrayList<>();
 		final Document filter1 = new Document().append("state", ActionState.WAITING)
-									.append("parentsActionIds", new Document("$in", new String[] {actionId}));
+									.append("parentsActionIds", new Document("$in", Arrays.asList(actionId)));
 		Bson filter = and(
                 eq("state", ActionState.WAITING.name()),
                 //TODO: CHeck that this is good here with elemMatch
