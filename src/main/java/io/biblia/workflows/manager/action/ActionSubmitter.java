@@ -86,7 +86,7 @@ public class ActionSubmitter implements Runnable {
 		}
 		try {
 			action = this.persistance.addActionSubmissionId(action, submissionId);
-			logger.log(Level.FINE, "Added the submission id {0} to action {1}", new Object[] {action.get_id(), submissionId});
+			logger.log(Level.FINE, "Added the submission id {0} to action {1}", new Object[] {submissionId, action.get_id()});
 		} catch (OutdatedActionException ex) {
 			logger.log(Level.FINE, "Could not updated action {0} with submission id {1}", new Object[] {action.get_id(), submissionId});
 		}

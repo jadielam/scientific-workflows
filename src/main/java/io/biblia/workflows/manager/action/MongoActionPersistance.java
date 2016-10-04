@@ -325,7 +325,7 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
 		Bson filter = and(
                 eq("state", ActionState.WAITING.name()),
                 //TODO: CHeck that this is good here with elemMatch
-                elemMatch("parentsActionIds", eq("parentsActionids", actionId))
+                elemMatch("parentsActionIds", eq("parentsActionIds", actionId))
             );
 		final FindIterable<Document> documents = this.actions.find(filter);
         
@@ -339,6 +339,7 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
                 }
                 catch(Exception e) {
                     //TODO: Add logging here.
+                	e.printStackTrace();
                     continue;
                 }
             }
