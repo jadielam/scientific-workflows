@@ -120,7 +120,7 @@ class SubmittedActionScraper {
 	
 	private final ActionPersistance actionDao;
 	
-	private static final long SUBMITTED_ACTION_SCRAPER_TIMEOUT = 60000;
+	private static final long SUBMITTED_ACTION_SCRAPER_TIMEOUT = 10000;
 	
 	final Logger logger = Logger.getLogger(SubmittedActionScraper.class.getName());
 	
