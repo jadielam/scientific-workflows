@@ -49,37 +49,36 @@ public class Callback {
 	 * happens.
 	 * @param actionId
 	 */
-	public void actionFinished(String actionId) {
+	public void actionFinished(PersistedAction pAction) {
+		ObjectId actionId = pAction.getId();
 		Preconditions.checkNotNull(actionId);
 		logger.log(Level.FINE, "actionFinished called on action {0}", actionId);
 		
 		//1. Decrease dataset claims
-		decreaseDatasetClaims(actionId);
+		decreaseDatasetClaims(actionId.toHexString());
 		
 		//2. Change state of child actions to READY if they
 		//are not waiting on any other dependants.
-		List<String> childActionIds = readyChildActions(actionId);
+		List<String> childActionIds = readyChildActions(actionId.toHexString());
 		logger.log(Level.FINE, "Readied {0} child actions of " + actionId, childActionIds.size());
-		
-		//3. Update action state
-		ObjectId id = new ObjectId(actionId); 
-		this.aPersistance.actionFinished(id);
-		logger.log(Level.FINE, "Changed status of action {0} to FINISHED", actionId);
 		
 		//4.1 Updating start and end time of the action.
 		//4.2 Insert a record of the output of the action into the database
 		try{
+			pAction = this.aPersistance.updateActionState(pAction, ActionState.FINISHED);
+			logger.log(Level.FINE, "Changed status of action {0} to FINISHED", actionId);
+			
 			//1. Updating start and end time.
-			PersistedAction action = this.aPersistance.getActionById(actionId);
-			String oozieId = action.getSubmissionId();
+			pAction = this.aPersistance.getActionById(actionId.toHexString());
+			String oozieId = pAction.getSubmissionId();
 			List<Date> times = OozieClientUtil.getStartAndEndTime(oozieId);
 			Date startTime = times.get(0);
 			Date endTime = times.get(1);
 			//2. Inserting a record of the output action into the database.
-			String outputPath = action.getAction().getOutputPath();
+			String outputPath = pAction.getAction().getOutputPath();
 			Double sizeInMB = HdfsUtil.getSizeInMB(outputPath);
 			
-			this.aPersistance.addStartAndEndTimeAndSize(action, startTime, endTime, sizeInMB);
+			this.aPersistance.addStartAndEndTimeAndSize(pAction, startTime, endTime, sizeInMB);
 			logger.log(Level.FINER, "Action {0} startTime: {1}, endTime: {2}, sizeInMB: {3}", new Object[]{ actionId, startTime, endTime, sizeInMB});
 			
 			if (null != sizeInMB) {
@@ -119,26 +118,27 @@ public class Callback {
 			}
 		}
 		catch(Exception e) {
+			e.printStackTrace();
 			logger.log(Level.WARNING, "Exception thrown " + e.toString());
 		}
 		
 	}
 	
-	public void actionFailed(String actionId) {
+	public void actionFailed(PersistedAction pAction) {
+		
+		ObjectId actionId = pAction.getId();
 		
 		logger.log(Level.FINE, "actionFailed called on action {0}", actionId);
 		//1. Decrease dataset claims
-		decreaseDatasetClaims(actionId);
-		ObjectId id = new ObjectId(actionId);
-		
+		decreaseDatasetClaims(actionId.toHexString());
 		
 		//2. Remove the output produced by the action
 		//and update the database with the output state accordingly.
 		//In order to remove the output, just mark the dataset with
 		//state TO_DELETE, and let the other guys handle it.
 		try{
-			PersistedAction action = this.aPersistance.getActionById(actionId);
-			String outputPath = action.getAction().getOutputPath();
+			pAction = this.aPersistance.getActionById(actionId.toHexString());
+			String outputPath = pAction.getAction().getOutputPath();
 			PersistedDataset dataset = this.dPersistance.getDatasetByPath(outputPath);
 			//TODO: There might be a bug here. Analyze later: If the dataset is not deleted immediately here
 			//then it could be that actions with claims on it might use it even when it is in an inconsistent state.
@@ -149,21 +149,25 @@ public class Callback {
 			//dataset.
 			this.dPersistance.updateDatasetState(dataset, DatasetState.STORED_TO_DELETE);
 			logger.log(Level.FINE, "Updated state of dataset {0} to STORED_TO_DELETE", dataset.getPath());
+			
+			//3. Update the action state to FAILED
+			this.aPersistance.updateActionState(pAction, ActionState.FAILED);
+			
+			logger.log(Level.FINE, "Updated state of action {0} to FAILED", actionId);
 		}
 		catch(Exception e) {
+			e.printStackTrace();
 			logger.log(Level.WARNING, "Exception thrown " + e.toString());
 		}
 		
-		//3. Update the action state to FAILED
-		this.aPersistance.actionFailed(id);
-		logger.log(Level.FINE, "Updated state of action {0} to FAILED", actionId);
+		
 	}
 	
-	public void actionKilled(String actionId) {
-		
+	public void actionKilled(PersistedAction pAction) {
+		ObjectId actionId = pAction.getId();
 		logger.log(Level.FINE, "actionKilled called on action {0}", actionId);
 		//1. Decrease dataset claims
-		decreaseDatasetClaims(actionId);
+		decreaseDatasetClaims(actionId.toHexString());
 		
 		//2. Remove the output produced by the action and
 		//update the database with the output state accordingly.
@@ -171,20 +175,23 @@ public class Callback {
 		//we need to remove the output produced by the action
 		//before updating the state of the action to KILLED.
 		try {
-			PersistedAction action = this.aPersistance.getActionById(actionId);
-			String outputPath = action.getAction().getOutputPath();
+			pAction = this.aPersistance.getActionById(actionId.toHexString());
+			String outputPath = pAction.getAction().getOutputPath();
 			PersistedDataset dataset = this.dPersistance.getDatasetByPath(outputPath);
 			this.dPersistance.updateDatasetState(dataset, DatasetState.STORED_TO_DELETE);
 			logger.log(Level.FINE, "Updated state of dataset {0} to STORED_TO_DELETE", dataset.getPath());
+			
+			//3. Update the state of the action.
+			
+			this.aPersistance.updateActionState(pAction, ActionState.KILLED);
+			logger.log(Level.FINE, "Updated state of action {0} to KILLED", actionId);
 		}
 		catch(Exception e) {
+			e.printStackTrace();
 			logger.log(Level.WARNING, "Exception thrown " + e.toString());
 		}
 
-		//3. Update the state of the action.
-		ObjectId id = new ObjectId(actionId);
-		this.aPersistance.actionKilled(id);
-		logger.log(Level.FINE, "Updated state of action {0} to KILLED", actionId);
+		
 	}
 	
 	/**

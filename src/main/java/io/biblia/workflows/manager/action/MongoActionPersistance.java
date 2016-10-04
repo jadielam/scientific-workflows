@@ -8,6 +8,7 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
+import com.mongodb.client.result.UpdateResult;
 
 import io.biblia.workflows.definition.Action;
 import io.biblia.workflows.definition.parser.WorkflowParseException;
@@ -178,36 +179,7 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
 
 	}
 	
-	
-    /**
-     * Updates action state and updates the version of the document. 
-     * Returns the updated document.
-     * If the document version do not coincide, it throws an OutdatedActionException
-     * @throws WorkflowParseException 
-     * @throws JsonParseException 
-     * @throws NullPointerException 
-     * @throws OutdatedActionException
-     */
-    @Override
-    public PersistedAction updateActionState(PersistedAction action, ActionState state)
-            throws OutdatedActionException, NullPointerException, JsonParseException, WorkflowParseException {
-        final Document filter = new Document().append("_id", action.getId())
-                .append("version", action.getVersion());
-        final Document update = new Document().append("$set", new Document("state", state.name()))
-        		.append("$currentDate", new Document("lastUpdatedDate", true))
-        		.append("$inc", new Document("version", 1));
-
-        FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
-        options.returnDocument(ReturnDocument.AFTER);
-        Document newDocument = this.actions.findOneAndUpdate(filter, update, options);
-        if (null == newDocument) {
-        	throw new OutdatedActionException();
-        }
-        else {
-        	return PersistedAction.parseAction(newDocument);
-        }
-    }
-    
+	    
     /**
      * Adds the Oozie submission id to the persisted action and updates
      * the version of the document.
@@ -322,12 +294,15 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
 	public List<String> readyChildActions(String actionId) {
 		//1. Find all the child actions with actionId as parent
 		List<PersistedAction> childActions = new ArrayList<>();
+		final Document filter1 = new Document().append("state", ActionState.WAITING)
+									.append("parentsActionIds", new Document("$in", actionId));
 		Bson filter = and(
                 eq("state", ActionState.WAITING.name()),
                 //TODO: CHeck that this is good here with elemMatch
+                
                 elemMatch("parentsActionIds", eq("parentsActionIds", actionId))
             );
-		final FindIterable<Document> documents = this.actions.find(filter);
+		final FindIterable<Document> documents = this.actions.find(filter1);
         
 		MongoCursor<Document> iterator = documents.iterator();
         try {
@@ -385,15 +360,35 @@ public class MongoActionPersistance implements ActionPersistance, DatabaseConsta
         options.returnDocument(ReturnDocument.AFTER);
         this.actions.findOneAndUpdate(filter, update, options);
 	}
+	
+    @Override
+    public PersistedAction updateActionState(PersistedAction action, ActionState state)
+            throws OutdatedActionException, NullPointerException, JsonParseException, WorkflowParseException {
+        final Document filter = new Document().append("_id", action.getId())
+                .append("version", action.getVersion());
+        final Document update = new Document().append("$set", new Document("state", state.name()))
+        		.append("$currentDate", new Document("lastUpdatedDate", true))
+        		.append("$inc", new Document("version", 1));
+
+        FindOneAndUpdateOptions options = new FindOneAndUpdateOptions();
+        options.returnDocument(ReturnDocument.AFTER);
+        Document newDocument = this.actions.findOneAndUpdate(filter, update, options);
+        if (null == newDocument) {
+        	throw new OutdatedActionException();
+        }
+        else {
+        	return PersistedAction.parseAction(newDocument);
+        }
+    }
 
 	@Override
 	public void actionFinished(ObjectId id) {
 		final Document filter = new Document().append("_id", id);
-		final Document update = new Document().append("$set", new Document("state", ActionState.FINISHED))
+		final Document update = new Document().append("$set", new Document("state", ActionState.FINISHED.name()))
 				.append("$set", new Document("marker", getNextLogSequence()))
 				.append("$currentDate", new Document("lastUpdatedDate", true))
 				.append("$inc", new Document("version", 1));
-		this.actions.updateOne(filter, update);
+		UpdateResult result = this.actions.updateOne(filter, update);
 	}
 
 	@Override

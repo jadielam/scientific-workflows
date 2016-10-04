@@ -47,13 +47,13 @@ public class CallbackManager {
 						Status status = OozieClientUtil.getOozieWorkflowStatus(oozieSubmissionId);
 						logger.log(Level.FINE, "Action " + pAction.get_id() + " has status {0}", status.name());
 						if (Status.SUCCEEDED.equals(status)) {
-							callback.actionFinished(pAction.get_id().toHexString());
+							callback.actionFinished(pAction);
 						}
 						else if (Status.FAILED.equals(status)) {
-							callback.actionFailed(pAction.get_id().toHexString());
+							callback.actionFailed(pAction);
 						}
 						else if (Status.KILLED.equals(status)) {
-							callback.actionKilled(pAction.get_id().toHexString());
+							callback.actionKilled(pAction);
 						}
 						
 						Thread.sleep(100);
