@@ -110,7 +110,7 @@ public class DecisionManager {
 						logger.severe("IOException thrown when trying to get Hdfs usage info");
 					}
 					
-					Thread.sleep(1000);
+					Thread.sleep(30000);
 				}
 				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();

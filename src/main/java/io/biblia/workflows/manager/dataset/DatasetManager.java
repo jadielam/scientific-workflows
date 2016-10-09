@@ -100,7 +100,7 @@ public class DatasetManager {
 		
 	}
 	public static void stop() {
-		logger.log(Level.INFO, "Shutting down Dataset Manager");
+		logger.log(Level.INFO, "Shutting down Dataset Manager... ");
 		finishActionScraper();
 		finishDatasetDeletors();
 		if (null != t) {

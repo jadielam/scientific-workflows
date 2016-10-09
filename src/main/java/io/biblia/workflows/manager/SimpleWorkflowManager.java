@@ -40,7 +40,7 @@ public class SimpleWorkflowManager implements WorkflowManager {
 		
 		//0. Workflow id
 		Long workflowId = this.aPersistance.getNextWorkflowSequence();
-
+		
 		//1. Determine which actions do not need to be computed.
 		//1.1 Create a queue Q that will have actions to be processed.	
 		Deque<Action> Q = new LinkedList<Action>();
