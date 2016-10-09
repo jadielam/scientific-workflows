@@ -34,6 +34,8 @@ public class OozieClientUtil implements ConfigurationKeys {
 	private static final OozieClient client;
 
 	private static final String END_NODE_NAME = "done";
+	
+	private static final String ERROR_NODE_NAME = "fail";
 
 	private static final String WORKFLOW_DEFINITION_FILE_NAME = "workflow.xml";
 
@@ -148,7 +150,7 @@ public class OozieClientUtil implements ConfigurationKeys {
 			io.biblia.workflows.definition.CommandLineAction javaAction = (io.biblia.workflows.definition.CommandLineAction) action;
 			String actionName = javaAction.getOriginalName();
 			String okName = END_NODE_NAME;
-			String errorName = END_NODE_NAME;
+			String errorName = ERROR_NODE_NAME;
 			String mainClassName = javaAction.getMainClassName();
 			Map<String, String> inputParameters = javaAction.getInputParameters();
 			Map<String, String> additionalInput = javaAction.getExtraInputs();
