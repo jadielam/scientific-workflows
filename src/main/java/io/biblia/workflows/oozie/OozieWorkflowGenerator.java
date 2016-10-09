@@ -19,6 +19,8 @@ ConfigurationKeys {
 			
 	static final String DEFAULT_NAME_NODE;
 	
+	static final String ERROR_MESSAGE = "Workflow failed, error message[${wf:errorMessage(wf:lastErrorNode())}]";
+	
 	static {
 		String jobTracker = Configuration.getValue(JOBTRACKER, "localhost:8032");
 		String nameNode = Configuration.getValue(NAMENODE, "hdfs://localhost:8020");
@@ -94,7 +96,10 @@ ConfigurationKeys {
 			}
 			builder.openCloseElement("end", "name", this.endNodeName);
 			if (null != this.killNodeName) {
-				builder.openCloseElement("kill", "name", this.killNodeName);
+				builder.openElement("kill", "name", this.killNodeName);
+				builder.openElement("message");
+				builder.openCloseTextElement("message", ERROR_MESSAGE);
+				builder.closeElement("kill");
 			}
 			builder.closeElement("workflow-app");
 			return builder.toString();
