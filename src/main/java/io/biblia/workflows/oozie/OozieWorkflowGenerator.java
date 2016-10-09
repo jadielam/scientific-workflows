@@ -94,12 +94,13 @@ ConfigurationKeys {
 				builder.openCloseElement("error", "to", action.getErrorName());
 				builder.closeElement("action");
 			}
-			builder.openCloseElement("end", "name", this.endNodeName);
 			if (null != this.killNodeName) {
 				builder.openElement("kill", "name", this.killNodeName);
 				builder.openCloseTextElement("message", ERROR_MESSAGE);
 				builder.closeElement("kill");
 			}
+			builder.openCloseElement("end", "name", this.endNodeName);
+			
 			builder.closeElement("workflow-app");
 			return builder.toString();
 		}
