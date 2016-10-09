@@ -97,7 +97,6 @@ ConfigurationKeys {
 			builder.openCloseElement("end", "name", this.endNodeName);
 			if (null != this.killNodeName) {
 				builder.openElement("kill", "name", this.killNodeName);
-				builder.openElement("message");
 				builder.openCloseTextElement("message", ERROR_MESSAGE);
 				builder.closeElement("kill");
 			}
