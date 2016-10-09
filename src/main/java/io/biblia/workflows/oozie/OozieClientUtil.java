@@ -85,6 +85,7 @@ public class OozieClientUtil implements ConfigurationKeys {
 			xmlGenerator.addStartNode(oAction.getName());
 			xmlGenerator.addEndNode(END_NODE_NAME);
 			xmlGenerator.addAction(oAction);
+			xmlGenerator.addKillNode(ERROR_NODE_NAME);
 
 			String xmlWorkflow = xmlGenerator.generateWorkflow();
 
