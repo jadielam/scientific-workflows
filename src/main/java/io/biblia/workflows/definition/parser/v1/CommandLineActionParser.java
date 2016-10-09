@@ -102,14 +102,6 @@ implements ActionAttributesConstants, ConfigurationKeys  {
 		Boolean forceComputation = (Boolean) actionObject.get(ACTION_FORCE_COMPUTATION);
 		forceComputation = (forceComputation == null || !forceComputation) ? false : true;
 		String outputFolder = actionObject.getString(ACTION_OUTPUT_PATH);
-		if (null != outputFolder) {
-			try{
-				outputFolder = HdfsUtil.combinePath(nameNode, outputFolder);
-			}
-			catch(MalformedURLException e) {
-				throw new WorkflowParseException("Malformed output Folder provided: " + outputFolder);
-			}
-		}
 		List<Integer> parentActionIds = this.getParentActionIds(actionObject);
 		LinkedHashMap<String, String> additionalInput = this.getInputParameters(actionObject);
 		LinkedHashMap<String, String> configurationParameters = this.getConfigurationParameters(actionObject);

@@ -161,10 +161,10 @@ public class OozieClientUtil implements ConfigurationKeys {
 			if (null != additionalInput) {
 				arguments.addAll(additionalInput.values());
 			}
-			arguments.add(output);
 			if (null != configurationParameters) {
 				arguments.addAll(configurationParameters.values());
 			}
+			arguments.add(output);
 			
 			String nameNode = javaAction.getNameNode();
 			String jobTracker = javaAction.getJobTracker();
