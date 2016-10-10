@@ -18,6 +18,7 @@ import io.biblia.workflows.ConfigurationKeys;
 public class ActionUtils implements ConfigurationKeys {
 
 	private static final String ROOT_FOLDER = "workflows";
+	private static final String DIVIDER = "/";
 	public static final String ENCRYPT_DIVIDER = "~";
 	private static int MAX_FOLDER_SIZE;
 	private static MessageDigest digester;
@@ -221,7 +222,8 @@ public class ActionUtils implements ConfigurationKeys {
 			concatenation.append(name);
 		}
 		
-		return encrypt(concatenation.toString());
+		
+		return ROOT_FOLDER + DIVIDER + encrypt(concatenation.toString());
 	}
 	
 	/**
