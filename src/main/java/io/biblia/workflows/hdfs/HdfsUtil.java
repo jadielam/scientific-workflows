@@ -133,6 +133,8 @@ public class HdfsUtil implements ConfigurationKeys {
 	 * @throws IOException
 	 */
 	public static Long getSizeInBytes(String filename) throws IOException {
+		//TODO: Fix here. This returns the size in bytes from a directory
+		//recursively. I don't want it recursivel
 		Preconditions.checkNotNull(filename);
 		Path filenamePath = new Path(filename);
 		if (fs.exists(filenamePath)) {
