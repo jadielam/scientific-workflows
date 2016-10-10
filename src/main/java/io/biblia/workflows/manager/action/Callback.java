@@ -112,9 +112,9 @@ public class Callback {
 						logger.log(Level.FINER, "Updated state of dataset {0} to STORED_TO_DELETE", outputPath);
 						this.dLogDao.insertLogEntry(outputPath, DatasetState.TO_DELETE, DatasetState.STORED_TO_DELETE, sizeInMB);
 					}
-					this.dPersistance.updateDatasetSizeInMB(actionDataset, sizeInMB);
+					actionDataset = this.dPersistance.updateDatasetSizeInMB(actionDataset, sizeInMB);
 					for (String childActionId : childActionIds) {
-						this.dPersistance.addClaimToDataset(actionDataset, childActionId);
+						actionDataset = this.dPersistance.addClaimToDataset(actionDataset, childActionId);
 						logger.log(Level.FINER, "Added claim to dataset {0} from child action id {1}", new Object[]{outputPath, childActionId});
 					}
 					
