@@ -137,6 +137,7 @@ public class HdfsUtil implements ConfigurationKeys {
 		Path filenamePath = new Path(filename);
 		if (fs.exists(filenamePath)) {
 			long bytes = fs.getContentSummary(filenamePath).getSpaceConsumed();
+			
 			return Long.valueOf(bytes);
 		}
 		else {

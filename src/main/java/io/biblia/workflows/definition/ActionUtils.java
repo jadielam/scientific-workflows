@@ -215,13 +215,14 @@ public class ActionUtils implements ConfigurationKeys {
 	 * @return
 	 */
 	public static String generateOutputPathFromLongName(List<String> longName) {
-		StringBuilder toReturn = new StringBuilder("");
-
+		
+		StringBuilder concatenation = new StringBuilder();
 		for (String name : longName) {
-			toReturn.append(DIVIDER);
-			toReturn.append(name);
+			concatenation.append(ENCRYPT_DIVIDER);
+			concatenation.append(name);
 		}
-		return toReturn.toString();
+		
+		return encrypt(concatenation.toString());
 	}
 	
 	/**
