@@ -1,6 +1,7 @@
 package io.biblia.workflows.manager.decision;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,7 +36,7 @@ public class SimplifiedWorkflowHistory {
 	private final Map<String, Integer> actionsCount;
 	
 	/**
-	 * Map from an action id (its output path) to the rest 
+	 * Map from an action output path to the rest 
 	 * of data that is needed from that action
 	 * by the decision algorithm. 
 	 */
@@ -90,7 +91,7 @@ public class SimplifiedWorkflowHistory {
 		}
 	}
 	
-	public Collection<String> getActions() {
+	public Set<String> getActions() {
 		return this.actionsData.keySet();
 	}
 	

@@ -2,6 +2,8 @@ package io.biblia.workflows.manager.decision;
 
 import java.util.List;
 
+import io.biblia.workflows.manager.dataset.PersistedDataset;
+
 public interface DecisionAlgorithm {
 
 	/**
@@ -11,6 +13,6 @@ public interface DecisionAlgorithm {
 	 * @param spaceToFree
 	 * @return
 	 */
-	public List<String> toDelete(SimplifiedWorkflowHistory workflow, List<String> storedDatasets,
+	public List<String> toDelete(SimplifiedWorkflowHistory workflow, List<PersistedDataset> storedDatasets,
 			Long spaceToFree);
 }

@@ -22,6 +22,12 @@ public interface DatasetPersistance {
 	public List<String> getAllStoredDatasetPaths();
 	
 	/**
+	 * Returns all the datasets that have state STORED
+	 * @return
+	 */
+	public List<PersistedDataset> getAllStoredDatasets();
+
+	/**
 	 * Updates the state of the dataset and returns the new updated dataset.
 	 * @param dataset
 	 * @param newState

@@ -40,6 +40,33 @@ public class MongoDatasetPersistance implements DatasetPersistance, DatabaseCons
 	}
 	
 	@Override
+	public List<PersistedDataset> getAllStoredDatasets() {
+		List<PersistedDataset> toReturn = new ArrayList<>();
+		
+		final FindIterable<Document> documents = this.datasets.find(
+				eq("state", DatasetState.STORED.name())
+				);
+		
+		MongoCursor<Document> iterator = documents.iterator();
+		try {
+			while(iterator.hasNext()) {
+				Document next = iterator.next();
+				try {
+					PersistedDataset dataset = parseDataset(next);
+					toReturn.add(dataset);
+				}
+				catch(Exception e) {
+					continue;
+				}
+			}
+		}
+		finally {
+			iterator.close();
+		}
+		return toReturn;
+	}
+	
+	@Override
 	public List<String> getAllStoredDatasetPaths() {
 		
 		List<String> toReturn = new ArrayList<>();

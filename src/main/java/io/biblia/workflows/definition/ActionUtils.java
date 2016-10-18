@@ -223,7 +223,7 @@ public class ActionUtils implements ConfigurationKeys {
 		}
 		
 		
-		return ROOT_FOLDER + DIVIDER + encrypt(concatenation.toString());
+		return DIVIDER + ROOT_FOLDER + DIVIDER + encrypt(concatenation.toString());
 	}
 	
 	/**
