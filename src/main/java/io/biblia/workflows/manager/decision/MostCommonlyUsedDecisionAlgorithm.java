@@ -29,20 +29,20 @@ public class MostCommonlyUsedDecisionAlgorithm implements DecisionAlgorithm {
 		Set<String> actions = workflowHistory.getActions();
 
 		//2. Get the count for each action
-		ArrayList<SimpleEntry<String, Integer>> counts = new ArrayList<>();
+		ArrayList<SimpleEntry<String, Double>> counts = new ArrayList<>();
 		for (String action : actions) {
 			Integer count = workflowHistory.getActionCount(action);
 			if (null != count) {
-				counts.add(new SimpleEntry<>(action, count));
+				counts.add(new SimpleEntry<>(action, new Double(count)));
 			}
 		}
 		
 		//3. Sort the actions by count, ascending
-		Collections.sort(counts, new Comparator<SimpleEntry<String, Integer>>() {
+		Collections.sort(counts, new Comparator<SimpleEntry<String, Double>>() {
 			
 			@Override
-			public int compare(final SimpleEntry<String, Integer> e1, 
-					final SimpleEntry<String, Integer> e2) {
+			public int compare(final SimpleEntry<String, Double> e1, 
+					final SimpleEntry<String, Double> e2) {
 				return e1.getValue().compareTo(e2.getValue());
 			}
 		
@@ -59,13 +59,16 @@ public class MostCommonlyUsedDecisionAlgorithm implements DecisionAlgorithm {
 				spaceFred += sizeInMB;
 				outputsToDelete.add(d.getPath());
 			}
+			if (spaceFred > spaceToFree) {
+				break;
+			}
 		}
 		
 		//4. Starting from the beginning of the sorted list, add actions to
 		//the delete list until equaling or exceeding spaceToFree.
 		int i = 0;
 		while (i < counts.size() && spaceFred < spaceToFree) {
-			SimpleEntry<String, Integer> e = counts.get(i);
+			SimpleEntry<String, Double> e = counts.get(i);
 			String outputPath = e.getKey();
 			
 			//This means that the action is in stored state.

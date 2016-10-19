@@ -106,6 +106,10 @@ public class SimplifiedWorkflowHistory {
 	public ActionData getActionData(String actionOutputPath) {
 		return this.actionsData.get(actionOutputPath);
 	}
+	
+	public List<Long> getActionWorkflows(String actionOutputPath) {
+		return this.actionsWorkflows.get(actionOutputPath);
+	}
  }
 
 class Tuple {
