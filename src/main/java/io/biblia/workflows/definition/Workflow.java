@@ -194,7 +194,6 @@ public class Workflow {
 		List<List<Action>> topologicalSorts = new ArrayList<>();
 		//1. Validate that there are no cycles in the graph.
 		Map<Action, Color> visited = new HashMap<Action, Color>();
-		Queue<Integer> actionsQueue = new ArrayDeque<>();
 		
 		for (Entry<Integer, Action> e : entrySet) {
 			Action actionName = e.getValue();
@@ -203,7 +202,7 @@ public class Workflow {
 		
 		for (Entry<Integer, Action> e : entrySet) {
 			Action action = e.getValue();
-			List<Action> topologicalSort = dfs(action, actionsQueue, visited);
+			List<Action> topologicalSort = dfs(action, visited);
 			if (topologicalSort.size() > 0) {
 				topologicalSorts.add(topologicalSort);
 			}
@@ -231,19 +230,17 @@ public class Workflow {
 	 * @return Topologically sorted list
 	 * @throws InvalidWorkflowException
 	 */
-	private List<Action> dfs(Action currentAction, Queue<Integer> actionsQueue, Map<Action, Color> visited) throws InvalidWorkflowException {
+	private List<Action> dfs(Action currentAction, Map<Action, Color> visited) throws InvalidWorkflowException {
 		//1. If we have not visited this node yet, start visiting it
 		LinkedList<Action> topologicalSort = new LinkedList<>();
 		if (visited.get(currentAction).equals(Color.WHITE)) {
 			visited.put(currentAction, Color.GRAY);
-			Action action = this.actions.get(currentAction.getActionId());
-			List<Integer> parentActionsIds = action.getParentIds();
-			actionsQueue.addAll(parentActionsIds);
-			while (!actionsQueue.isEmpty()) {
-				Integer nextActionId = actionsQueue.poll();
-				Action nextAction = this.actions.get(nextActionId);
-				dfs(nextAction, actionsQueue, visited);
+			
+			Set<Action> childActions = this.actionsDependency.get(currentAction);
+			for (Action nextAction : childActions) {
+				dfs(nextAction, visited);
 			}
+			
 			visited.put(currentAction, Color.BLACK);
 			topologicalSort.addFirst(currentAction);
 		}
