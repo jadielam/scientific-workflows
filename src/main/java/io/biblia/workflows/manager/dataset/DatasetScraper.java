@@ -23,7 +23,7 @@ public class DatasetScraper {
 	
 	private final DatasetPersistance datasetDao;
 	
-	private static final long DATASET_SCRAPER_TIMEOUT = 60000;
+	private static final long DATASET_SCRAPER_TIMEOUT = 10000;
 	
 	private static final int QUEUE_SOFT_MAX_CAPACITY = 20;
 	

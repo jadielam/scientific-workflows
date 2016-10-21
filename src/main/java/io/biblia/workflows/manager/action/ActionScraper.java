@@ -40,7 +40,7 @@ class ActionScraper {
 	 * Milliseconds to wait until getting available actions from
 	 * the database again.
 	 */
-	private static final long ACTION_SCRAPER_TIMEOUT = 60000;
+	private static final long ACTION_SCRAPER_TIMEOUT = 10000;
 	
 	private static final int QUEUE_SOFT_MAX_CAPACITY = 20;
 	
