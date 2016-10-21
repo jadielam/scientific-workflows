@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -200,13 +201,13 @@ public class Workflow {
 			visited.put(actionName, Color.WHITE);
 		}
 		
+		LinkedList<Action> topologicalSort = new LinkedList<Action>();
 		for (Entry<Integer, Action> e : entrySet) {
 			Action action = e.getValue();
-			List<Action> topologicalSort = dfs(action, visited);
-			if (topologicalSort.size() > 0) {
-				topologicalSorts.add(topologicalSort);
-			}
+			dfs(action, visited, topologicalSort);
 		}
+		
+		topologicalSorts.add(topologicalSort);
 		
 		//2. Validate that the start action is not a descendant of any other action.
 		Action startAction = this.actions.get(this.startActionId);
@@ -230,15 +231,18 @@ public class Workflow {
 	 * @return Topologically sorted list
 	 * @throws InvalidWorkflowException
 	 */
-	private List<Action> dfs(Action currentAction, Map<Action, Color> visited) throws InvalidWorkflowException {
+	private List<Action> dfs(Action currentAction, Map<Action, Color> visited, LinkedList<Action> topologicalSort) throws InvalidWorkflowException {
 		//1. If we have not visited this node yet, start visiting it
-		LinkedList<Action> topologicalSort = new LinkedList<>();
 		if (visited.get(currentAction).equals(Color.WHITE)) {
 			visited.put(currentAction, Color.GRAY);
 			
 			Set<Action> childActions = this.actionsDependency.get(currentAction);
-			for (Action nextAction : childActions) {
-				dfs(nextAction, visited);
+			if (null != childActions) {
+				Iterator<Action> it = childActions.iterator();
+				while(it.hasNext()) {
+					Action nextAction = it.next();
+					dfs(nextAction, visited, topologicalSort);
+				}
 			}
 			
 			visited.put(currentAction, Color.BLACK);
@@ -323,10 +327,15 @@ public class Workflow {
 	public Collection<Action> getParentActions(Integer actionId) {
 		Action action = this.actions.get(actionId);
 		if (null != action) {
-			return this.inverseActionsDependency.get(action);
+			
+			Collection<Action> parents = this.inverseActionsDependency.get(action);
+			if (null != parents) {
+				return parents;
+			}
+			return Collections.<Action>emptyList();
 		}
 		else {
-			return null;
+			return Collections.<Action>emptyList();
 		}
 	}
 }

@@ -226,7 +226,7 @@ public class SimpleWorkflowManager implements WorkflowManager {
 		}
 		
 		//4. For each action not to be computed, add an entry in the collection of
-		//actions saying that this was a NON_COMPUTED_ACTION
+		//actions saying that this was an action that was previously computed
 		Set<Integer> notToComputeActions = new HashSet<Integer>(processedActions);
 		notToComputeActions.removeAll(actionsToCompute.keySet());
 		
