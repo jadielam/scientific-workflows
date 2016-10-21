@@ -57,6 +57,8 @@ public class DecisionManager {
 					//space, keep going:
 					try {
 						Long capacity = HdfsUtil.getFileSystemCapacityInMB();
+						Long capacityLimit = Long.parseLong(Configuration.getValue(DECISIONMANAGER_CAPACITYLIMIT));
+						capacity = Math.min(capacity, capacityLimit);
 						logger.log(Level.FINER, "Current system capacity in MB: {0}", capacity);
 						Long used = HdfsUtil.getFileSystemUsedSpaceInMB();
 						logger.log(Level.FINER, "Current system usagae in MB: {0}", used);
