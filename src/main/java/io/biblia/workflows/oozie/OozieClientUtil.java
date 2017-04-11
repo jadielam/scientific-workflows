@@ -44,6 +44,8 @@ public class OozieClientUtil implements ConfigurationKeys {
 		String NAMENODE_URL = io.biblia.workflows.Configuration.getValue(NAMENODE);
 		Configuration conf = new Configuration();
 		conf.set("fs.defaultFS", NAMENODE_URL);
+		conf.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
+		conf.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
 		try{
 			fs = FileSystem.get(conf);
 		}
